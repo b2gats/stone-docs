@@ -17,7 +17,7 @@ Finally, the adoption of the test-driven-development (TDD) approach to software 
 * Chapter 10, Testing
 
 <h2 id="beans">4. IoC容器</h2>
-### 4.1 springIOC容器和5beans简介
+### 4.1 springIOC容器和beans简介
 本章包含spring的控制反转(IoC)的spring 框架实现 [1] 原理. IoC 又名 依赖注入 (DI). 它是一个有对象定义依赖的处理手法，也就是和和与其他对象协同工作, 可以通过以下途径定义依赖：构造参数、工厂方法的参数、在它构造实例后或者通过一个工厂方法返回实例后设置对象属性。容器创建bean时候， 注入 依赖。 这个过程倒转了, 因此得名控制反转 (IoC)。反转了哪些控制？不再是由bean自己控制依赖类的实例化和定位, 类似于 服务定位 模式的机制。
 
 
