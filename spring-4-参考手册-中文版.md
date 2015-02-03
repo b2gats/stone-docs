@@ -8,7 +8,7 @@ Coverage of Spring’s integration with AspectJ (currently the richest - in term
 
 Finally, the adoption of the test-driven-development (TDD) approach to software development is certainly advocated by the Spring team, and so coverage of Spring’s support for integration testing is covered (alongside best practices for unit testing). The Spring team has found that the correct use of IoC certainly does make both unit and integration testing easier (in that the presence of setter methods and appropriate constructors on classes makes them easier to wire together in a test without having to set up service locator registries and suchlike)… the chapter dedicated solely to testing will hopefully convince you of this as well.
 
-* [Chapter 4, The IoC container](/#beans/)
+* [Chapter 4, The IoC container](#beans)
 * Chapter 5, Resources
 * Chapter 6, Validation, Data Binding, and Type Conversion
 * Chapter 7, Spring Expression Language (SpEL)
@@ -16,7 +16,7 @@ Finally, the adoption of the test-driven-development (TDD) approach to software 
 * Chapter 9, Spring AOP APIs
 * Chapter 10, Testing
 
-<h2 id="beans"> 4. IoC容器</h2>
+<h2 id="beans">4. IoC容器</h2>
 ### 4.1 springIOC容器和5beans简介
 本章包含spring的控制反转(IoC)的spring 框架实现 [1] 原理. IoC 又名 依赖注入 (DI). 它是一个有对象定义依赖的处理手法，也就是和和与其他对象协同工作, 可以通过以下途径定义依赖：构造参数、工厂方法的参数、在它构造实例后或者通过一个工厂方法返回实例后设置对象属性。容器创建bean时候， 注入 依赖。 这个过程倒转了, 因此得名控制反转 (IoC)。反转了哪些控制？不再是由bean自己控制依赖类的实例化和定位, 类似于 服务定位 模式的机制。
 
