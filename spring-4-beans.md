@@ -1,3 +1,14 @@
+<h1>作者简介</h1>  
+翻译 石永明  
+顾问 张丙天  
+
+**石永明** 现任中科软科技股份信息系统事业群技术副总监，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
+
+**张丙天**  
+
+<h1>前言</h1>
+我是前言。
+
 <h1 id="spring-core">Part III. 核心技术</h1>
 
 本部分参考手册完全覆盖了Srping 框架的全部技术
@@ -79,3 +90,11 @@ bean的定义要与应用中实际的类相一致。可以定义service 层的�
 `id`属性是个字串，是bean的唯一标示符。`class`属性定义了bean的类型，要使用类的全限定类名（含有包路径）。`id`属性的值，可以作为合作bean的引用标示符。上面未展示如何引用其他对象；详情参看[Dependencies](#beans-dependencies)
 
 
+<h4 id='beans-factory-instantiation'>容器实例化</h4>  
+Spring IoC的实例化易如反掌。`ApplicationContext`构造函数支持定位路径，定位路径也可以是多个，它是标识实际资源的字串，容器使用该标识加载配置元数据，支持多种资源，比如：本地文件系统、CLASSPATH等等。  
+
+	ApplicationContext context = 
+		new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});  
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+在学习了Spring IoC容器之后，也许你想了解更多的Spring的资源，如前所述在第6章，资源使用URI语法定位输入流，Spring提供了方便的机制读取输入流。在第6.7章[“Application contexts and Resource paths”](#resources-app-ctx)，专门讲述5用 资源路径构造应用上下文，资源路径也是惯用手法。
