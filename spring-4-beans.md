@@ -9,14 +9,12 @@ Spring也集成了AspectJ，AspectJ是现今java领域功能最丰富、最成�
 最后面的部分是tdd测试驱动开发，也是Spring 开发团队最为推崇的开发方法，主要内容有单元测试和spirng对集成测试的支持。Spring 团队发现，正确的使用Ioc，会使单元测试和集成测试更加简单（因为类中使用Setter和构造函数，将使它们更容易的配合，而无需使用set up组装）。同时，为测试弄了专门的单独章节，希望你能领悟这一点
 
 * [Chapter 4, The IoC container](#beans)
-* Chapter 5, Resources
-* Chapter 6, Validation, Data Binding, and Type Conversion
-* Chapter 7, Spring Expression Language (SpEL)
-* Chapter 8, Aspect Oriented Programming with Spring
-* Chapter 9, Spring AOP APIs
-* Chapter 10, Testing  
-
-
+* [Chapter 5, Resources](#resources)
+* [Chapter 6, Validation, Data Binding, and Type Conversion](#validation)
+* [Chapter 7, Spring Expression Language (SpEL)](#expressions)
+* [Chapter 8, Aspect Oriented Programming with Spring](#aop)
+* [Chapter 9, Spring AOP APIs](#aop-api)
+* [Chapter 10, Testing  ](#testing)
 
 <h2 id="beans">IoC容器</h2>  
 <h3 id="beans-introduction">springIOC容器和beans简介</h3>  
@@ -58,5 +56,26 @@ Spring configuration consists of at least one and typically more than one bean d
 
 bean的定义要与应用中实际的类相一致。可以定义service 层的对象、Dao对象、类似Struts的表现成的对象、像Hibernate SessionFactories这样的基础对象，JMS队列等等。通常不会去定义细粒度域对象，因为它们由DAO或者Service负责创建、加载。然而，通过集成AspectJ，可以配置非Srping容器创建的对象。参看[Using AspectJ to dependency-inject domain objects with Spring](#aop-atconfigurable)
 
+下面的样例展示了基于XML配置元数据的基本格式:  
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <bean id="..." class="...">
+    <!-- bean的详细配置 -->
+    </bean>
+    
+    <bean id="..." class="...">
+    <!-- bean的详细配置 -->
+    </bean>
+    
+    <!-- 其他bean -->
+    
+    </beans>
+
+`id`属性是个字串，是bean的唯一标示符。`class`属性定义了bean的类型，要使用类的全限定类名（含有包路径）。`id`属性的值，可以作为合作bean的引用标示符。上面未展示如何引用其他对象；详情参看[Dependencies](#beans-dependencies)
 
 
