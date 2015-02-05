@@ -162,8 +162,9 @@ Spring IoC的实例化易如反掌。`ApplicationContext`构造函数支持定�
 你可以使用全路径限定资源定位取代相对路径，比如："file:C:/config/services.xml" 或者"classpath:/config/services.xml"。还有，你可以使用抽象路径来解耦应用和配置文件。使用一个逻辑定位更可取 ,比如：通过"${..}"占位符，使用JVM运行时计算出的路径。
 
 <h4 id='beans-factory-client'>使用容器</h4>
-`ApplicationContext`是一个高级工厂的接口，能维护各种bean以及他们之间依赖的注册。`T getBean(String name, Class<T> requiredType)`，就能从定义的bean中获取实例。
-`ApplicationContext`能让你读取bean定义、访问他们，如下：
+`ApplicationContext`是一个高级工厂的接口，能维护各种bean以及他们之间依赖的注册。使用方法`T getBean(String name, Class<T> requiredType)`，就能从定义的bean中获取实例。
+`ApplicationContext`能让你读取bean定义、访问他们，如下：  
+
     // create and configure beans
     ApplicationContext context =
     new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});
@@ -206,7 +207,7 @@ bean有一个或者多个标示符。这些标示符必须是所在容器范围�
 
 在XML格式配置元数据中，使用 `id` 或者 `name` 属性来作为bean的标示符。`id`属性只能有1个。命名规范是字符数字混编（myBean,fooService,等等），但也支持特殊字符，可以包含。若想给bean起个别名，则可使用`name`属性来指定，可以是多个，用英文的逗号(`,`)分隔、分号(`;`)也行、空格也行。注意，在Spring3.1以前，`id`属性定义成了`xsd:ID`类型，该类型强制为字符*（译者心里说：估计字母+特殊字符，不支持数字的意思，有待验证，没工夫验证去了，翻译进度太慢了。再说了，现在都用4了，你再说3.0怎么着怎么着，那不跟孔乙己似的跟别人吹嘘茴香豆有四种写法）*。3.1版开始，它被定义为`xsd:string`类型。注意，bean `id`的唯一性约束依然被容器强制使用，尽管xml解析器不再支持了。*译者注：在spring3（含）以前，id是可以相同的，容器会替换相同id的bean，而在新版中，容器初始化过程中发现id相同抛出异常，停止实例化*
 
-`id` 和`name`属性不是bean所必须的。若未明确指定`id`或者`name`属性，容器会给它生成一个唯一name属性。当然了，如果你想通过bean的`name`属性引用，使用`ref`元素方式，或者是类`[Service Locator模式](#beans-servicelocator)`检索bean(*译者想：应该是指调用ApplicationContext.getBean()方法获取bean，类似这种方式。Service Locator是一种设计模式，其实换个名字是不是更合适，DL（Dependency Lookup依赖查找）。下面有专门的章节讲解，翻到时候再详细了解*)，就必须给bean指定	`name`了。之所以支持无name bean特性，是为了使内部类自动装配。
+`id` 和`name`属性不是bean所必须的。若未明确指定`id`或者`name`属性，容器会给它生成一个唯一name属性。当然了，如果你想通过bean的`name`属性引用，使用`ref`元素方式，或者是类似于[Service Locator模式](#beans-servicelocator)方式检索bean(*译者想：应该是指调用ApplicationContext.getBean()方法获取bean，类似这种方式。Service Locator是一种设计模式，其实换个名字是不是更合适，DL（Dependency Lookup依赖查找）。虽然现在我也不明白，但是下面有专门的章节讲解，翻到时候再详细了解*)，就必须给bean指定	`name`了。之所以支持无name bean特性，是为了使内部类自动装配。
 
 	Bean命名规范
 	
@@ -215,6 +216,67 @@ bean有一个或者多个标示符。这些标示符必须是所在容器范围�
 
 	规范的命名使配置易读易理解。若使用Spring AOP，通过名字增强(译注：大多数Spring AOP教材中的 通知)一坨bean时，规范的命名将带来极大的方便。
 	
+<h5 id='beans-beanname-alias'>bean定义之外设置别名</h5>
+定义的bean内，可以给bean多个标识符，组合`id`属性值和任意数量的`name`属性值。这些标识符均可作为该bean的别名，对于有些场景中,别名机制非常有用，比如应用中组件对自身的引用。(*译注：一个类持有一个本类的实例作为属性，看起来应该是这样的，以下代码为推测，可以执行*)  
+**Bean类**
+	
+	public class SomeBean {
+		//注意看这个属性，就是本类
+		private SomeBean someBean;
+		
+		public SomeBean(){}
+		
+		public void setSomeBean(SomeBean someBean) {
+			this.someBean = someBean;
+		}
+	}
+**配置元数据**  
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		<!--看bean的别名，使用,/;/空格 分隔都是可以是-->
+		<bean id="someBeanId" name="someBean,someBeanA;someBeanB someBeanC" class="com.example.spring.bean.SomeBean">
+			<!--将别名为someBeanA 的bean 注入给 id为someBeanId 的bean的属性 'someBean'-->
+			<property name="someBean" ref="someBeanA"></property>
+		</bean>
+	</beans>
+
+**测试代码**  
+
+	@ContextConfiguration
+	@RunWith(SpringJUnit4ClassRunner.class)
+	public class SomeBeanTests {
+		
+		@Autowired
+		@Qualifier("someBeanId")
+		private SomeBean someBean;
+		
+		@Test
+		public void testSimpleProperties() throws Exception {
+		}
+		
+	}
+
+在bean的定义处指定所有别名有时候并不合适，然而，在其他配置文件中给bean设置别名却更为恰当。此法通常应用在大型系统的场景中，配置文件分散在各个子系统中，每个子系统都有本系统的bean定义。XML格式配置元数据，提供`<alias/>`元素，可以搞定此用法。
+
+	<alias name="fromName" alias="toName"/>
+
+这种情况下，在同容器中有个叫`fromName`的bean，或者叫其他的`阿猫阿狗`之类的，再使用此别名定义之后，即可被当做`toName`来引用。
+
+举个栗子，子系统A中的配置元数据也许引用了一个被命名为`subsystemA-dataSource`的bean。子系统B也许引用了一个`subsystemB-dataSource`。将这两个子系统整合到主应用中，而主应用使用了一个`myApp-dataSource`，为了使3个bean引用同一个对象，得在MyApp配置元数据中使用别名定义:
+
+	<alias name="subsystemA-dataSource" alias="subsystemB-dataSource"/>
+	<alias name="subsystemA-dataSource" alias="myApp-dataSource" />
+
+现在，每个组件和主应用都能通过bean 名引用dataSource，而bean名都是唯一的保证不与其他定义冲突(实际上创建了一个命名空间),但他们引用的都是同一个bean。
+
+**Java-configuration**
+
+If you are using Java-configuration, the @Bean annotation can be used to provide aliases see Section 5.12.3, “Using the @Bean annotation” for details.
+如果你使用了`Java-configuration`，`@Bean`注解也提供了别名，详见[Section 5.12.3, “Using the @Bean annotation”](#beans-java-bean-annotation)
+
 
 
 
