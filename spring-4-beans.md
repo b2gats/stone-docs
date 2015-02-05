@@ -274,7 +274,6 @@ bean有一个或者多个标示符。这些标示符必须是所在容器范围�
 
 **Java-configuration**
 
-If you are using Java-configuration, the @Bean annotation can be used to provide aliases see Section 5.12.3, “Using the @Bean annotation” for details.
 如果你使用了`Java-configuration`，`@Bean`注解也提供了别名，详见[Section 5.12.3, “Using the @Bean annotation”](#beans-java-bean-annotation)
 
 
