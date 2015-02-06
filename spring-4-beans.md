@@ -306,7 +306,9 @@ bean的定义，本质是如何创建一个或多个对象的配方。容器被�
 若使用XML格式配置元数据，得为将要实例化的对象指定类型(或者说是类)，使用`<bean/>`元素的`class`属性实现。`class`属性 映射到`BeanDefinition`类实例的`Class`属性（域），这个`class`属性是`<bean/>`元素必须的。(例外情况，参看“[Instantiation using an instance factory method”](#beans-factory-class-instance-factory-method) 和 [Section 5.7, “Bean definition inheritance”](#beans-child-bean-definitions)。使用`Class`域属性，通过以下两种方式：  
 
 * 通常，通过指定bean的`class` 属性，容器使用反射调用其构造函数直接创建bean，有点像Java 编码中使用`new`操作符。  
-* 指定`class`实际类含有用于创建对象的静态工厂方法，这是不常使用的场景，容器会调用类的静态工厂方法创建bean。调用静态工厂方法返回的对象类型也许是相同类型，也许完全是其他类。  
+* 指定`class`实际类含有用于创建对象的静态工厂方法，这是不常使用的场景，容器会调用类的静态工厂方法创建bean。调用静态工厂方法返回的对象类型也许是相同类型，也许完全是其他类。
+  
+  
 <div class="sidebar">
 <b>内部类命名</b> 若要定义静态内部类，得将类名劈开。<br><br>
 举例来说，现在在<span class="scode">com.example</span>包有个类<span class="scode">Foo</span>,该类有静态内部类<span class="scode">Bar</span>,定义<span class="scode">Bar</span>的Spring bean的<span class="scode">`class`</span>属性差不多是这样<br><br>
