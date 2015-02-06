@@ -328,6 +328,24 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 
 如何为构造函数指定参数？如何在对象实力话之后设置其属性？请参看[Injecting Dependencies](#beans-factory-collaborators)
 
+<h4 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h4>
+定义使用使用静态工厂方法创建的bean时，得指定工厂方法类的作为`class`属性值，并且还得指定工厂方法类中用于创建bean的方法名称，作为`factory-method`属性值。工厂方法可以有参数，调用该方法即可返回对象实例，就像通过构造函数创建对象实例一样。此种bean定义是为了兼容遗留系统中的静态工厂
 
+The following bean definition specifies that the bean will be created by calling a factory-method. The definition does not specify the type (class) of the returned object, only the class containing the factory method. In this example, the createInstance() method must be a static method.
+下面的bean定义，是使用工厂方法创建bean的方式。定义中，无需指定返回对象的类型(class)，而是指定工厂方法类的`class`。下例中，`createInstance()`方法必须是一个`static`静态方法。
+
+	<bean id="clientService"
+	    class="examples.ClientService"
+	    factory-method="createInstance"/>  
+<br>  
+
+    public class ClientService {
+	    private static ClientService clientService = new ClientService();
+	    private ClientService() {}
+	    
+	    public static ClientService createInstance() {
+	    return clientService;
+	    }
+    }	
 
 
