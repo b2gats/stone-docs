@@ -1,8 +1,32 @@
+<style>
+.sidebar {
+line-height: 1.4;
+padding: 0 20px;
+background-color: #F8F8F8;
+border: 1px solid #CCCCCC;
+border-radius: 3px 3px 3px 3px;
+}
+.scode {
+font-size: 16px;
+font-family: Consolas,"Liberation Mono",Courier,monospace;
+color: #6D180B;
+background-color: #F2F2F2;
+border: 1px solid #CCCCCC;
+border-radius: 4px;
+padding: 1px 3px 0;
+text-shadow: none;
+white-space: nowrap;
+}
+code {
+font-size: 16px;
+}
+</style>
+
 <h1>作者简介</h1>  
 翻译 石永明  
 顾问 张丙天  
 
-**石永明** 现任中科软科技股份信息系统事业群技术副总监，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
+**石永明** 现任中科软科技股份有限公司信息系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
 
 **张丙天**  
 
@@ -63,7 +87,7 @@ Spring 提供了一些开箱即用的`ApplicationContext`接口的实现。在�
 * [Annotation-based configuration](#beans-annotation-config): Spring 2.5 引进的支持java 注解配置元数据  
 * [Java-based configuration](#beans-java):  Spring3.0时，将Spring JavaConfig project的很多功能集成到核心Spring框架中。Thus you can define beans external to your application classes by using Java rather than XML files.你可以使用java配置类定义bean，无需xml，该配置类与应用类无关。想要尝鲜的话，请参看`@Configuration`,`@Bean`,`@Import`,`@DependsOn`注解
 
-Spring configuration consists of at least one and typically more than one bean definition that the container must manage.Spring配置由Spring bean的定义组成，这些bean必须被容器管理，至少1个，通常会有多个。基于XML的配置元数据，大概这么配置，根节点`<beans>`中配置子节点`<bean>`。Java configuration使用是这样的，一个带有`@Configuration`类注解的类中，方法上使用`@Bean`方法注解。
+Spring配置由Spring bean的定义组成，这些bean必须被容器管理，至少1个，通常会有多个。基于XML的配置元数据，大概这么配置，根节点`<beans>`中配置子节点`<bean>`。Java configuration使用是这样的，一个带有`@Configuration`类注解的类中，方法上使用`@Bean`方法注解。
 
 bean的定义要与应用中实际的类相一致。可以定义service 层的对象、Dao对象、类似Struts的表现成的对象、像Hibernate SessionFactories这样的基础对象，JMS队列等等。通常不会去定义细粒度域对象，因为它们由DAO或者Service负责创建、加载。然而，通过集成AspectJ，可以配置非Srping容器创建的对象。参看[Using AspectJ to dependency-inject domain objects with Spring](#aop-atconfigurable)
 
@@ -276,7 +300,20 @@ bean有一个或者多个标示符。这些标示符必须是所在容器范围�
 
 如果你使用了`Java-configuration`，`@Bean`注解也提供了别名，详见[Section 5.12.3, “Using the @Bean annotation”](#beans-java-bean-annotation)
 
+<h4 id='beans-factory-class'>bean实例化</h4>  
+bean的定义，本质是如何创建一个或多个对象的配方。容器被请求时，会解析配置元数据中的bean定义并封装，使用封装配置创建（或者获取）对象实例。
 
+若使用XML格式配置元数据，得为将要实例化的对象指定类型(或者说是类)，使用`<bean/>`元素的`class`属性实现。`class`属性 映射到`BeanDefinition`类实例的`Class`属性（域），这个`class`属性是`<bean/>`元素必须的。(例外情况，参看“[Instantiation using an instance factory method”](#beans-factory-class-instance-factory-method) 和 [Section 5.7, “Bean definition inheritance”](#beans-child-bean-definitions)。使用`Class`域属性，通过以下两种方式：  
+
+* 通常，通过指定bean的`class` 属性，容器使用反射调用其构造函数直接创建bean，有点像Java 编码中使用`new`操作符。  
+* 指定`class`实际类含有用于创建对象的静态工厂方法，这是不常使用的场景，容器会调用类的静态工厂方法创建bean。调用静态工厂方法返回的对象类型也许是相同类型，也许完全是其他类。  
+<div class="sidebar">
+<b>内部类命名</b> 若要定义静态内部类，得将类名劈开。<br><br>
+举例来说，现在在<span class="scode">com.example</span>包有个类<span class="scode">Foo</span>,该类有静态内部类<span class="scode">Bar</span>,定义<span class="scode">Bar</span>的Spring bean的<span class="scode">`class`</span>属性差不多是这样<br><br>
+<code class="scode">com.example.Foo$Bar</code> <br>  
+<br>
+注意<span class="scode">$</span>字符，用它来分隔内部类名和外围类名
+</div>
 
 
 
