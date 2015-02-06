@@ -333,7 +333,6 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 <h4 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h4>
 定义使用使用静态工厂方法创建的bean时，得指定工厂方法类的作为`class`属性值，并且还得指定工厂方法类中用于创建bean的方法名称，作为`factory-method`属性值。工厂方法可以有参数，调用该方法即可返回对象实例，就像通过构造函数创建对象实例一样。此种bean定义是为了兼容遗留系统中的静态工厂
 
-The following bean definition specifies that the bean will be created by calling a factory-method. The definition does not specify the type (class) of the returned object, only the class containing the factory method. In this example, the createInstance() method must be a static method.
 下面的bean定义，是使用工厂方法创建bean的方式。定义中，无需指定返回对象的类型(class)，而是指定工厂方法类的`class`。下例中，`createInstance()`方法必须是一个`static`静态方法。
 
 	<bean id="clientService"
@@ -350,4 +349,86 @@ The following bean definition specifies that the bean will be created by calling
 	    }
     }	
 
+<h4 id='beans-factory-ctor-arguments-resolution'>构造函数参数解决方案</h4>
+Constructor argument resolution matching occurs using the argument’s type. If no potential ambiguity exists in the constructor arguments of a bean definition, then the order in which the constructor arguments are defined in a bean definition is the order in which those arguments are supplied to the appropriate constructor when the bean is being instantiated. Consider the following class:
+构造参数解决方案，会匹配所使用的参数类型。如果在bean的定义中，构造参数不存在歧义，那么，在bean定义中定义的构造参数的次序，在bean实例化时，就是提供给适合的构造参数的次序。看这个类：
+	package x.y;
+	
+	public class Foo {
+	
+	    public Foo(Bar bar, Baz baz) {
+	        // ...
+	    }
+	
+	}
+
+不存在歧义，假设`Bar`和`Baz`类没有集成关系，那么下面的配置是合法的，而且，不需要在`<constructor-arg/>`元素里指定构造参数的明确的`indexes`索引或者类型。
+
+	<beans>
+	    <bean id="foo" class="x.y.Foo">
+	        <constructor-arg ref="bar"/>
+	        <constructor-arg ref="baz"/>
+	    </bean>
+	
+	    <bean id="bar" class="x.y.Bar"/>
+	
+	    <bean id="baz" class="x.y.Baz"/>
+	</beans>
+
+若需要引用另一个bean，类型已知，构造函数就可以匹配参数类型(像上面的示例)。使用简单类型时， 想`<value>true</true>`,Srping不能决定value类型情况，Spring就不能自己匹配类型。例如：
+
+	package examples;
+	
+	public class ExampleBean {
+	
+	    // Number of years to calculate the Ultimate Answer
+	    private int years;
+	
+	    // The Answer to Life, the Universe, and Everything
+	    private String ultimateAnswer;
+	
+	    public ExampleBean(int years, String ultimateAnswer) {
+	        this.years = years;
+	        this.ultimateAnswer = ultimateAnswer;
+	    }
+	
+	}
+
+上面的场景中，如果使用`type`属性明确指定构造参数的类型,容器就可以使用类型匹配。比如：
+
+	<bean id="exampleBean" class="examples.ExampleBean">
+	    <constructor-arg type="int" value="7500000"/>
+	    <constructor-arg type="java.lang.String" value="42"/>
+	</bean>
+
+使用`index`属性明确指定构造参数的次序。比如
+
+	<bean id="exampleBean" class="examples.ExampleBean">
+	    <constructor-arg index="0" value="7500000"/>
+	    <constructor-arg index="1" value="42"/>
+	</bean>
+
+当构造函数有2个相同类型的参数,指定次序可以解决此种情况。注意`index`是从0开始
+
+	<bean id="exampleBean" class="examples.ExampleBean">
+	    <constructor-arg name="years" value="7500000"/>
+	    <constructor-arg name="ultimateAnswer" value="42"/>
+	</bean>
+
+Keep in mind that to make this work out of the box your code must be compiled with the debug flag enabled so that Spring can look up the parameter name from the constructor. If you can’t compile your code with debug flag (or don’t want to) you can use @ConstructorProperties JDK annotation to explicitly name your constructor arguments. The sample class would then have to look as follows:
+记住，若要使Spring能从构造函数查找参数名字,代码在编译时必须开启调试模式。若你没有开启调试模式（或者不想），可以使用`@ConstructorProperties` JDK 注解明确指定构造参数的`name`。样例程序：
+	
+	package examples;
+	
+	public class ExampleBean {
+	
+	    // Fields omitted
+	
+	    @ConstructorProperties({"years", "ultimateAnswer"})
+	    public ExampleBean(int years, String ultimateAnswer) {
+	        this.years = years;
+	        this.ultimateAnswer = ultimateAnswer;
+	    }
+	
+	}
 
