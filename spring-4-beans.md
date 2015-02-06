@@ -315,9 +315,18 @@ bean的定义，本质是如何创建一个或多个对象的配方。容器被�
 注意<span class="scode">$</span>字符，用它来分隔内部类名和外围类名
 </div>
 
+<h4 id='beans-factory-class-ctor'>用构造函数实例化</h4>
+若是使用构造函数方式创建bean，所有的常规类都可以使用Spring来创建、管理。也就是说，开发的类无需实现任何特殊接口或者使用某种特殊编码风格。仅需指定bean的`class`即可。对于特殊的bean管理，取决于你使用的IoC类型，也许需要一个默认的空构造。  
 
+Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正的`JavaBeans`。大多数Spring的用户心中，真正的`JavaBean`是这样的：仅有1个默认的无参构造函数、属性、setter、getter。嗯，比如，现在需要使用一个废弃连接池，它肯定不符合`JavaBean`规范，Spring照样能管理。
 
+使用XML格式配置元数据 定义bean的`class`，如下所示：  
 
+    <bean id="exampleBean" class="examples.ExampleBean"/>
+    
+    <bean name="anotherExample" class="examples.ExampleBeanTwo"/>  
+
+如何为构造函数指定参数？如何在对象实力话之后设置其属性？请参看[Injecting Dependencies](#beans-factory-collaborators)
 
 
 
