@@ -420,10 +420,7 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 
 DI机制使代码简洁，对象提供它们的依赖，解耦更高效。对象无需自己查找依赖。同样的，类更容易测试，尤其当依赖接口或者抽象类时，测试允许在单元测试中使用`stub`或者`mock`（模拟技术）实现。
 
-DI有2种主要方式，[构造注入](#beans-constructor-injection) 和 [setter注入](#beans-setter-injection)
-
-<h5 id='beans-constructor-injectio'>构造注入</h5>
-Constructor-based DI is accomplished by the container invoking a constructor with a number of arguments, each representing a dependency. Calling a static factory method with specific arguments to construct the bean is nearly equivalent, and this discussion treats arguments to a constructor and to a static factory method similarly. The following example shows a class that can only be dependency-injected with constructor injection. Notice that there is nothing special about this class, it is a POJO that has no dependencies on container specific interfaces, base classes or annotations.
+DI有2种主要方式，[构造注入](#beans-constructor-injection) 和 [setter注入](#beans-setter-injection)  
 构造注入，容器调用构造函数并传参数，每个参数都是依赖。调用静态工厂方法并传参数方式构造bean和构造注入差不多，这里是指构造注入处理参数和静态工厂方法处理参数像类似。下例中展示了一个只能使用构造注入的类。注意，此类无任何特别之处，并未依赖容器指定的接口、基类、注解，就是一个`POJO`
 
 	public class SimpleMovieLister {
@@ -522,3 +519,33 @@ Constructor-based DI is accomplished by the container invoking a constructor wit
 	}
 
 <h5 id='beans-setter-injection'>setter注入</h5>
+Setter注入是容器调用bean上的setter方法,bean是使用无参构造函数返回的实例，或者无参静态工厂方法返回的实例。
+下面样例中展示了只能使用Setter注入的类。这个类是传统java类，就是个POJO，不依赖容器指定的接口、基类、注解。
+
+	public class SimpleMovieLister {
+	
+	    // the SimpleMovieLister has a dependency on the MovieFinder
+	    private MovieFinder movieFinder;
+	
+	    // a setter method so that the Spring container can inject a MovieFinder
+	    public void setMovieFinder(MovieFinder movieFinder) {
+	        this.movieFinder = movieFinder;
+	    }
+	
+	    // business logic that actually uses the injected MovieFinder is omitted...
+	
+	}
+
+
+`ApplicationContext`对它所管理的bean支持构造注入和setter注入。也支持先构造注入再setter注入。定义依赖，会转换成某种形式的<code class="scode">BeanDefinition</code>类，<code class="scode">BeanDefinition</code>类与<code class="scode">PropertyEditor</code>实例配合，即可将属性从一种格式转换成其他格式。然而，大多数程序员不会直接使用这些类（也就是编程式），更多的是使用XML、注解(也就是<code class="scode">@Component</code><code class="scode">@Controller</code>等等),或者<code class="scode">@Configuration</code>注解的类中的方法上使用 <code class="scode">@Bean</code>。这些配置数据，都会在容器内部转换成`BeanDefinition`，用于加载整个Spring Ioc 容器。
+
+**构造注入对比setter注入**
+
+何时使用构造注入，何时使用setter注入，经验法则是:强制依赖用构造，可选依赖用Setter。注意，在settter方法上使用<code class="scode">[@Required](#beans-required-annotation)</code>注解即可另属性强制依赖。
+
+Spring 团队建议,构造注入的实例是不可变的，不为null的。此外，构造注入组件要将完全初始化后的实例返回给客户端代码。还有，大量参数的构造函数是非常烂的，它意味着该类有大量的职责，得重构。
+
+setter注入主要用于可选依赖,类内部可以指定默认依赖。否则类内所有使用依赖的地方，都得进行非空校验。setter注入的有个好处就是，类可以重配置或者再注入。因此，使用`JMX MBeans`进行管理的场景中，就非常适合setter注入。
+
+使用何种依赖注入方式，对于某些类，非常有意义。有时协同第三方类处理，没有源码，由你来决定使用何种方式。比如，第三方类未暴露任何setter方法，那么构造注入也许就是唯一的可行的注入方式了。
+
