@@ -412,8 +412,33 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 >Srping 资料中,factory bean是指一个Spring配置的bean，该bean能通过实例或者静态工厂方法创建对象。对比之下，`FactoryBean`(注意大写)是指Spring术语`FactoryBean`。这段没太理解，解释factory bean和`FactoryBean`。
 
+<h3 id='beans-dependencies'>依赖</h3>
+企业应用绝不会只有1个简单对象（或者说Spring bean）。哪怕是最简单的应用，也会包含许多对象协同工作。下一章节讲述，如何为真正的应用定义大量的、独立的bean，并让这些对象一起合作。
 
+<h4 id="beans-factory-collaborators">依赖注入</h4>
+*依赖注入(DI)*，是一个有对象定义依赖的手法，也就是，如何与其他对象合作，通过构造参数、工厂方法参数、或是在对象实例化之后设置对象属性，实例化既可以构造也可以是使用工厂方法。容器在它创建bean之后注入依赖。这个过程从根本上发生了反转，因此又名控制反转（Ioc），因为Spring bean自己控制依赖类的实例化或者定位 ，Spring bean中就有依赖类的定义，容器使用依赖类构造器创建依赖类实例，使用*Service Locator*模式`定位依赖类。
 
+DI机制使代码简洁，对象提供它们的依赖，解耦更高效。对象无需自己查找依赖。同样的，类更容易测试，尤其当依赖接口或者抽象类时，测试允许在单元测试中使用`stub`或者`mock`（模拟技术）实现。
+
+DI有2种主要方式，[构造注入](#beans-constructor-injection) 和 [setter注入](#beans-setter-injection)
+
+<h5 id='beans-constructor-injectio'>构造注入</h5>
+Constructor-based DI is accomplished by the container invoking a constructor with a number of arguments, each representing a dependency. Calling a static factory method with specific arguments to construct the bean is nearly equivalent, and this discussion treats arguments to a constructor and to a static factory method similarly. The following example shows a class that can only be dependency-injected with constructor injection. Notice that there is nothing special about this class, it is a POJO that has no dependencies on container specific interfaces, base classes or annotations.
+构造注入，容器调用构造函数并传参数，每个参数都是依赖。调用静态工厂方法并传参数方式构造bean和构造注入差不多，这里是指构造注入处理参数和静态工厂方法处理参数像类似。下例中展示了一个只能使用构造注入的类。注意，此类无任何特别之处，并未依赖容器指定的接口、基类、注解，就是一个`POJO`
+
+	public class SimpleMovieLister {
+	
+	    // the SimpleMovieLister 依赖 a MovieFinder
+	    private MovieFinder movieFinder;
+	
+	    //Spring容器能注入MovieFinder的构造函数
+	    public SimpleMovieLister(MovieFinder movieFinder) {
+	        this.movieFinder = movieFinder;
+	    }
+	
+	    // 实际如何使用MovieFinder的业务逻辑省略了
+	
+	}
 
 <h5 id='beans-factory-ctor-arguments-resolution'>构造函数参数解决方案</h5>
 构造参数解决方案，会匹配所使用的参数类型。如果在bean的定义中，构造参数不存在歧义，那么，在bean定义中定义的构造参数的次序，在bean实例化时，就是提供给适合的构造参数的次序。看这个类：
@@ -496,3 +521,4 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 	
 	}
 
+<h5 id='beans-setter-injection'>setter注入</h5>
