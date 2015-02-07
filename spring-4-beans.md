@@ -26,7 +26,7 @@ font-size: 16px;
 翻译 石永明  
 顾问 张丙天  
 
-**石永明** 现任中科软科技股份有限公司信息系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
+**石永明** 现任中科软科技股份有限公司应用系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
 
 **张丙天**  
 
@@ -330,7 +330,7 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 
 如何为构造函数指定参数？如何在对象实力话之后设置其属性？请参看[Injecting Dependencies](#beans-factory-collaborators)
 
-<h4 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h4>
+<h5 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h4>
 定义使用使用静态工厂方法创建的bean时，得指定工厂方法类的作为`class`属性值，并且还得指定工厂方法类中用于创建bean的方法名称，作为`factory-method`属性值。工厂方法可以有参数，调用该方法即可返回对象实例，就像通过构造函数创建对象实例一样。此种bean定义是为了兼容遗留系统中的静态工厂
 
 下面的bean定义，是使用工厂方法创建bean的方式。定义中，无需指定返回对象的类型(class)，而是指定工厂方法类的`class`。下例中，`createInstance()`方法必须是一个`static`静态方法。
@@ -349,8 +349,73 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 	    }
     }	
 
-<h4 id='beans-factory-ctor-arguments-resolution'>构造函数参数解决方案</h4>
-Constructor argument resolution matching occurs using the argument’s type. If no potential ambiguity exists in the constructor arguments of a bean definition, then the order in which the constructor arguments are defined in a bean definition is the order in which those arguments are supplied to the appropriate constructor when the bean is being instantiated. Consider the following class:
+<h5 id='beans-factory-class-instance-factory-method'>使用实例工厂方法实例化</h5>
+和[静态工厂方法](#beans-factory-class-static-factory-method)类似的还有实例工厂方法，使用实例工厂方法的方式实例化，是调用容器中已存在的bean的一个非静态方法来创建一个bean。用法是，1、`class`属性置空设置。 2、设置`factory-bean`属性，其值为当前容器(或者父容器)中bean的名字，该bean包含可供调用的创建对象的实例方法。3、设置`factory-method`属性，其值为工厂方法名。
+
+    <!-- 工厂类, 包含一个方法createInstance() -->
+    <bean id="serviceLocator" class="examples.DefaultServiceLocator">
+    <!-- inject any dependencies required by this locator bean -->
+    </bean>
+    
+    <!-- the bean to be created via the factory bean -->
+    <bean id="clientService"
+	    factory-bean="serviceLocator"
+	    factory-method="createClientServiceInstance"/>
+
+工厂类如下
+
+    public class DefaultServiceLocator {
+    
+	    private static ClientService clientService = new ClientServiceImpl();
+	    private DefaultServiceLocator() {}
+	    
+	    public ClientService createClientServiceInstance() {
+	    return clientService;
+	    }
+    }
+
+工厂类可以有多个工厂方法:
+
+	<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+	    <!-- inject any dependencies required by this locator bean -->
+	</bean>
+	
+	<bean id="clientService"
+	    factory-bean="serviceLocator"
+	    factory-method="createClientServiceInstance"/>
+	
+	<bean id="accountService"
+	    factory-bean="serviceLocator"
+	    factory-method="createAccountServiceInstance"/>
+
+工厂类如下:
+
+	public class DefaultServiceLocator {
+	
+	    private static ClientService clientService = new ClientServiceImpl();
+	    private static AccountService accountService = new AccountServiceImpl();
+	
+	    private DefaultServiceLocator() {}
+	
+	    public ClientService createClientServiceInstance() {
+	        return clientService;
+	    }
+	
+	    public AccountService createAccountServiceInstance() {
+	        return accountService;
+	    }
+	
+	}
+
+上例中展示了工厂类本身也可以通过 DI 管理和配置。参看[DI详情](#beans-factory-properties-detailed)
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>Srping 资料中,factory bean是指一个Spring配置的bean，该bean能通过实例或者静态工厂方法创建对象。对比之下，`FactoryBean`(注意大写)是指Spring术语`FactoryBean`。这段没太理解，解释factory bean和`FactoryBean`。
+
+
+
+
+<h5 id='beans-factory-ctor-arguments-resolution'>构造函数参数解决方案</h5>
 构造参数解决方案，会匹配所使用的参数类型。如果在bean的定义中，构造参数不存在歧义，那么，在bean定义中定义的构造参数的次序，在bean实例化时，就是提供给适合的构造参数的次序。看这个类：
 	package x.y;
 	
@@ -415,7 +480,6 @@ Constructor argument resolution matching occurs using the argument’s type. If 
 	    <constructor-arg name="ultimateAnswer" value="42"/>
 	</bean>
 
-Keep in mind that to make this work out of the box your code must be compiled with the debug flag enabled so that Spring can look up the parameter name from the constructor. If you can’t compile your code with debug flag (or don’t want to) you can use @ConstructorProperties JDK annotation to explicitly name your constructor arguments. The sample class would then have to look as follows:
 记住，若要使Spring能从构造函数查找参数名字,代码在编译时必须开启调试模式。若你没有开启调试模式（或者不想），可以使用`@ConstructorProperties` JDK 注解明确指定构造参数的`name`。样例程序：
 	
 	package examples;
