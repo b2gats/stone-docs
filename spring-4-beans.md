@@ -465,7 +465,7 @@ Constructor-based DI is accomplished by the container invoking a constructor wit
 	    <bean id="baz" class="x.y.Baz"/>
 	</beans>
 
-若需要引用另一个bean，类型已知，构造函数就可以匹配参数类型(像上面的示例)。使用简单类型时， 想`<value>true</true>`,Srping不能决定value类型情况，Spring就不能自己匹配类型。例如：
+若需要引用另一个bean，类型已知，构造函数就可以匹配参数类型(像上面的示例)。使用简单类型时， 想`<value>true</true>`,Srping不能决定value类型情况，Spring就不能自己匹配类型。例如： 
 
 	package examples;
 	
