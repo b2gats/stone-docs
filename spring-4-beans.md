@@ -686,5 +686,51 @@ In the preceding example, setters are declared to match against the properties s
 <h4 id='beans-factory-properties-detailed'>依赖和配置详解</h4>
 前面章节提到的，你可以定义的bean的属性和构造参数引用其他的Spring bean(合作者)，或者是使用value属性设置其值。Spring XML格式配置元数据至此`<property/>`和`<constructor-arg/>`子元素，用以实现构造注入和属性注入。
 
+<h5 id="beans-value-element">直接赋值(原始类型、String等等)</h5>
+`<property />`元素的`value`属性为对象域属性或者构造参数设置了一个可读的字串。Spring的会将其转换为实际的与属性或者参数的数据类型。
+	
+	<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    <!-- results in a setDriverClassName(String) call -->
+	    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+	    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+	    <property name="username" value="root"/>
+	    <property name="password" value="masterkaoli"/>
+	</bean>
 
- 
+下面的样例，是使用了XML配置中的[p命名空间](#beans-p-namespace)，他让XML更加简洁
+
+	<beans xmlns="http://www.springframework.org/schema/beans"
+	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xmlns:p="http://www.springframework.org/schema/p"
+	    xsi:schemaLocation="http://www.springframework.org/schema/beans
+	    http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+	        destroy-method="close"
+	        p:driverClassName="com.mysql.jdbc.Driver"
+	        p:url="jdbc:mysql://localhost:3306/mydb"
+	        p:username="root"
+	        p:password="masterkaoli"/>
+	
+	</beans>
+
+The preceding XML is more succinct; however, typos are discovered at runtime rather than design time, unless you use an IDE such as IntelliJ IDEA or the Spring Tool Suite (STS) that support automatic property completion when you create bean definitions. Such IDE assistance is highly recommended.
+上面的XML更简洁；支持自动补全的ID这样的助手真心推荐。
+
+也可以这样配`java.unit.Properties`实例：
+
+	<bean id="mappings"
+	    class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	
+	    <!-- typed as a java.util.Properties -->
+	    <property name="properties">
+	        <value>
+	            jdbc.driver.className=com.mysql.jdbc.Driver
+	            jdbc.url=jdbc:mysql://localhost:3306/mydb
+	        </value>
+	    </property>
+	</bean>
+
+Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值转换到`java.util.Properties`实例。这是非常棒的，Spring团队最喜欢的几处好用之处之一：用内嵌`<value/>`元素替代 值属性风格。
+
+
