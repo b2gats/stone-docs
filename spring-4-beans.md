@@ -684,7 +684,7 @@ In the preceding example, setters are declared to match against the properties s
 静态工厂方法的参数，应该通过`constructor-arg`元素产生，就像是bean的构造函数一样.工厂方法返回的类的类型无需和工厂类类型相同，虽然本例中他们是相同的。实例工厂方法(非静态）和静态工厂方法本质相同（除了使用`facory-bean`属性替代`class`属性，其他都相同），因此细节就不讨论了。
 
 <h4 id='beans-factory-properties-detailed'>依赖和配置详解</h4>
-
+前面章节提到的，你可以定义的bean的属性和构造参数引用其他的Spring bean(合作者)，或者是使用value属性设置其值。Spring XML格式配置元数据至此`<property/>`和`<constructor-arg/>`子元素，用以实现构造注入和属性注入。
 
 
  
