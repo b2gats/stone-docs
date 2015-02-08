@@ -715,7 +715,7 @@ In the preceding example, setters are declared to match against the properties s
 	</beans>
 
 The preceding XML is more succinct; however, typos are discovered at runtime rather than design time, unless you use an IDE such as IntelliJ IDEA or the Spring Tool Suite (STS) that support automatic property completion when you create bean definitions. Such IDE assistance is highly recommended.
-上面的XML更简洁；支持自动补全的ID这样的助手真心推荐。
+上面的XML更简洁；然而，错别字，要在运行期才能发现而不能再开发期发现，除非你使用IDE支持自动补全。这样的的IDE的助手真心推荐。
 
 也可以这样配`java.unit.Properties`实例：
 
@@ -734,3 +734,29 @@ The preceding XML is more succinct; however, typos are discovered at runtime rat
 Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值转换到`java.util.Properties`实例。这是非常棒的，Spring团队最喜欢的几处好用之处之一：用内嵌`<value/>`元素替代 值属性风格。
 
 
+<h5 id='beans-idref-element'>元素`idref`</h5>
+`idref`元素用来将容器内其它bean的id传给`<constructor-arg/>` 或 `<property/>`元素，同时提供错误验证功能。
+	
+	<bean id="theTargetBean" class="..."/>
+	
+	<bean id="theClientBean" class="...">
+	    <property name="targetName">
+	        <idref bean="theTargetBean" />
+	    </property>
+	</bean>
+
+上面的bean定义在运行时等同于下面这一段定义：
+
+	<bean id="theTargetBean" class="..." />
+	
+	<bean id="client" class="...">
+	    <property name="targetName" value="theTargetBean" />
+	</bean>
+
+第一种格式比第二种要跟可取 ，因为使用`idref`标签，在开发期将允许容器校验引用bean真是存在。在第二个中，对于阿client bean是属性 `targetName`的值则没有校验执行 .`client` bean真正的实例化时，错别字才会被发现。如果`client` bean是一个[原型bean](#beans-factory-scopes)，这个错字导致的异常也许会等到部署到过后才能被发现。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 在4.0 beans xsd ，`idref`上的`local`属性不在支持。因为它不在支持正则表达bean引用 。当你升级到4.0的语法时，记得清除已经存在于`idref`元素上的`local`属性。
+
+
+一个老生常谈的问题(至少是2.0以前了)，`<idref/>`带来，在使用`ProxyFactorybean`bean定义[AOP拦截器](#aop-pfb-1)时，当指定拦截器名字是使用`<idref/>`元素将校验拦截器id
