@@ -26,7 +26,7 @@ font-size: 16px;
 <span class="ht">Spring4参考手册中文版</ht>
 
 <h1>作者简介</h1>  
-翻译 石永明  
+翻译 石永明  <shiyongming@sinosoft.com.cn>
 顾问 张丙天  
 
 **石永明** 现任中科软科技股份有限公司应用系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
@@ -37,8 +37,27 @@ font-size: 16px;
 我是前言。
 
 <h1 id='spring-introduction'>Part I. Spring框架概述</h1>
+我是Spring框架概述
+<h2 id='overview-getting-started-with-spring'>HelloWorld</h2>
+<h2 id='overview'>Spring框架简介</h2>
+<h3 id='overview-dependency-injection'>依赖注入和控制反转</h3>
+<h3 id="overview-modules">模块</h3>
+<h4 id="overview-core-container">核心容器</h4>Messaging
+<h4 id="overview-aop-instrumentation">AOP和Instrumentation</h4>
+<h4 id="overview-messaging">消息</h4>
+<h4 id="overview-data-access">数据访问/集成</h4>
+<h4 id="overview-web">Web</h4>
+<h4 id="overview-testing">测试</h4>
+<h3 id="overview-usagescenarios">使用场景</h3>
+<h4 id="dependency-management"> 依赖管理和命名规范</h4>
+<h4 id=""></h4>
+<h3 id="overview-logging">日志</h3>
+
 
 <h1 id='spring-whats-new'>Part II. Spring 4.x 新特性</h1>
+我是Part II. Spring 4.x 新特性
+<h2 id="new-in-4.0">4.x新功能和改进</h2>
+<h2 id="new-in-4.1">4.1新功能和改进</h2>
 
 <h1 id="spring-core">Part III. 核心技术</h1>
 
@@ -935,8 +954,8 @@ This inner bean also supported in constructor injection as following :
 	    </property>
 	</bean>
 
-The value of a map key or value, or a set value, can also again be any of the following elements:
-map.key，map.value，或者set.value，以可以是下元素
+map.key，map.value，或者set.value，以可以是以下元素
 
 	bean | ref | idref | list | set | map | props | value | null
 
+<h5 id="beans-collection-elements-merging">集合合并</h5>
