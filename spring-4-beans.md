@@ -20,7 +20,10 @@ white-space: nowrap;
 code {
 font-size: 16px;
 }
+.ht{font-size:32px;}
 </style>
+
+<span class="ht">Spring4参考手册中文版</ht>
 
 <h1>作者简介</h1>  
 翻译 石永明  
@@ -63,7 +66,7 @@ Spring也集成了AspectJ，AspectJ是现今java领域功能最丰富、最成�
 
 应用中的对象并且是由spring 容器 管理的，被称为beans.就是对象，由spring容器管理的诸如实例化、组装等等操作.  bean可以由应用中的多个对象组成。Bean通过容器和配置元数据 ，使用反射技术，去组装依赖对象。
 
-<h3 id="beans-basics">Container概述</h3>  
+<h3 id="beans-basics">容器概述</h3>  
 接口`org.springframework.context.ApplicationContext`代表了srping IoC 容器，负责实例化、配置和组装前面提到的beans。容器依据配置配置元数据去实例化、配置、组装。配置元数据可以用XML、Java 注解、或者Java编码表示。在配置元数据中，可以定义组成应用的对象，以及对象之间的依赖关系。
 
 Spring 提供了一些开箱即用的`ApplicationContext`接口的实现。在单独的应用中，通常使用`ClassPathXmlApplicationContext`或者`FileSystemXmlApplicationContext`。当使用XML定义配置元数据时，可通过一小段xml配置使容器支持其他格式的配置元数据，比如Java 注解、Java Code。
@@ -330,7 +333,7 @@ Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正�
 
 如何为构造函数指定参数？如何在对象实力话之后设置其属性？请参看[Injecting Dependencies](#beans-factory-collaborators)
 
-<h5 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h4>
+<h5 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h5>
 定义使用使用静态工厂方法创建的bean时，得指定工厂方法类的作为`class`属性值，并且还得指定工厂方法类中用于创建bean的方法名称，作为`factory-method`属性值。工厂方法可以有参数，调用该方法即可返回对象实例，就像通过构造函数创建对象实例一样。此种bean定义是为了兼容遗留系统中的静态工厂
 
 下面的bean定义，是使用工厂方法创建bean的方式。定义中，无需指定返回对象的类型(class)，而是指定工厂方法类的`class`。下例中，`createInstance()`方法必须是一个`static`静态方法。
@@ -734,7 +737,7 @@ The preceding XML is more succinct; however, typos are discovered at runtime rat
 Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值转换到`java.util.Properties`实例。这是非常棒的，Spring团队最喜欢的几处好用之处之一：用内嵌`<value/>`元素替代 值属性风格。
 
 
-<h5 id='beans-idref-element'>元素`idref`</h5>
+<h5 id='beans-idref-element'>元素<span class="scode">idref</span></h5>
 `idref`元素用来将容器内其它bean的id传给`<constructor-arg/>` 或 `<property/>`元素，同时提供错误验证功能。
 	
 	<bean id="theTargetBean" class="..."/>
@@ -753,10 +756,35 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 	    <property name="targetName" value="theTargetBean" />
 	</bean>
 
-第一种格式比第二种要跟可取 ，因为使用`idref`标签，在开发期将允许容器校验引用bean真是存在。在第二个中，对于阿client bean是属性 `targetName`的值则没有校验执行 .`client` bean真正的实例化时，错别字才会被发现。如果`client` bean是一个[原型bean](#beans-factory-scopes)，这个错字导致的异常也许会等到部署到过后才能被发现。
+第一种格式比第二种要跟可取 ，因为使用`idref`标签，在开发期将允许容器校验引用bean真是存在。在第二个中，对于client bean是属性 `targetName`的值则没有校验执行 .`client` bean真正的实例化时，错别字才会被发现（可能会导致致命错）。如果`client` bean是一个[原型bean](#beans-factory-scopes)，这个错字导致的异常也许会等到部署后才能被发现。
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> 在4.0 beans xsd ，`idref`上的`local`属性不在支持。因为它不在支持正则表达bean引用 。当你升级到4.0的语法时，记得清除已经存在于`idref`元素上的`local`属性。
+> 在4.0 beans xsd ，`idref`上的`local`属性不在支持。因此它能提供正规bean引用 。当你升级到4.0的语法时，记得清除已经存在于`idref`元素上的`local`属性。
 
 
-一个老生常谈的问题(至少是2.0以前了)，`<idref/>`带来，在使用`ProxyFactorybean`bean定义[AOP拦截器](#aop-pfb-1)时，当指定拦截器名字是使用`<idref/>`元素将校验拦截器id
+一个老生常谈的问题(至少是2.0以前了)，`<idref/>`带来的好处，在使用`ProxyFactorybean`bean定义[AOP拦截器](#aop-pfb-1)时，当指定拦截器名字是使用`<idref/>`元素将，容器会校验拦截目标是否存在。
+
+<h5 id='#beans-ref-element'>引用其他bean(协作类)</h5>
+`ref`元素是`<constructor-arg/>`元素和`<property/>`元素内决定性元素。用它设置bean的属性以引用另一个容器管理的bean。引用的bean就是要设置属性的bean的依赖，在设置属性值之前它就要被初始化。(如果协作类是单例bean，它会在容器初始化时首先完成初始化)。差不多所有的bean都会引用其他对象。指定`id/name`的对象的作用域和依赖校验通过`bean`,`local` ,`parent`属性来配置。
+指定引用bean通常使用`<ref/>`标签，它允许引用本容器或者父容器中任意的bean，无需配置在同一个xml文件中 。`<ref/>`标签中`bean`的属性值，使用的被引用bean的`id`或者`name`。
+
+	<ref bean="someBean"/>
+
+通过指定目标bean的`parent`属性来引用当前容器的父容器中的bean。`parent`属性的值可以和引用bean的`id`或者`name`（引用bean的name之一）相同，引用的bean必须存在于当前容器的父容器中。若容器存在继承的情况，并且需要封装现有父容器中的某个bean到一个代理中，就可以用此种引用机制，一个与`parent` bean重名的bean。
+
+	<!-- 父容器中 -->
+	<bean id="accountService" class="com.foo.SimpleAccountService">
+	    <!-- 依赖 -->
+	</bean>
+子容器中
+
+	<bean id="accountService" <!-- 和parent bean重名 -->
+	    class="org.springframework.aop.framework.ProxyFactoryBean">
+	    <property name="target">
+	        <ref parent="accountService"/> <!--注意如何引用 parent bean -->
+	    </property>
+	    <!-- 其他配置和依赖 -->
+	</bean>
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 在4.0 beans xsd ，`ref `上的`local`属性不在支持。因次它不再支持正规bean的引用 。当你升级到到4.0时，记得清除已经存在于`ref`元素上的`local`属性。
