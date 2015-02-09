@@ -21,9 +21,10 @@ code {
 font-size: 16px;
 }
 .ht{font-size:32px;}
+.hl-keyword{color:#7F0055;font-weight:bold;}.hl-comment{color:#3F5F5F;font-style:italic;}.hl-multiline-comment{color:#3F5FBF;font-style:italic;}.hl-tag{color:#3F7F7F;}.hl-attribute{color:#7F007F;}.hl-value{color:#2A00FF;}.hl-string{color:#2A00FF;};html{padding:0pt;margin:0pt;}body{color:#333333;margin:15px 30px;font-family:Helvetica,Arial,Freesans,Clean,Sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}code{font-size:16px;font-family:Consolas,"Liberation Mono",Courier,monospace;color:#6D180B;}:not(pre)>code{background-color:#F2F2F2;border:1px solid #CCCCCC;border-radius:4px;padding:1px 3px 0;text-shadow:none;white-space:nowrap;}body>*:first-child{margin-top:0!important;}div{margin:0pt;}hr{border:1px solid #CCCCCC;background:#CCCCCC;}h1,h2,h3,h4,h5,h6{color:#000000;cursor:text;font-weight:bold;margin:30px 0 10px;padding:0;}h1,h2,h3{margin:40px 0 10px;}h1{margin:70px 0 30px;padding-top:20px;}div.part h1{border-top:1px dotted #CCCCCC;}h1,h1 code{font-size:32px;}h2,h2 code{font-size:24px;}h3,h3 code{font-size:20px;}h4,h1 code,h5,h5 code,h6,h6 code{font-size:18px;}div.book,div.chapter,div.appendix,div.part,div.preface{min-width:300px;max-width:1200px;margin:0 auto;}p.releaseinfo{font-weight:bold;margin-bottom:40px;margin-top:40px;}div.authorgroup{line-height:1;}p.copyright{line-height:1;margin-bottom:-5px;}.legalnotice p{font-style:italic;font-size:14px;line-height:1;}div.titlepage+p,div.titlepage+p{margin-top:0;}pre{line-height:1.0;color:black;}a{color:#4183C4;text-decoration:none;}p{margin:15px 0;text-align:left;}ul,ol{padding-left:30px;}li p{margin:0;}div.table{margin:1em;padding:0.5em;text-align:center;}div.table table,div.informaltable table{display:table;width:100%;}div.table td{padding-left:7px;padding-right:7px;}.sidebar{line-height:1.4;padding:0 20px;background-color:#F8F8F8;border:1px solid #CCCCCC;border-radius:3px 3px 3px 3px;}.sidebar p.title{color:#6D180B;}pre.programlisting,pre.screen{font-size:15px;padding:6px 10px;background-color:#F8F8F8;border:1px solid #CCCCCC;border-radius:3px 3px 3px 3px;clear:both;overflow:auto;line-height:1.4;font-family:Consolas,"Liberation Mono",Courier,monospace;}table{border-collapse:collapse;border-spacing:0;border:1px solid #DDDDDD!important;border-radius:4px!important;border-collapse:separate!important;line-height:1.6;}table thead{background:#F5F5F5;}table tr{border:none;border-bottom:none;}table th{font-weight:bold;}table th,table td{border:none!important;padding:6px 13px;}table tr:nth-child(2n){background-color:#F8F8F8;}td p{margin:0 0 15px 0;}div.table-contents td p{margin:0;}div.important *,div.note *,div.tip *,div.warning *,div.navheader *,div.navfooter *,div.calloutlist *{border:none!important;background:none!important;margin:0;}div.important p,div.note p,div.tip p,div.warning p{color:#6F6F6F;line-height:1.6;}div.important code,div.note code,div.tip code,div.warning code{background-color:#F2F2F2!important;border:1px solid #CCCCCC!important;border-radius:4px!important;padding:1px 3px 0!important;text-shadow:none!important;white-space:nowrap!important;}.note th,.tip th,.warning th{display:none;}.note tr:first-child td,.tip tr:first-child td,.warning tr:first-child td{border-right:1px solid #CCCCCC!important;padding-top:10px;}div.calloutlist p,div.calloutlist td{padding:0;margin:0;}div.calloutlist>table>tbody>tr>td:first-child{padding-left:10px;width:30px!important;}div.important,div.note,div.tip,div.warning{margin-left:0px!important;margin-right:20px!important;margin-top:20px;margin-bottom:20px;padding-top:10px;padding-bottom:10px;}div.toc{line-height:1.2;}dl,dt{margin-top:1px;margin-bottom:0;}div.toc>dl>dt{font-size:32px;font-weight:bold;margin:30px 0 10px 0;display:block;}div.toc>dl>dd>dl>dt{font-size:24px;font-weight:bold;margin:20px 0 10px 0;display:block;}div.toc>dl>dd>dl>dd>dl>dt{font-weight:bold;font-size:20px;margin:10px 0 0 0;}tbody.footnotes *{border:none!important;}div.footnote p{margin:0;line-height:1;}div5.footnote p sup{margin-right:6px;vertical-align:middle;}div.navheader{border-bottom:1px solid #CCCCCC;}div.navfooter{border-top:1px solid #CCCCCC;}.title{margin-left:-1em;padding-left:1em;}.title>a{position:absolute;visibility:hidden;display:block;font-size:0.85em;margin-top:0.05em;margin-left:-1em;vertical-align:text-top;color:black;}.title>a:before{content:"\00A7";}.title:hover>a,.title>a:hover,.title:hover>a:hover{visibility:visible;}.title:focus>a,.title>a:focus,.title:focus>a:focus{outline:0;}
 </style>
 
-<span class="ht">Spring4参考手册中文版</ht>
+<span class="ht">Spring4参考手册中文版</span>
 
 <h1>作者简介</h1>  
 翻译 石永明  <shiyongming@sinosoft.com.cn>
@@ -42,7 +43,7 @@ font-size: 16px;
 <h2 id='overview'>Spring框架简介</h2>
 <h3 id='overview-dependency-injection'>依赖注入和控制反转</h3>
 <h3 id="overview-modules">模块</h3>
-<h4 id="overview-core-container">核心容器</h4>Messaging
+<h4 id="overview-core-container">核心容器</h4>
 <h4 id="overview-aop-instrumentation">AOP和Instrumentation</h4>
 <h4 id="overview-messaging">消息</h4>
 <h4 id="overview-data-access">数据访问/集成</h4>
@@ -50,9 +51,7 @@ font-size: 16px;
 <h4 id="overview-testing">测试</h4>
 <h3 id="overview-usagescenarios">使用场景</h3>
 <h4 id="dependency-management"> 依赖管理和命名规范</h4>
-<h4 id=""></h4>
 <h3 id="overview-logging">日志</h3>
-
 
 <h1 id='spring-whats-new'>Part II. Spring 4.x 新特性</h1>
 我是Part II. Spring 4.x 新特性
@@ -60,7 +59,6 @@ font-size: 16px;
 <h2 id="new-in-4.1">4.1新功能和改进</h2>
 
 <h1 id="spring-core">Part III. 核心技术</h1>
-
 本部分参考手册完全覆盖了Srping 框架的全部技术
 
 首先是Spring IoC控制反转。深入彻底的IoC讲解之后，紧随其后的是全面解说Spring AOP。Spring有自己的AOP框架,该框架概念简单易于理解，能解决Java企业应用中80%的需求
@@ -190,26 +188,26 @@ Spring IoC的实例化易如反掌。`ApplicationContext`构造函数支持定�
 
 上述内容中service层由`PetStoreServiceImpl`类、2个dao对象`JpaAccountDao`和`JpaItemDao`(基于JPA ORM标准)。属性`name`元素引用了JavaBean的属性，*ref*元素引用了其他bean定义。这个引用表示实际对象之间的引用依赖。配置一个对象的依赖，详情请参看[Dependencies](#beans-dependencies)
 
-<h5 id='#beans-factory-xml-import'>引入基于xml的元数据</h5>
+<h5 id='beans-factory-xml-import'>引入基于xml的元数据</h5>
 多个配置文件共同定义bean非常有用。通常，每个XML配置文件在你的架构中代表一个逻辑层或者一个模块。
 
 你可以使用应用上下文(applicationContext)的构造函数去加载所有xml中定义的bean。这个构造函数使用多个资源定位，就像前面中提到的。或者，也可以用一个或者多个资源引用，即使用`<import/>`标签加载其他文件定义的bean。举个栗子：
-    
-    <beans>
-	    <import resource="services.xml"/>
-	    <import resource="resources/messageSource.xml"/>
-	    <import resource="/resources/themeSource.xml"/>
-	    
-	    <bean id="bean1" class="..."/>
-	    <bean id="bean2" class="..."/>
-    </beans>
+
+	<beans>
+		<import resource="services.xml"/>
+		<import resource="resources/messageSource.xml"/>
+		<import resource="/resources/themeSource.xml"/>
+		
+		<bean id="bean1" class="..."/>
+		<bean id="bean2" class="..."/>
+	</beans>
 
 上例中，从三个外部文件加载定义的bean:`services.xml`,`messageSource.xml`,`themeSource.xml` 。被引入的文件的路径对于引入配置文件来说都是相对路径，所以`service.xml`必须在引入配置文件的相同文件路径或者相同的类路径中。而`messageSource.xml`和`themeSource.xml`必须在引入配置文件所在的文件夹下的`resouce`文件夹下。正如你所看到的 `/`开头会被忽略掉，因为这些路径是相对路径，推荐不要使用`/`开头的格式。导入(imported)文件内容，包含根节点`<beans/>`，配置中XML bean定义 必须经过Spring语法校验通过。
 
-![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
->  
-使用"../"表示父目录的相对路径是可以的，但是真心不推荐这样创建一个依赖应用外部文件的做法。尤其指出，使用*"classpath:"*资源类型的URLs(像这样："classpath:../services.xml")，也是不推荐的，因为运行时处理过程会选择"最近的"根路径然后引入他的父目录配置文件。Classpath配置的改变，会导致应用选择一个不同的、错误的目录。
-你可以使用全路径限定资源定位取代相对路径，比如："file:C:/config/services.xml" 或者"classpath:/config/services.xml"。还有，你可以使用抽象路径来解耦应用和配置文件。使用一个逻辑定位更可取 ,比如：通过"${..}"占位符，使用JVM运行时计算出的路径。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)     
+> 使用"../"表示父目录的相对路径是可以的，但是真心不推荐这样创建一个依赖应用外部文件的做法。尤其指出，使用*"classpath:"*资源类型的URLs(像这样："classpath:../services.xml")，也是不推荐的，因为运行时处理过程会选择"最近的"根路径然后引入他的父目录配置文件。Classpath配置的改变，会导致应用选择一个不同的、错误的目录。
+> 你可以使用全路径限定资源定位取代相对路径，比如："file:C:/config/services.xml" 或者"classpath:/config/services.xml"。还有，你可以使用抽象路径来解耦应用和配置文件。使用一个逻辑定位更可取 ,比如：通过"${..}"占位符，使用JVM运行时计算出的路径。
 
 <h4 id='beans-factory-client'>使用容器</h4>
 `ApplicationContext`是一个高级工厂的接口，能维护各种bean以及他们之间依赖的注册。使用方法`T getBean(String name, Class<T> requiredType)`，就能从定义的bean中获取实例。
@@ -813,6 +811,7 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 
 <h5 id='beans-inner-beans'>内部bean</h5>
 在`<property/>`元素或者`constructor-arg/>`元素内定义`<bean/>`元素，就是所谓的内部类。
+
 	<bean id="outer" class="...">
 	    <!-- 不是引用而是定义一个bean -->
 	    <property name="target">
@@ -825,7 +824,7 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 
 内部bean的定义无需`id`或`name`；容器会忽略这些属性。也会忽略`scope`标记。内部通常是匿名的,伴随着外部类（的创建）而创建 。不能引用内部bean(ref属性不能指向内部bean)，除非使用闭合`bean`标签。
 
-**译者注，内部bean更直观**
+*译者注，内部bean更直观*
 fuck goods，上干活
 
 	public class Customer {
@@ -959,3 +958,4 @@ map.key，map.value，或者set.value，以可以是以下元素
 	bean | ref | idref | list | set | map | props | value | null
 
 <h5 id="beans-collection-elements-merging">集合合并</h5>
+集合合并
