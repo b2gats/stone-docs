@@ -36,6 +36,10 @@ font-size: 16px;
 <h1>前言</h1>
 我是前言。
 
+<h1 id='spring-introduction'>Part I. Spring框架概述</h1>
+
+<h1 id='spring-whats-new'>Part II. Spring 4.x 新特性</h1>
+
 <h1 id="spring-core">Part III. 核心技术</h1>
 
 本部分参考手册完全覆盖了Srping 框架的全部技术
@@ -788,3 +792,113 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 在4.0 beans xsd ，`ref `上的`local`属性不在支持。因次它不再支持正规bean的引用 。当你升级到到4.0时，记得清除已经存在于`ref`元素上的`local`属性。
+
+<h5 id='beans-inner-beans'>内部bean</h5>
+在`<property/>`元素或者`constructor-arg/>`元素内定义`<bean/>`元素，就是所谓的内部类。
+	<bean id="outer" class="...">
+	    <!-- 不是引用而是定义一个bean -->
+	    <property name="target">
+	        <bean class="com.example.Person"> <!-- 这就是内部类 -->
+	            <property name="name" value="Fiona Apple"/>
+	            <property name="age" value="25"/>
+	        </bean>
+	    </property>
+	</bean>
+
+An inner bean definition does not require a defined id or name; the container ignores these values. It also ignores the scope flag. Inner beans are always anonymous and they are always created with the outer bean. It is not possible to inject inner beans into collaborating beans other than into the enclosing bean.
+内部bean的定义无需`id`或`name`；容器会忽略这些属性。也会忽略`scope`标记。内部通常是匿名的,伴随着外部类（的创建）而创建 。不能引用内部bean(ref属性不能指向内部bean)，除非使用闭合`bean`标签。
+
+**译者注，内部bean更直观**
+fuck goods，上干活
+
+	public class Customer {
+		private Person person;
+	 
+		public Customer(Person person) {
+			this.person = person;
+		}
+	 
+		public void setPerson(Person person) {
+			this.person = person;
+		}
+	 
+		@Override
+		public String toString() {
+			return "Customer [person=" + person + "]";
+		}
+	}
+再来一段
+
+	public class Person {
+		private String name;
+		private String address;
+		private int age;
+	 
+		//getter and setter methods
+	 
+		@Override
+		public String toString() {
+			return "Person [address=" + address + ", 
+	                               age=" + age + ", name=" + name + "]";
+		}	
+	}
+
+通常情况下，使用在`CustomerBean`bean内设置`ref`属性值为`Person`bean的标示符，即完成注入。
+	
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	 
+		<bean id="CustomerBean" class="com.example.common.Customer">
+			<property name="person" ref="PersonBean" />
+		</bean>
+	 
+		<bean id="PersonBean" class="com.example.common.Person">
+			<property name="name" value="MrChen" />
+			<property name="address" value="address1" />
+			<property name="age" value="28" />
+		</bean>
+	 
+	</beans>
+
+In general, it’s fine to reference like this, but since the ‘MrChen’ person bean is only used for Customer bean only, it’s better to declare this ‘MrChen’ person as an inner bean as following :
+一般情况下，这样的引用很好用。但是如果'MrChen'这个person bean只用于`Customer`。最好是使用内部bean来声明`Person`，看起来更加直观，更具有可读性.
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+	 
+		<bean id="CustomerBean" class="com.mkyong.common.Customer">
+			<property name="person">
+				<bean class="com.mkyong.common.Person">
+					<property name="name" value="mkyong" />
+					<property name="address" value="address1" />
+					<property name="age" value="28" />
+				</bean>
+			</property>
+		</bean>
+	</beans>
+
+This inner bean also supported in constructor injection as following :
+ 内部bean也支持构造注入
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+ 
+		<bean id="CustomerBean" class="com.mkyong.common.Customer">
+			<constructor-arg>
+				<bean class="com.mkyong.common.Person">
+					<property name="name" value="mkyong" />
+					<property name="address" value="address1" />
+					<property name="age" value="28" />
+				</bean>
+			</constructor-arg>
+		</bean>
+	</beans>
+
