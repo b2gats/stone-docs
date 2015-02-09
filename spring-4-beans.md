@@ -721,7 +721,6 @@ In the preceding example, setters are declared to match against the properties s
 	
 	</beans>
 
-The preceding XML is more succinct; however, typos are discovered at runtime rather than design time, unless you use an IDE such as IntelliJ IDEA or the Spring Tool Suite (STS) that support automatic property completion when you create bean definitions. Such IDE assistance is highly recommended.
 上面的XML更简洁；然而，错别字，要在运行期才能发现而不能再开发期发现，除非你使用IDE支持自动补全。这样的的IDE的助手真心推荐。
 
 也可以这样配`java.unit.Properties`实例：
@@ -805,7 +804,6 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 	    </property>
 	</bean>
 
-An inner bean definition does not require a defined id or name; the container ignores these values. It also ignores the scope flag. Inner beans are always anonymous and they are always created with the outer bean. It is not possible to inject inner beans into collaborating beans other than into the enclosing bean.
 内部bean的定义无需`id`或`name`；容器会忽略这些属性。也会忽略`scope`标记。内部通常是匿名的,伴随着外部类（的创建）而创建 。不能引用内部bean(ref属性不能指向内部bean)，除非使用闭合`bean`标签。
 
 **译者注，内部bean更直观**
@@ -901,4 +899,44 @@ This inner bean also supported in constructor injection as following :
 			</constructor-arg>
 		</bean>
 	</beans>
+
+<h5 id='beans-collection-elements'>集合</h5>
+`<list/>`,`<set/>`,`<map/>`,`<props/>`元素，用来设置`Java Collection`属性和参数，分别对应`List`,`Set`,`Map`,`Properties`
+
+	<bean id="moreComplexObject" class="example.ComplexObject">
+	    <!--调用setAdminEmails(java.util.Properties) -->
+	    <property name="adminEmails">
+	        <props>
+	            <prop key="administrator">administrator@example.org</prop>
+	            <prop key="support">support@example.org</prop>
+	            <prop key="development">development@example.org</prop>
+	        </props>
+	    </property>
+	    <!-- 调用setSomeList(java.util.List) -->
+	    <property name="someList">
+	        <list>
+	            <value>a list element followed by a reference</value>
+	            <ref bean="myDataSource" />
+	        </list>
+	    </property>
+	    <!-- 代用setSomeMap(java.util.Map) -->
+	    <property name="someMap">
+	        <map>
+	            <entry key="an entry" value="just some string"/>
+	            <entry key ="a ref" value-ref="myDataSource"/>
+	        </map>
+	    </property>
+	    <!-- 调用 setSomeSet(java.util.Set) -->
+	    <property name="someSet">
+	        <set>
+	            <value>just some string</value>
+	            <ref bean="myDataSource" />
+	        </set>
+	    </property>
+	</bean>
+
+The value of a map key or value, or a set value, can also again be any of the following elements:
+map.key，map.value，或者set.value，以可以是下元素
+
+	bean | ref | idref | list | set | map | props | value | null
 
