@@ -959,3 +959,156 @@ map.key，map.value，或者set.value，以可以是以下元素
 
 <h5 id="beans-collection-elements-merging">集合合并</h5>
 集合合并
+Spring容器也支持集合合并。应用开发者可以定义父集合`<list/>`,`<map/>`,`<set/>`或者`<propx/>`元素，该元素可以有子集合`<list/>`,`<map/>`,`<set/>`或者`<props/>`元素集成或者重写父集合中的值。也就是,子集合中的值是合并父子集合后的值，其中子集合中的值会覆盖父集合中的值。
+*这一章节讨论父-子bean机制。不熟悉父子bean定义机制的，最好是先去补充下然后回来继续*
+下例中展示了集合合并
+
+```xml
+<beans>
+    <bean id="parent" abstract="true" class="example.ComplexObject">
+        <property name="adminEmails">
+            <props>
+                <prop key="administrator">administrator@example.com</prop>
+                <prop key="support">support@example.com</prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="child" parent="parent">
+        <property name="adminEmails">
+            <!-- the merge is specified on the child collection definition -->
+            <props merge="true">
+                <prop key="sales">sales@example.com</prop>
+                <prop key="support">support@example.co.uk</prop>
+            </props>
+        </property>
+    </bean>
+<beans>
+```
+
+注意，在bean `child`定义中，指定`property` `adminEmails`的`<props/>`元素中`merge=true`属性。当`child`bean被容器解析并且实例化时，实例有一个`adminEmails`的`Properties`集合，该集合包含了父子容器中`adminEmails`集合合并后的值。
+
+administrator=administrator@example.com
+sales=sales@example.com
+support=support@example.co.uk
+
+子`Properties`集合的将继承所有父集合中`<props/>`定义的值，并且重名属性值会覆盖父集合中的值.
+
+这个合并行为，同样可以用在`<list/>`,`<map/>`,`<set/>`类型上。对于`<list/>`元素，spring合并行为与`List`类型的合并一样，也就是，spring合并行为维持集合有序；父集合中的元素索引位置比子集合元素索引位置靠前。对于`Map`,`Set`,`Properties`集合类型,不存在次序。因此，没有次序影响`Map`,`Set`,`Properties`，这涉及到容器内部使用的这些类型的所有实现类。
+*译注：这里没有提到List会不会发生覆盖 ,既然没提到，那就是List没有覆盖行为。当然了，实践才是王道，动手实验才能验证推测，研读源码才能知道原理，下面上干货*
+
+Java代码
+```java
+public class CollectionMerge {
+	private List<String> list;
+
+	public List<String> getList() {
+		return list;
+	}
+
+	public void setList(List<String> list) {
+		this.list = list;
+	}
+}
+```
+
+XML配置
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<bean id="parent" class="com.example.spring.bean.collection.CollectionMerge">
+		<property name="list">
+	        <list >
+	            <value>1</value>
+	            <value>2</value>
+	        </list>
+		</property>
+	</bean>
+	
+	<bean id="child" parent="parent" >
+		<property name="list">
+	        <list merge="true">
+	            <value>1</value>
+	            <value>2</value>
+	        </list>
+		</property>
+	</bean>
+</beans>
+```
+
+测试代码
+```java
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class MapMergeTests {
+	
+	@Autowired
+	@Qualifier("child")
+	private CollectionMerge service;
+	
+	@Test
+	public void testSimpleProperties() throws Exception {
+		assertEquals(4, service.getList().size());
+	}
+}
+
+```
+
+经过动手实验，证明Spring合并对于List类型，并无覆盖。接下来，我们看看其源码实现  
+
+**MutablePropertyValues.mergeIfRequired()方法**
+```java
+private PropertyValue mergeIfRequired(PropertyValue newPv, PropertyValue currentPv) {
+	Object value = newPv.getValue();
+	//属性值是否可合并类
+	if (value instanceof Mergeable) {
+		Mergeable mergeable = (Mergeable) value;
+		//属性值是否设置了merge=true
+		if (mergeable.isMergeEnabled()) {
+			//合并当前属性
+			Object merged = mergeable.merge(currentPv.getValue());
+			return new PropertyValue(newPv.getName(), merged);
+		}
+	}
+	return newPv;
+}
+```
+上面代码中`Mergeable`接口共有5个实现类`ManagedList`,`ManagedArray`,`ManagedMap`,`ManagedSet`,`ManagedProperties`
+
+**ManagedList.merge(Object parent)方法**
+```java
+public List<E> merge(Object parent) {
+		//防御性抛异常
+		if (!this.mergeEnabled) {
+			throw new IllegalStateException("Not allowed to merge when the 'mergeEnabled' property is set to 'false'");
+		}
+		if (parent == null) {
+			return this;
+		}
+		if (!(parent instanceof List)) {
+			throw new IllegalArgumentException("Cannot merge with object of type [" + parent.getClass() + "]");
+		}
+		List<E> merged = new ManagedList<E>();
+		//注意顺序，先增加父bean中的value值，所以文档中说父集合元素索引位置靠前
+		merged.addAll((List) parent);
+		merged.addAll(this);
+		return merged;
+	}
+```
+
+*译注:我勒个去，为了找这段代码，洒家差点累吐血。由此可见，译者是非常用心的用生命去翻译文档。*
+
+
+
+
+
+
