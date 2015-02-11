@@ -1,5 +1,5 @@
 
-<span style="font-size:34px">Spring4参考手册中文版</span>
+<div style="font-size:34px">Spring4参考手册中文版</div>
 
 <h1>作者简介</h1>  
 翻译 石永明  <shiyongming@sinosoft.com.cn>  
@@ -1323,25 +1323,22 @@ bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`s
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 在[单例](#beans-factory-scopes-singleton)bean中，`depends-on`属性既可以设定依赖的初始化时机，也可以相应的设定依赖的销毁时机。在bean被销毁之前,bean使用`depdnds-on`属性定义的依赖bean会首先被销毁。因此`depends-on`也能控制销毁顺序。
 
+<h4 id='beans-factory-lazy-init'>延迟初始化</h4>
+`ApplicationContext`的各种实现默认的初始化处理过程，都是尽早的创建、配置所有的单例bean。通常，这种预先实例化是非常好的，因为在配置的错误或者环境问题立刻就能暴露出来，而不是数小时甚至数天后才发现。若不需要此行为，可以通过设置`lazy-initialized`延迟加载来阻止预先初始化。`lazy-initialized`bean告诉Ioc容器，只有在第一次请求的时候采取初始化，而不是在启动容器时初始化。
 
 
+在XML中，属性`lazy-init`控制`<bean/>`元素的初始化。
+```XML
+<bean id="lazy" class="com.foo.ExpensiveToCreateBean" lazy-init="true"/>
+<bean name="not.lazy" class="com.foo.AnotherBean"/>
+```
+`ApplicationContext`解析上面的配置，在启动时，不会预先初始化这个标记为lazy的bean，为标记lazy的bean则会立刻初始化。
 
+如果一个非延迟的单例bean依赖了lazy延迟bean，`ApplicationContext`会在启动时就创建lazy延迟bean,因为它必须满足单例bean依赖。延迟bean注入给单例bean，就意味着，它不会延迟加载的。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+通过设置`<beans/>`元素的`default-lazy-init`属性，可以设置容器级别的延迟加载。看样例：
+```xml
+<beans default-lazy-init="true">
+    <!-- no beans will be pre-instantiated... -->
+</beans>
+```
