@@ -1254,6 +1254,59 @@ public class PNamespaceBean {
 
 >*译注* 好事儿，我小时候虽然做好事儿不留名，但是总能被发现，令我非常苦恼。我的妈妈常常揪着我的耳朵问：这又是你干的好事儿吧。
 
+<h5 id="beans-c-namespace">c-namespace命名空间</h5>
+
+和[p-namespace](#beans-p-namespace)相似,c-namespace，是Spring3.1中新出的,允许行内配置构造参数，而不需使用内嵌的`constructor-arg`元素
+
+用`c`:namespace重构[构造注入](#beans-constructor-injection)
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:c="http://www.springframework.org/schema/c"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="bar" class="x.y.Bar"/>
+    <bean id="baz" class="x.y.Baz"/>
+
+    <!-- traditional declaration -->
+    <bean id="foo" class="x.y.Foo">
+        <constructor-arg ref="bar"/>
+        <constructor-arg ref="baz"/>
+        <constructor-arg value="foo@bar.com"/>
+    </bean>
+
+    <!-- c-namespace declaration -->
+    <bean id="foo" class="x.y.Foo" c:bar-ref="bar" c:baz-ref="baz" c:email="foo@bar.com"/>
+
+</beans>
+```
+
+`c:`namespace和`p:`使用了相同机制(`ref`后缀表示引用)，通过names设置构造参数。因为它未定义在XSD schema中（但是存在于Spring内核中）,所以需要先声明。
+
+有一些情况比较特殊，不能识别或者看到构造参数(比如无源码且编译时无调试信息)，此时可以求助于参数索引:
+
+```xml
+<!-- c-namespace index declaration -->
+<bean id="foo" class="x.y.Foo" c:_0-ref="bar" c:_1-ref="baz"/>
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 由于XML语法，索引标记需要`_`开头作为XML属性名称,而不能使用数字开头(尽管某些ID支持)
+
+在实际中，若真的有需要(特殊情况下)，匹配参数应用于（之于）构造注入还是很好用的（原文是efficient高效），（一般情况下）更推荐使用 name标识方式配置。
+
+
+<h5 id='beans-compound-property-names'>复合属性</h5>
+You can use compound or nested property names when you set bean properties, as long as all components of the path except the final property name are not null. Consider the following bean definition.
+在设置bean属性时，可以使用复合或者内嵌属性,组件路径可以有多长写多长，除了最后一个属性，其他属性都不能为`null`。看下面的bean定义
+```xml
+<bean id="foo" class="foo.Bar">
+    <property name="fred.bob.sammy" value="123" />
+</bean>
+```
+bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`sammy`属性赋值`"123"`。在bean`foo`构造后，`fred`属性和`bob`属性都不能为`null`否则抛异常`NullPointerException`
+
+
 
 
 
