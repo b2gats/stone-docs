@@ -1306,6 +1306,53 @@ You can use compound or nested property names when you set bean properties, as l
 ```
 bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`sammy`属性赋值`"123"`。在bean`foo`构造后，`fred`属性和`bob`属性都不能为`null`否则抛异常`NullPointerException`
 
+<h4 id='beans-factory-dependson'>使用depends-on</h4>
+
+若bean是另个bean的依赖，通常是指该bean是另个bean的属性。在XML中通过`<ref/>`[元素](#beans-ref-element)配置实现。然而，bean之间并不全是直接依赖。举个栗子,类中有个静态初始化需要出发,像注册数据库驱动这样的。`depends-on`属性能强制这些先决条件首先完成执行初始化，然后再去使用它（比如用于注入）。
+下面的样例中，展示了使用`depends-on`来表达bean之间的依赖关系：
+```xml
+<bean id="beanOne" class="ExampleBean" depends-on="manager"/>
+<bean id="manager" class="ManagerBean" />
+```
+
+也可以依赖多个bean，为`depends-on`属性值提供一个bean name列表，用逗号，空白，分号分隔。
+```xml
+<bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+    <property name="manager" ref="manager" />
+</bean>
+
+<bean id="manager" class="ManagerBean" />
+<bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 在[单例](#beans-factory-scopes-singleton)bean中，`depends-on`属性既可以设定依赖的初始化时机，也可以相应的设定依赖的销毁时机。在bean被销毁之前,bean使用`depdnds-on`属性定义的依赖bean会首先被销毁。因此`depends-on`也能控制销毁顺序。
+
+<h4 id="beans-factory-dependson">延迟初始化</h4>
+延迟初始化
+
+<h4 id="beans-factory-autowire">自动装配</h4>
+自动装配
+
+<h5 id="beans-autowired-exceptions">自动装配的限制和缺点</h5>
+自动装配的限制和缺点
+
+<h5 id="beans-factory-autowire-candidate>Excluding a bean from autowiring</h5>
+Excluding a bean from autowiring
+
+<h4 id="beans-factory-method-injection">方法注入</h4>
+方法注入
+<h5 id="beans-factory-lookup-method-injection>查找方法注入</h5>
+查找方法注入
+<h5 id="beans-factory-arbitrary-method-replacement">任意方法置换</h5>
+任意方法置换
+
+
+
+
+
+
+
+
 
 
 
