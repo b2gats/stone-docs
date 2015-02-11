@@ -1094,6 +1094,7 @@ public List<E> merge(Object parent) {
 		if (parent == null) {
 			return this;
 		}
+		//不能合并非List类型集合
 		if (!(parent instanceof List)) {
 			throw new IllegalArgumentException("Cannot merge with object of type [" + parent.getClass() + "]");
 		}
@@ -1106,6 +1107,68 @@ public List<E> merge(Object parent) {
 ```
 
 *译注:我勒个去，为了找这段代码，洒家差点累吐血。由此可见，译者是非常用心的用生命去翻译文档。*
+
+**合并限制**
+不能合并不同类型的集合，比如合并`Map`和`List`(*译注：上面的源码中有这样的代码，不知聪明的小读者是否注意到了*)。如果你非得这么干，那么就会抛出个异常。`merge`属性必须指定给父-子继承结构bean中的子bean，如果指定给了父集合则无效，不会产生预期的合并结果。
+
+**强类型集合**
+Java5中出现了范型，所以可以给集合使用强类型限制。比如说，声明一个只含有`String`类型的`Collection`。若使用Spring 注入一个强类型`Collection`给一个bean，那么就可以利用Spring的类型转换特性 ，该特性能将给定的值转换成合适的类型值，然后赋值给你的强类型`Collection`。
+
+```java
+public class Foo {
+
+    private Map<String, Float> accounts;
+
+    public void setAccounts(Map<String, Float> accounts) {
+        this.accounts = accounts;
+    }
+}
+```
+看，飞碟
+```xml
+<beans>
+    <bean id="foo" class="x.y.Foo">
+        <property name="accounts">
+            <map>
+                <entry key="one" value="9.99"/>
+                <entry key="two" value="2.75"/>
+                <entry key="six" value="3.99"/>
+            </map>
+        </property>
+    </bean>
+</beans>
+```
+
+在`foo`bean的`accounts`属性注入前，强类型集合`Map<String,Float>`的泛型信息通过反射获取。因此Spring的类型转换机制识别出元素的value类型将会转换为`Float`，`9.99,2.75,3.99`将会转换成`Float`类型。
+
+<h5 id=`beans-null-element`>Null值和空字串</h5>
+Spring treats empty arguments for properties and the like as empty Strings. The following XML-based configuration metadata snippet sets the email property to the empty String value ("").
+Spring对于属性的空参数转换为空字串。下面的XML片段，设置值email属性为空格字串("")
+
+```xml
+<bean class="ExampleBean">
+    <property name="email" value=""/>
+</bean>
+```
+上面的xml配置相当于这样的java代码
+
+	exampleBean.setEmail("")
+
+`<null/>`元素处理null值：
+```xml
+<bean class="ExampleBean">
+    <property name="email">
+        <null/>
+    </property>
+</bean>
+```
+上面配置相当于
+
+	exampleBean.setEmail(null)
+
+
+
+
 
 
 
