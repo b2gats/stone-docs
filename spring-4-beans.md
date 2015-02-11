@@ -1364,25 +1364,18 @@ constructor | Analogous to byType, but applies to constructor arguments. If ther
 
 可以结合自动装配和依赖检查，依赖检查会在装配完成后执行。
 
+<h5 id='beans-autowired-exceptions'>自动装配的局限和缺点</h5>
+自动装配最好是贯穿整个项目。若不是全部或大部分使用自动装配，而仅仅自动装配一两个bean定义，可能会把开发者搞晕。(*译注，最可能的原因是，开发者对自动装配机制不熟悉，或者想不到项目中居然还使用了自动装配模式，当发生问题时，擦的，找都没地方找去，调试信息里只能看到经过横切织入事务代理的proxy*)
 
+总结局限和缺点:
+* 属性中和构造参数明确的依赖设置会覆盖自动装配。不能自动装配所谓的简单属性，比如原始类型，`Strings`和`Classes`(简单属性数组)。这是源于Spring的设计。
+* 和明确装配相比，自动装配是不确切的。正如上面的列表中提到的，Spring谨慎避免匹配模糊，若真的匹配不正确，则导致错误发生，Spring 管理的对象之间的关系记录也变的不明确了。
+* 对于根据Spring容器生成文档的工具，装配信息将变的无用。
+* 容器内多个bean定义可能会匹配设置为自动装配的`setter`方法或者构造参数的类型。对于arrays，collections,或者maps,这不是个问题。然而对于期望单一值的依赖，这种歧义将不能随意的解决。如果发现多个类型匹配，将会抛出异常 .
 
+在后面的场景中，给你几条建议:
+* 放弃自动装配，使用明确装配
+* 避免通过在bean定义中设置`autowire-candidate`属性为false的方式来设置自动装配，下一章节会讲
+* 通过设置`<bean/>`袁术的`primary`属性为`true`来指定单个bean定义作为主候选bean。
+* 使用基于注解的配置实现更细粒度的控制，参看[Section 5.9, “Annotation-based container configuration”](#beans-annotation-config).
 
-
-
-
-在编程式使用的`ApplicationContext`接口过程中，`ChildBeanDifinition`类代表子bean定义。大多数人无需和这些打交道，取而代之的是使用像`ClassPathXmlApplicationContext`类这种方式声明、配置bean。当使用XML配置元数据时，通过设置子bean的`parent`属性值为父bean，来这是父bean。
-
-```xml
-<bean id="inheritedTestBean" abstract="true"
-        class="org.springframework.beans.TestBean">
-    <property name="name" value="parent"/>
-    <property name="age" value="1"/>
-</bean>
-
-<bean id="inheritsWithDifferentClass"
-        class="org.springframework.beans.DerivedTestBean"
-        parent="inheritedTestBean" init-method="initialize">
-    <property name="name" value="override"/>
-    <!-- the age property value of 1 will be inherited from parent -->
-</bean>
-```
