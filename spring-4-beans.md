@@ -1,6 +1,5 @@
-<link href="./spring-doc.css" rel="stylesheet"></link>
 
-<span class="ht">Spring4参考手册中文版</span>
+<span style="font-size:34px">Spring4参考手册中文版</span>
 
 <h1>作者简介</h1>  
 翻译 石永明  <shiyongming@sinosoft.com.cn>  
@@ -150,7 +149,7 @@ http://www.springframework.org/schema/beans/spring-beans.xsd">
 多个配置文件共同定义bean非常有用。通常，每个XML配置文件在你的架构中代表一个逻辑层或者一个模块。
 
 你可以使用应用上下文(applicationContext)的构造函数去加载所有xml中定义的bean。这个构造函数使用多个资源定位，就像前面中提到的。或者，也可以用一个或者多个资源引用，即使用`<import/>`标签加载其他文件定义的bean。举个栗子：
-
+```xml
 	<beans>
 		<import resource="services.xml"/>
 		<import resource="resources/messageSource.xml"/>
@@ -159,7 +158,7 @@ http://www.springframework.org/schema/beans/spring-beans.xsd">
 		<bean id="bean1" class="..."/>
 		<bean id="bean2" class="..."/>
 	</beans>
-
+```
 上例中，从三个外部文件加载定义的bean:`services.xml`,`messageSource.xml`,`themeSource.xml` 。被引入的文件的路径对于引入配置文件来说都是相对路径，所以`service.xml`必须在引入配置文件的相同文件路径或者相同的类路径中。而`messageSource.xml`和`themeSource.xml`必须在引入配置文件所在的文件夹下的`resouce`文件夹下。正如你所看到的 `/`开头会被忽略掉，因为这些路径是相对路径，推荐不要使用`/`开头的格式。导入(imported)文件内容，包含根节点`<beans/>`，配置中XML bean定义 必须经过Spring语法校验通过。
 
 
@@ -195,16 +194,18 @@ Spring IoC容器管理一个或多个bean。这些bean根据提供给容器的�
 这些元数据将转换成bean定义(`BeanDefinition`类）的属性。
 
 **The bean definition**  
-**属性** :**详情**  
-**class** :[Section 5.3.2, “Instantiating beans”](#beans-factory-class)  
-**name** :[Section 5.3.1, “Naming beans”](#beans-beanname)  
-**scope**:[Section 5.5, “Bean scopes”](#beans-factory-scopes)  
-**constructor arguments**:[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
-**properties**:[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
-**autowiring mode**:[Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire)  
-**lazy-initialization mode**:[Section 5.4.4, “Lazy-initialized beans”](#beans-factory-lazy-init)  
-**initialization method**:[the section called “Initialization callbacks”](#beans-factory-lifecycle-initializingbean)  
-**destruction method**:[the section called “Destruction callbacks”](#beans-factory-lifecycle-disposablebean)  
+
+**属性**  |**详情**  
+------------- | -------------
+**class** |[Section 5.3.2, “Instantiating beans”](#beans-factory-class)  
+**name**  |[Section 5.3.1, “Naming beans”](#beans-beanname)  
+**scope** |[Section 5.5, “Bean scopes”](#beans-factory-scopes)  
+**constructor arguments**|[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
+**properties**|[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
+**autowiring mode**|[Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire)  
+**lazy-initialization mode**|[Section 5.4.4, “Lazy-initialized beans”](#beans-factory-lazy-init)  
+**initialization method**|[the section called “Initialization callbacks”](#beans-factory-lifecycle-initializingbean)  
+**destruction method**|[the section called “Destruction callbacks”](#beans-factory-lifecycle-disposablebean)  
 
 除了bean的信息以外，`BeanDefinition`也包含创建特殊bean的信息，`ApplicationContext`的实现也允许注册由用户创建而非IoC容器创建的对象。通过访问ApplicationContext’s BeanFactory的方法`getBeanFactory()`，该方法返回BeanFactory的实现`DefaultListableBeanFactory`。`DefaultListableBeanFactory`类支持这种注册，通过`registerSingleton(..)`和`registerBeanDefinition(..)`方法实现。然而，典型的应用只用元数据定义的bean就可以单独运行。
 
