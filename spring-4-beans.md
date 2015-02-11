@@ -1342,3 +1342,47 @@ bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`s
     <!-- no beans will be pre-instantiated... -->
 </beans>
 ```
+<h4 id='beans-factory-autowire'>自动装配</h4>
+Spring容器提供自动装配，用于组织bean之间的依赖。可以让Spring，通过检查`ApplicationContext`内容完成自动注入。自动装配有以下优点:
+
+* 自动装配能明显减少属性和构造参数的配置。（在这方面，还有其他的机制也能达到此目的,比如bean 模板，[在后面的章节里有详细的讲解](#beans-child-bean-definitions)）
+* 自动装配可扩展性非常好。比如，给类增加了依赖,无需修改配置,依赖类就能自动注入。因此，自动装配在开发期非常有用，在代码不稳定时，无需修改编码即可完成切换。
+
+在XML中，设置`<bean/>`元素的`autowire`属性来设定bean的自动装配模式。自动装配有5种模式。可以选择任意一种，来设置bean的装配模式。（*译注，这不是废话么，有5中模式，每种都能随便用，假设有一种不能用，那就是4种模式了么*）
+
+**Table 5.2. 自动装配模式**
+
+模式 | 解释
+----- | -----
+no | (默认的)非自动装配。必须使用`ref`元素定义bean引用。对于大规模系统，推荐使用，明确的指定依赖易于控制，清楚明了。它在某种程度上说明了系统的结构。
+byName | 通过属性名称property name自动装配。Spring会查找与需要自动装配的属性同名bean。举个栗子，若在bean定义中设置了by name方式的自动装配，该bean有属性`master`(当然了，还得有个setMaster(..)写属性方法),Spring会查找一个名叫`master`的bean，并将它注入给`master`熟悉。
+byType | 若在容器中存在一个bean，且bean类型与设置自动装配bean的属性相同，那么将bean注入给属性。若与属性同类型的bean多于1个，则会抛出我们期待已久的致命异常，也就意味着这个bean也许不适合自动注入。若不存在匹配的bean，啥都不会发生;属性也不会设置，然后就没有然后了。
+constructor | Analogous to byType, but applies to constructor arguments. If there is not exactly one bean of the constructor argument type in the container, a fatal error is raised.和byType模式类似，但是应用于构造参数。若在容器中不存在与构造参数类型相同的bean，那么接下来呢，抛异常呗，还能干啥?
+
+*byType*或者*constructor*自动装配模式,可以装配arrays数组和范型集合。 这种个情况
+下，容器内匹配类型的bean才会注入给依赖。若key类型是`String`,你也能自动装配强类型`Maps`。一个自动装配的Map，所有 匹配value类型的bean都会注入`Map.value`，此时，Map的key就是相应的bean的name。
+
+可以结合自动装配和依赖检查，依赖检查会在装配完成后执行。
+
+
+
+
+
+
+
+在编程式使用的`ApplicationContext`接口过程中，`ChildBeanDifinition`类代表子bean定义。大多数人无需和这些打交道，取而代之的是使用像`ClassPathXmlApplicationContext`类这种方式声明、配置bean。当使用XML配置元数据时，通过设置子bean的`parent`属性值为父bean，来这是父bean。
+
+```xml
+<bean id="inheritedTestBean" abstract="true"
+        class="org.springframework.beans.TestBean">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithDifferentClass"
+        class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBean" init-method="initialize">
+    <property name="name" value="override"/>
+    <!-- the age property value of 1 will be inherited from parent -->
+</bean>
+```
