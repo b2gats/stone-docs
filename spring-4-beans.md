@@ -1,33 +1,9 @@
-<style>
-.sidebar {
-line-height: 1.4;
-padding: 0 20px;
-background-color: #F8F8F8;
-border: 1px solid #CCCCCC;
-border-radius: 3px 3px 3px 3px;
-}
-.scode {
-font-size: 16px;
-font-family: Consolas,"Liberation Mono",Courier,monospace;
-color: #6D180B;
-background-color: #F2F2F2;
-border: 1px solid #CCCCCC;
-border-radius: 4px;
-padding: 1px 3px 0;
-text-shadow: none;
-white-space: nowrap;
-}
-code {
-font-size: 16px;
-}
-.ht{font-size:32px;}
-.hl-keyword{color:#7F0055;font-weight:bold;}.hl-comment{color:#3F5F5F;font-style:italic;}.hl-multiline-comment{color:#3F5FBF;font-style:italic;}.hl-tag{color:#3F7F7F;}.hl-attribute{color:#7F007F;}.hl-value{color:#2A00FF;}.hl-string{color:#2A00FF;};html{padding:0pt;margin:0pt;}body{color:#333333;margin:15px 30px;font-family:Helvetica,Arial,Freesans,Clean,Sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}code{font-size:16px;font-family:Consolas,"Liberation Mono",Courier,monospace;color:#6D180B;}:not(pre)>code{background-color:#F2F2F2;border:1px solid #CCCCCC;border-radius:4px;padding:1px 3px 0;text-shadow:none;white-space:nowrap;}body>*:first-child{margin-top:0!important;}div{margin:0pt;}hr{border:1px solid #CCCCCC;background:#CCCCCC;}h1,h2,h3,h4,h5,h6{color:#000000;cursor:text;font-weight:bold;margin:30px 0 10px;padding:0;}h1,h2,h3{margin:40px 0 10px;}h1{margin:70px 0 30px;padding-top:20px;}div.part h1{border-top:1px dotted #CCCCCC;}h1,h1 code{font-size:32px;}h2,h2 code{font-size:24px;}h3,h3 code{font-size:20px;}h4,h1 code,h5,h5 code,h6,h6 code{font-size:18px;}div.book,div.chapter,div.appendix,div.part,div.preface{min-width:300px;max-width:1200px;margin:0 auto;}p.releaseinfo{font-weight:bold;margin-bottom:40px;margin-top:40px;}div.authorgroup{line-height:1;}p.copyright{line-height:1;margin-bottom:-5px;}.legalnotice p{font-style:italic;font-size:14px;line-height:1;}div.titlepage+p,div.titlepage+p{margin-top:0;}pre{line-height:1.0;color:black;}a{color:#4183C4;text-decoration:none;}p{margin:15px 0;text-align:left;}ul,ol{padding-left:30px;}li p{margin:0;}div.table{margin:1em;padding:0.5em;text-align:center;}div.table table,div.informaltable table{display:table;width:100%;}div.table td{padding-left:7px;padding-right:7px;}.sidebar{line-height:1.4;padding:0 20px;background-color:#F8F8F8;border:1px solid #CCCCCC;border-radius:3px 3px 3px 3px;}.sidebar p.title{color:#6D180B;}pre.programlisting,pre.screen{font-size:15px;padding:6px 10px;background-color:#F8F8F8;border:1px solid #CCCCCC;border-radius:3px 3px 3px 3px;clear:both;overflow:auto;line-height:1.4;font-family:Consolas,"Liberation Mono",Courier,monospace;}table{border-collapse:collapse;border-spacing:0;border:1px solid #DDDDDD!important;border-radius:4px!important;border-collapse:separate!important;line-height:1.6;}table thead{background:#F5F5F5;}table tr{border:none;border-bottom:none;}table th{font-weight:bold;}table th,table td{border:none!important;padding:6px 13px;}table tr:nth-child(2n){background-color:#F8F8F8;}td p{margin:0 0 15px 0;}div.table-contents td p{margin:0;}div.important *,div.note *,div.tip *,div.warning *,div.navheader *,div.navfooter *,div.calloutlist *{border:none!important;background:none!important;margin:0;}div.important p,div.note p,div.tip p,div.warning p{color:#6F6F6F;line-height:1.6;}div.important code,div.note code,div.tip code,div.warning code{background-color:#F2F2F2!important;border:1px solid #CCCCCC!important;border-radius:4px!important;padding:1px 3px 0!important;text-shadow:none!important;white-space:nowrap!important;}.note th,.tip th,.warning th{display:none;}.note tr:first-child td,.tip tr:first-child td,.warning tr:first-child td{border-right:1px solid #CCCCCC!important;padding-top:10px;}div.calloutlist p,div.calloutlist td{padding:0;margin:0;}div.calloutlist>table>tbody>tr>td:first-child{padding-left:10px;width:30px!important;}div.important,div.note,div.tip,div.warning{margin-left:0px!important;margin-right:20px!important;margin-top:20px;margin-bottom:20px;padding-top:10px;padding-bottom:10px;}div.toc{line-height:1.2;}dl,dt{margin-top:1px;margin-bottom:0;}div.toc>dl>dt{font-size:32px;font-weight:bold;margin:30px 0 10px 0;display:block;}div.toc>dl>dd>dl>dt{font-size:24px;font-weight:bold;margin:20px 0 10px 0;display:block;}div.toc>dl>dd>dl>dd>dl>dt{font-weight:bold;font-size:20px;margin:10px 0 0 0;}tbody.footnotes *{border:none!important;}div.footnote p{margin:0;line-height:1;}div5.footnote p sup{margin-right:6px;vertical-align:middle;}div.navheader{border-bottom:1px solid #CCCCCC;}div.navfooter{border-top:1px solid #CCCCCC;}.title{margin-left:-1em;padding-left:1em;}.title>a{position:absolute;visibility:hidden;display:block;font-size:0.85em;margin-top:0.05em;margin-left:-1em;vertical-align:text-top;color:black;}.title>a:before{content:"\00A7";}.title:hover>a,.title>a:hover,.title:hover>a:hover{visibility:visible;}.title:focus>a,.title>a:focus,.title:focus>a:focus{outline:0;}
-</style>
+<link href="./spring-doc.css" rel="stylesheet"></link>
 
 <span class="ht">Spring4参考手册中文版</span>
 
 <h1>作者简介</h1>  
-翻译 石永明  <shiyongming@sinosoft.com.cn>
+翻译 石永明  <shiyongming@sinosoft.com.cn>  
 顾问 张丙天  
 
 **石永明** 现任中科软科技股份有限公司应用系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破
@@ -37,26 +13,6 @@ font-size: 16px;
 <h1>前言</h1>
 我是前言。
 
-<h1 id='spring-introduction'>Part I. Spring框架概述</h1>
-我是Spring框架概述
-<h2 id='overview-getting-started-with-spring'>HelloWorld</h2>
-<h2 id='overview'>Spring框架简介</h2>
-<h3 id='overview-dependency-injection'>依赖注入和控制反转</h3>
-<h3 id="overview-modules">模块</h3>
-<h4 id="overview-core-container">核心容器</h4>
-<h4 id="overview-aop-instrumentation">AOP和Instrumentation</h4>
-<h4 id="overview-messaging">消息</h4>
-<h4 id="overview-data-access">数据访问/集成</h4>
-<h4 id="overview-web">Web</h4>
-<h4 id="overview-testing">测试</h4>
-<h3 id="overview-usagescenarios">使用场景</h3>
-<h4 id="dependency-management"> 依赖管理和命名规范</h4>
-<h3 id="overview-logging">日志</h3>
-
-<h1 id='spring-whats-new'>Part II. Spring 4.x 新特性</h1>
-我是Part II. Spring 4.x 新特性
-<h2 id="new-in-4.0">4.x新功能和改进</h2>
-<h2 id="new-in-4.1">4.1新功能和改进</h2>
 
 <h1 id="spring-core">Part III. 核心技术</h1>
 本部分参考手册完全覆盖了Srping 框架的全部技术
@@ -117,75 +73,77 @@ bean的定义要与应用中实际的类相一致。可以定义service 层的�
 
 下面的样例展示了基于XML配置元数据的基本格式:  
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd">
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="..." class="...">
+    <!-- bean的详细配置 -->
+    </bean>
     
-	    <bean id="..." class="...">
-	    <!-- bean的详细配置 -->
-	    </bean>
-	    
-	    <bean id="..." class="...">
-	    <!-- bean的详细配置 -->
-	    </bean>
-	    
-	    <!-- 其他bean -->
+    <bean id="..." class="...">
+    <!-- bean的详细配置 -->
+    </bean>
     
-    </beans>
+    <!-- 其他bean -->
+
+</beans>
+```
 
 `id`属性是个字串，是bean的唯一标示符。`class`属性定义了bean的类型，要使用类的全限定类名（含有包路径）。`id`属性的值，可以作为合作bean的引用标示符。上面未展示如何引用其他对象；详情参看[Dependencies](#beans-dependencies)
 
 
 <h4 id='beans-factory-instantiation'>容器实例化</h4>  
 Spring IoC的实例化易如反掌。`ApplicationContext`构造函数支持定位路径，定位路径也可以是多个，它是标识实际资源的字串，容器使用该标识加载配置元数据，支持多种资源，比如：本地文件系统、CLASSPATH等等。  
-
+```java
 	ApplicationContext context = 
 		new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});  
-
+```
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 在学习了Spring IoC容器之后，也许你想了解更多的Spring的资源，如前所述在第6章，资源使用URI语法定位输入流，Spring提供了方便的机制读取输入流。在第6.7章[“Application contexts and Resource paths”](#resources-app-ctx)，专门讲述5用 资源路径构造应用上下文，资源路径也是惯用手法。  
 接下来的样例展示了配置service层对象:  
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd">
-    
-    	<!-- services -->
-    
-    	<bean id="petStore" class="org.springframework.samples.jpetstore.services.PetStoreServiceImpl">
-    	<property name="accountDao" ref="accountDao"/>
-    	<property name="itemDao" ref="itemDao"/>
-    	<!-- 有关属性配置 -->
-    	</bean>
-    
-    	<!--更多的Service bean -->
-    
-    </beans>
+	<!-- services -->
+
+	<bean id="petStore" class="org.springframework.samples.jpetstore.services.PetStoreServiceImpl">
+	<property name="accountDao" ref="accountDao"/>
+	<property name="itemDao" ref="itemDao"/>
+	<!-- 有关属性配置 -->
+	</bean>
+
+	<!--更多的Service bean -->
+
+</beans>
+```
 
 下面的样例展示了数据访问对象`dao.xml`配置:  
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="accountDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaAccountDao">
+    <!-- additional collaborators and configuration for this bean go here -->
+    </bean>
     
-	    <bean id="accountDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaAccountDao">
-	    <!-- additional collaborators and configuration for this bean go here -->
-	    </bean>
-	    
-	    <bean id="itemDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaItemDao">
-	    <!-- additional collaborators and configuration for this bean go here -->
-	    </bean>
-	    
-	    <!-- more bean definitions for data access objects go here -->
+    <bean id="itemDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaItemDao">
+    <!-- additional collaborators and configuration for this bean go here -->
+    </bean>
     
-    </beans>
-
+    <!-- more bean definitions for data access objects go here -->
+</beans>
+```
 上述内容中service层由`PetStoreServiceImpl`类、2个dao对象`JpaAccountDao`和`JpaItemDao`(基于JPA ORM标准)。属性`name`元素引用了JavaBean的属性，*ref*元素引用了其他bean定义。这个引用表示实际对象之间的引用依赖。配置一个对象的依赖，详情请参看[Dependencies](#beans-dependencies)
 
 <h5 id='beans-factory-xml-import'>引入基于xml的元数据</h5>
@@ -212,16 +170,17 @@ Spring IoC的实例化易如反掌。`ApplicationContext`构造函数支持定�
 <h4 id='beans-factory-client'>使用容器</h4>
 `ApplicationContext`是一个高级工厂的接口，能维护各种bean以及他们之间依赖的注册。使用方法`T getBean(String name, Class<T> requiredType)`，就能从定义的bean中获取实例。
 `ApplicationContext`能让你读取bean定义、访问他们，如下：  
+```java
+// create and configure beans
+ApplicationContext context =
+new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});
 
-    // create and configure beans
-    ApplicationContext context =
-    new ClassPathXmlApplicationContext(new String[] {"services.xml", "daos.xml"});
-    
-    // retrieve configured instance
-    PetStoreService service = context.getBean("petStore", PetStoreService.class);
-    
-    // use configured instance
-    List<String> userList = service.getUsernameList();  
+// retrieve configured instance
+PetStoreService service = context.getBean("petStore", PetStoreService.class);
+
+// use configured instance
+List<String> userList = service.getUsernameList();  
+```
 
 使用`getBean()`从beans中获取实例。`ApplicationContext`接口有几种方法可以办到,但是理想的做法是不要使用他们。实际上，应用中根本就不该使用`getBean()`方法，这样就不依赖Sprig API了。比如，Spring集成了很多web框架，为各种web框架类提供了依赖注入，比如web框架的Controller和JSF-managed beans
 
@@ -256,67 +215,75 @@ bean有一个或者多个标示符。这些标示符必须是所在容器范围�
 在XML格式配置元数据中，使用 `id` 或者 `name` 属性来作为bean的标示符。`id`属性只能有1个。命名规范是字符数字混编（myBean,fooService,等等），但也支持特殊字符，可以包含。若想给bean起个别名，则可使用`name`属性来指定，可以是多个，用英文的逗号(`,`)分隔、分号(`;`)也行、空格也行。注意，在Spring3.1以前，`id`属性定义成了`xsd:ID`类型，该类型强制为字符*（译者心里说：估计字母+特殊字符，不支持数字的意思，有待验证，没工夫验证去了，翻译进度太慢了。再说了，现在都用4了，你再说3.0怎么着怎么着，那不跟孔乙己似的跟别人吹嘘茴香豆有四种写法）*。3.1版开始，它被定义为`xsd:string`类型。注意，bean `id`的唯一性约束依然被容器强制使用，尽管xml解析器不再支持了。*译者注：在spring3（含）以前，id是可以相同的，容器会替换相同id的bean，而在新版中，容器初始化过程中发现id相同抛出异常，停止实例化*
 
 `id` 和`name`属性不是bean所必须的。若未明确指定`id`或者`name`属性，容器会给它生成一个唯一name属性。当然了，如果你想通过bean的`name`属性引用，使用`ref`元素方式，或者是类似于[Service Locator模式](#beans-servicelocator)方式检索bean(*译者想：应该是指调用ApplicationContext.getBean()方法获取bean，类似这种方式。Service Locator是一种设计模式，其实换个名字是不是更合适，DL（Dependency Lookup依赖查找）。虽然现在我也不明白，但是下面有专门的章节讲解，翻到时候再详细了解*)，就必须给bean指定	`name`了。之所以支持无name bean特性，是为了使内部类自动装配。
+```
+Bean命名规范
 
-	Bean命名规范
-	
-	bean命名规范使用java命名规范中实例属性名(也称域，Field)规范。小写字母开头的驼峰式。像这样(不包括单引号)`accountManager`，`accountService`，`userDao`，
-	`loginController`，等等
+bean命名规范使用java命名规范中实例属性名(也称域，Field)规范。小写字母开头的驼峰式。像这样
+(不包括单引号)`accountManager`，`accountService`，`userDao`，
+`loginController`，等等
 
-	规范的命名使配置易读易理解。若使用Spring AOP，通过名字增强(译注：大多数Spring AOP教材中的 通知)一坨bean时，规范的命名将带来极大的方便。
-	
+规范的命名使配置易读易理解。若使用Spring AOP，通过名字增强(译注：大多数Spring AOP教材中
+的 通知)一坨bean时，规范的命名将带来极大的方便。
+```	
 <h5 id='beans-beanname-alias'>bean定义之外设置别名</h5>
 定义的bean内，可以给bean多个标识符，组合`id`属性值和任意数量的`name`属性值。这些标识符均可作为该bean的别名，对于有些场景中,别名机制非常有用，比如应用中组件对自身的引用。(*译注：一个类持有一个本类的实例作为属性，看起来应该是这样的，以下代码为推测，可以执行*)  
 **Bean类**
-	
-	public class SomeBean {
-		//注意看这个属性，就是本类
-		private SomeBean someBean;
-		
-		public SomeBean(){}
-		
-		public void setSomeBean(SomeBean someBean) {
-			this.someBean = someBean;
-		}
-	}
-**配置元数据**  
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-		<!--看bean的别名，使用,/;/空格 分隔都是可以是-->
-		<bean id="someBeanId" name="someBean,someBeanA;someBeanB someBeanC" class="com.example.spring.bean.SomeBean">
-			<!--将别名为someBeanA 的bean 注入给 id为someBeanId 的bean的属性 'someBean'-->
-			<property name="someBean" ref="someBeanA"></property>
-		</bean>
-	</beans>
+```java	
+public class SomeBean {
+	//注意看这个属性，就是本类
+	private SomeBean someBean;
+	
+	public SomeBean(){}
+	
+	public void setSomeBean(SomeBean someBean) {
+		this.someBean = someBean;
+	}
+}
+```
+
+**配置元数据**  
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!--看bean的别名，使用,/;/空格 分隔都是可以是-->
+	<bean id="someBeanId" name="someBean,someBeanA;someBeanB someBeanC" class="com.example.spring.bean.SomeBean">
+		<!--将别名为someBeanA 的bean 注入给 id为someBeanId 的bean的属性 'someBean'-->
+		<property name="someBean" ref="someBeanA"></property>
+	</bean>
+</beans>
+```
 
 **测试代码**  
-
-	@ContextConfiguration
-	@RunWith(SpringJUnit4ClassRunner.class)
-	public class SomeBeanTests {
-		
-		@Autowired
-		@Qualifier("someBeanId")
-		private SomeBean someBean;
-		
-		@Test
-		public void testSimpleProperties() throws Exception {
-		}
-		
+```java
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class SomeBeanTests {
+	
+	@Autowired
+	@Qualifier("someBeanId")
+	private SomeBean someBean;
+	
+	@Test
+	public void testSimpleProperties() throws Exception {
 	}
-
+	
+}
+```
 在bean的定义处指定所有别名有时候并不合适，然而，在其他配置文件中给bean设置别名却更为恰当。此法通常应用在大型系统的场景中，配置文件分散在各个子系统中，每个子系统都有本系统的bean定义。XML格式配置元数据，提供`<alias/>`元素，可以搞定此用法。
-
-	<alias name="fromName" alias="toName"/>
+```xml
+<alias name="fromName" alias="toName"/>
+```
 
 这种情况下，在同容器中有个叫`fromName`的bean，或者叫其他的`阿猫阿狗`之类的，再使用此别名定义之后，即可被当做`toName`来引用。
 
 举个栗子，子系统A中的配置元数据也许引用了一个被命名为`subsystemA-dataSource`的bean。子系统B也许引用了一个`subsystemB-dataSource`。将这两个子系统整合到主应用中，而主应用使用了一个`myApp-dataSource`，为了使3个bean引用同一个对象，得在MyApp配置元数据中使用别名定义:
-
-	<alias name="subsystemA-dataSource" alias="subsystemB-dataSource"/>
-	<alias name="subsystemA-dataSource" alias="myApp-dataSource" />
+```xml
+<alias name="subsystemA-dataSource" alias="subsystemB-dataSource"/>
+<alias name="subsystemA-dataSource" alias="myApp-dataSource" />
+```
 
 现在，每个组件和主应用都能通过bean 名引用dataSource，而bean名都是唯一的保证不与其他定义冲突(实际上创建了一个命名空间),但他们引用的都是同一个bean。
 
@@ -347,89 +314,94 @@ bean的定义，本质是如何创建一个或多个对象的配方。容器被�
 Spring IoC容器几乎能管理任何你需要管理的类，不局限于真正的`JavaBeans`。大多数Spring的用户心中，真正的`JavaBean`是这样的：仅有1个默认的无参构造函数、属性、setter、getter。嗯，比如，现在需要使用一个废弃连接池，它肯定不符合`JavaBean`规范，Spring照样能管理。
 
 使用XML格式配置元数据 定义bean的`class`，如下所示：  
+```xml
+<bean id="exampleBean" class="examples.ExampleBean"/>
 
-    <bean id="exampleBean" class="examples.ExampleBean"/>
-    
-    <bean name="anotherExample" class="examples.ExampleBeanTwo"/>  
-
+<bean name="anotherExample" class="examples.ExampleBeanTwo"/>  
+```
 如何为构造函数指定参数？如何在对象实力话之后设置其属性？请参看[Injecting Dependencies](#beans-factory-collaborators)
 
 <h5 id='beans-factory-class-static-factory-method'>使用静态工厂方法实例化</h5>
 定义使用使用静态工厂方法创建的bean时，得指定工厂方法类的作为`class`属性值，并且还得指定工厂方法类中用于创建bean的方法名称，作为`factory-method`属性值。工厂方法可以有参数，调用该方法即可返回对象实例，就像通过构造函数创建对象实例一样。此种bean定义是为了兼容遗留系统中的静态工厂
 
 下面的bean定义，是使用工厂方法创建bean的方式。定义中，无需指定返回对象的类型(class)，而是指定工厂方法类的`class`。下例中，`createInstance()`方法必须是一个`static`静态方法。
-
-	<bean id="clientService"
-	    class="examples.ClientService"
-	    factory-method="createInstance"/>  
-<br>  
-
-    public class ClientService {
-	    private static ClientService clientService = new ClientService();
-	    private ClientService() {}
-	    
-	    public static ClientService createInstance() {
-	    return clientService;
-	    }
-    }	
+```xml
+<bean id="clientService"
+    class="examples.ClientService"
+    factory-method="createInstance"/>  
+```
+继续
+```java
+public class ClientService {
+    private static ClientService clientService = new ClientService();
+    private ClientService() {}
+    
+    public static ClientService createInstance() {
+    return clientService;
+    }
+}	
+```
 
 <h5 id='beans-factory-class-instance-factory-method'>使用实例工厂方法实例化</h5>
 和[静态工厂方法](#beans-factory-class-static-factory-method)类似的还有实例工厂方法，使用实例工厂方法的方式实例化，是调用容器中已存在的bean的一个非静态方法来创建一个bean。用法是，1、`class`属性置空设置。 2、设置`factory-bean`属性，其值为当前容器(或者父容器)中bean的名字，该bean包含可供调用的创建对象的实例方法。3、设置`factory-method`属性，其值为工厂方法名。
+```xml
+<!-- 工厂类, 包含一个方法createInstance() -->
+<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+<!-- inject any dependencies required by this locator bean -->
+</bean>
 
-    <!-- 工厂类, 包含一个方法createInstance() -->
-    <bean id="serviceLocator" class="examples.DefaultServiceLocator">
-    <!-- inject any dependencies required by this locator bean -->
-    </bean>
-    
-    <!-- the bean to be created via the factory bean -->
-    <bean id="clientService"
-	    factory-bean="serviceLocator"
-	    factory-method="createClientServiceInstance"/>
+<!-- the bean to be created via the factory bean -->
+<bean id="clientService"
+    factory-bean="serviceLocator"
+    factory-method="createClientServiceInstance"/>
+```
 
 工厂类如下
+```java
+public class DefaultServiceLocator {
 
-    public class DefaultServiceLocator {
+    private static ClientService clientService = new ClientServiceImpl();
+    private DefaultServiceLocator() {}
     
-	    private static ClientService clientService = new ClientServiceImpl();
-	    private DefaultServiceLocator() {}
-	    
-	    public ClientService createClientServiceInstance() {
-	    return clientService;
-	    }
+    public ClientService createClientServiceInstance() {
+    return clientService;
     }
+}
+```
 
 工厂类可以有多个工厂方法:
+```xml
+<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+    <!-- inject any dependencies required by this locator bean -->
+</bean>
 
-	<bean id="serviceLocator" class="examples.DefaultServiceLocator">
-	    <!-- inject any dependencies required by this locator bean -->
-	</bean>
-	
-	<bean id="clientService"
-	    factory-bean="serviceLocator"
-	    factory-method="createClientServiceInstance"/>
-	
-	<bean id="accountService"
-	    factory-bean="serviceLocator"
-	    factory-method="createAccountServiceInstance"/>
+<bean id="clientService"
+    factory-bean="serviceLocator"
+    factory-method="createClientServiceInstance"/>
 
+<bean id="accountService"
+    factory-bean="serviceLocator"
+    factory-method="createAccountServiceInstance"/>
+```
 工厂类如下:
+```java
+public class DefaultServiceLocator {
 
-	public class DefaultServiceLocator {
-	
-	    private static ClientService clientService = new ClientServiceImpl();
-	    private static AccountService accountService = new AccountServiceImpl();
-	
-	    private DefaultServiceLocator() {}
-	
-	    public ClientService createClientServiceInstance() {
-	        return clientService;
-	    }
-	
-	    public AccountService createAccountServiceInstance() {
-	        return accountService;
-	    }
-	
-	}
+    private static ClientService clientService = new ClientServiceImpl();
+    private static AccountService accountService = new AccountServiceImpl();
+
+    private DefaultServiceLocator() {}
+
+    public ClientService createClientServiceInstance() {
+        return clientService;
+    }
+
+    public AccountService createAccountServiceInstance() {
+        return accountService;
+    }
+
+}
+```
 
 上例中展示了工厂类本身也可以通过 DI 管理和配置。参看[DI详情](#beans-factory-properties-detailed)
 
@@ -446,119 +418,125 @@ DI机制使代码简洁，对象提供它们的依赖，解耦更高效。对象
 
 DI有2种主要方式，[构造注入](#beans-constructor-injection) 和 [setter注入](#beans-setter-injection)  
 构造注入，容器调用构造函数并传参数，每个参数都是依赖。调用静态工厂方法并传参数方式构造bean和构造注入差不多，这里是指构造注入处理参数和静态工厂方法处理参数像类似。下例中展示了一个只能使用构造注入的类。注意，此类无任何特别之处，并未依赖容器指定的接口、基类、注解，就是一个`POJO`
+```java
+public class SimpleMovieLister {
 
-	public class SimpleMovieLister {
-	
-	    // the SimpleMovieLister 依赖 a MovieFinder
-	    private MovieFinder movieFinder;
-	
-	    //Spring容器能注入MovieFinder的构造函数
-	    public SimpleMovieLister(MovieFinder movieFinder) {
-	        this.movieFinder = movieFinder;
-	    }
-	
-	    // 实际如何使用MovieFinder的业务逻辑省略了
-	
-	}
+    // the SimpleMovieLister 依赖 a MovieFinder
+    private MovieFinder movieFinder;
+
+    //Spring容器能注入MovieFinder的构造函数
+    public SimpleMovieLister(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // 实际如何使用MovieFinder的业务逻辑省略了
+
+}
+```
 
 <h5 id='beans-factory-ctor-arguments-resolution'>构造函数参数解决方案</h5>
 构造参数解决方案，会匹配所使用的参数类型。如果在bean的定义中，构造参数不存在歧义，那么，在bean定义中定义的构造参数的次序，在bean实例化时，就是提供给适合的构造参数的次序。看这个类：
-	package x.y;
-	
-	public class Foo {
-	
-	    public Foo(Bar bar, Baz baz) {
-	        // ...
-	    }
-	
-	}
+```java
+package x.y;
+
+public class Foo {
+
+    public Foo(Bar bar, Baz baz) {
+        // ...
+    }
+
+}
+```
 
 不存在歧义，假设`Bar`和`Baz`类没有集成关系，那么下面的配置是合法的，而且，不需要在`<constructor-arg/>`元素里指定构造参数的明确的`indexes`索引或者类型。
+```xml
+<beans>
+    <bean id="foo" class="x.y.Foo">
+        <constructor-arg ref="bar"/>
+        <constructor-arg ref="baz"/>
+    </bean>
 
-	<beans>
-	    <bean id="foo" class="x.y.Foo">
-	        <constructor-arg ref="bar"/>
-	        <constructor-arg ref="baz"/>
-	    </bean>
-	
-	    <bean id="bar" class="x.y.Bar"/>
-	
-	    <bean id="baz" class="x.y.Baz"/>
-	</beans>
+    <bean id="bar" class="x.y.Bar"/>
+
+    <bean id="baz" class="x.y.Baz"/>
+</beans>
+```
 
 若需要引用另一个bean，类型已知，构造函数就可以匹配参数类型(像上面的示例)。使用简单类型时， 想`<value>true</true>`,Srping不能决定value类型情况，Spring就不能自己匹配类型。例如： 
+```java
+package examples;
 
-	package examples;
-	
-	public class ExampleBean {
-	
-	    // Number of years to calculate the Ultimate Answer
-	    private int years;
-	
-	    // The Answer to Life, the Universe, and Everything
-	    private String ultimateAnswer;
-	
-	    public ExampleBean(int years, String ultimateAnswer) {
-	        this.years = years;
-	        this.ultimateAnswer = ultimateAnswer;
-	    }
-	
-	}
+public class ExampleBean {
 
+    // Number of years to calculate the Ultimate Answer
+    private int years;
+
+    // The Answer to Life, the Universe, and Everything
+    private String ultimateAnswer;
+
+    public ExampleBean(int years, String ultimateAnswer) {
+        this.years = years;
+        this.ultimateAnswer = ultimateAnswer;
+    }
+
+}
+```
 上面的场景中，如果使用`type`属性明确指定构造参数的类型,容器就可以使用类型匹配。比如：
-
+```xml
 	<bean id="exampleBean" class="examples.ExampleBean">
 	    <constructor-arg type="int" value="7500000"/>
 	    <constructor-arg type="java.lang.String" value="42"/>
 	</bean>
+```
 
 使用`index`属性明确指定构造参数的次序。比如
-
+```xml
 	<bean id="exampleBean" class="examples.ExampleBean">
 	    <constructor-arg index="0" value="7500000"/>
 	    <constructor-arg index="1" value="42"/>
 	</bean>
-
+```
 当构造函数有2个相同类型的参数,指定次序可以解决此种情况。注意`index`是从0开始
-
+```xml
 	<bean id="exampleBean" class="examples.ExampleBean">
 	    <constructor-arg name="years" value="7500000"/>
 	    <constructor-arg name="ultimateAnswer" value="42"/>
 	</bean>
-
+```
 记住，若要使Spring能从构造函数查找参数名字,代码在编译时必须开启调试模式。若你没有开启调试模式（或者不想），可以使用`@ConstructorProperties` JDK 注解明确指定构造参数的`name`。样例程序：
-	
-	package examples;
-	
-	public class ExampleBean {
-	
-	    // Fields omitted
-	
-	    @ConstructorProperties({"years", "ultimateAnswer"})
-	    public ExampleBean(int years, String ultimateAnswer) {
-	        this.years = years;
-	        this.ultimateAnswer = ultimateAnswer;
-	    }
-	
-	}
+```java	
+package examples;
+
+public class ExampleBean {
+
+    // Fields omitted
+
+    @ConstructorProperties({"years", "ultimateAnswer"})
+    public ExampleBean(int years, String ultimateAnswer) {
+        this.years = years;
+        this.ultimateAnswer = ultimateAnswer;
+    }
+
+}
+```
 
 <h5 id='beans-setter-injection'>setter注入</h5>
 Setter注入是容器调用bean上的setter方法,bean是使用无参构造函数返回的实例，或者无参静态工厂方法返回的实例。
 下面样例中展示了只能使用Setter注入的类。这个类是传统java类，就是个POJO，不依赖容器指定的接口、基类、注解。
+```java
+public class SimpleMovieLister {
 
-	public class SimpleMovieLister {
-	
-	    // the SimpleMovieLister has a dependency on the MovieFinder
-	    private MovieFinder movieFinder;
-	
-	    // a setter method so that the Spring container can inject a MovieFinder
-	    public void setMovieFinder(MovieFinder movieFinder) {
-	        this.movieFinder = movieFinder;
-	    }
-	
-	    // business logic that actually uses the injected MovieFinder is omitted...
-	
-	}
+    // the SimpleMovieLister has a dependency on the MovieFinder
+    private MovieFinder movieFinder;
+
+    // a setter method so that the Spring container can inject a MovieFinder
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // business logic that actually uses the injected MovieFinder is omitted...
+}
+```
 
 
 `ApplicationContext`对它所管理的bean支持构造注入和setter注入。也支持先构造注入再setter注入。定义依赖，会转换成某种形式的<code class="scode">BeanDefinition</code>类，<code class="scode">BeanDefinition</code>类与<code class="scode">PropertyEditor</code>实例配合，即可将属性从一种格式转换成其他格式。然而，大多数程序员不会直接使用这些类（也就是编程式），更多的是使用XML、注解(也就是<code class="scode">@Component</code><code class="scode">@Controller</code>等等),或者<code class="scode">@Configuration</code>注解的类中的方法上使用 <code class="scode">@Bean</code>。这些配置数据，都会在容器内部转换成`BeanDefinition`，用于加载整个Spring Ioc 容器。
@@ -601,109 +579,112 @@ Spring容器在创建bean之前会验证bean的配置。在bean创建之前，be
 <h5 id='beans-some-examples'>注入依赖样例</h5>
 The following example uses XML-based configuration metadata for setter-based DI. A small part of a Spring XML configuration file specifies some bean definitions:
 下面例子中使用了XML配置元数据，setter注入方式。XML 配置文件中的片段定义了bean:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <!-- 使用内嵌的ref元素完成setter注入 -->
+    <property name="beanOne">
+        <ref bean="anotherExampleBean"/>
+    </property>
 
-	<bean id="exampleBean" class="examples.ExampleBean">
-	    <!-- 使用内嵌的ref元素完成setter注入 -->
-	    <property name="beanOne">
-	        <ref bean="anotherExampleBean"/>
-	    </property>
-	
-	    <!-- 使用ref属性完成setter注入 -->
-	    <property name="beanTwo" ref="yetAnotherBean"/>
-	    <property name="integerProperty" value="1"/>
-	</bean>
-	
-	<bean id="anotherExampleBean" class="examples.AnotherBean"/>
-	<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+    <!-- 使用ref属性完成setter注入 -->
+    <property name="beanTwo" ref="yetAnotherBean"/>
+    <property name="integerProperty" value="1"/>
+</bean>
 
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
 看java代码
-	public class ExampleBean {
-	
-	    private AnotherBean beanOne;
-	    private YetAnotherBean beanTwo;
-	    private int i;
-	
-	    public void setBeanOne(AnotherBean beanOne) {
-	        this.beanOne = beanOne;
-	    }
-	
-	    public void setBeanTwo(YetAnotherBean beanTwo) {
-	        this.beanTwo = beanTwo;
-	    }
-	
-	    public void setIntegerProperty(int i) {
-	        this.i = i;
-	    }
-	
-	}
+```java
+public class ExampleBean {
 
+    private AnotherBean beanOne;
+    private YetAnotherBean beanTwo;
+    private int i;
+
+    public void setBeanOne(AnotherBean beanOne) {
+        this.beanOne = beanOne;
+    }
+
+    public void setBeanTwo(YetAnotherBean beanTwo) {
+        this.beanTwo = beanTwo;
+    }
+
+    public void setIntegerProperty(int i) {
+        this.i = i;
+    }
+}
+```
 In the preceding example, setters are declared to match against the properties specified in the XML file. The following example uses constructor-based DI:
 上例中，setter方法名要和XML文件中的`property`元素的`name`属性相匹配。下面演示使用构造注入 ：
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <!-- constructor injection using the nested ref element -->
+    <constructor-arg>
+        <ref bean="anotherExampleBean"/>
+    </constructor-arg>
 
-	<bean id="exampleBean" class="examples.ExampleBean">
-	    <!-- constructor injection using the nested ref element -->
-	    <constructor-arg>
-	        <ref bean="anotherExampleBean"/>
-	    </constructor-arg>
-	
-	    <!-- constructor injection using the neater ref attribute -->
-	    <constructor-arg ref="yetAnotherBean"/>
-	
-	    <constructor-arg type="int" value="1"/>
-	</bean>
-	
-	<bean id="anotherExampleBean" class="examples.AnotherBean"/>
-	<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+    <!-- constructor injection using the neater ref attribute -->
+    <constructor-arg ref="yetAnotherBean"/>
+
+    <constructor-arg type="int" value="1"/>
+</bean>
+
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
 看java代码
+```java
+public class ExampleBean {
 
-	public class ExampleBean {
-	
-	    private AnotherBean beanOne;
-	    private YetAnotherBean beanTwo;
-	    private int i;
-	
-	    public ExampleBean(
-	        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
-	        this.beanOne = anotherBean;
-	        this.beanTwo = yetAnotherBean;
-	        this.i = i;
-	    }
-	}
+    private AnotherBean beanOne;
+    private YetAnotherBean beanTwo;
+    private int i;
+
+    public ExampleBean(
+        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
+        this.beanOne = anotherBean;
+        this.beanTwo = yetAnotherBean;
+        this.i = i;
+    }
+}
+```
 
 在bean定义中指定的构造函数参数，将会赋值给`ExampleBean`类的参数。
 
 现在考虑下这个样例的变种，将使用构造器改为静态工厂方法返回对象实例：
+```xml
+<bean id="exampleBean" class="examples.ExampleBean" factory-method="createInstance">
+    <constructor-arg ref="anotherExampleBean"/>
+    <constructor-arg ref="yetAnotherBean"/>
+    <constructor-arg value="1"/>
+</bean>
 
-	<bean id="exampleBean" class="examples.ExampleBean" factory-method="createInstance">
-	    <constructor-arg ref="anotherExampleBean"/>
-	    <constructor-arg ref="yetAnotherBean"/>
-	    <constructor-arg value="1"/>
-	</bean>
-	
-	<bean id="anotherExampleBean" class="examples.AnotherBean"/>
-	<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
-
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
 看java代码
+```java
+public class ExampleBean {
 
-	public class ExampleBean {
-	
-	    //私有构造函数
-	    private ExampleBean(...) {
-	        ...
-	    }
-	
-	    // 静态工厂方法; the arguments to this method can be
-	    // considered the dependencies of the bean that is returned,
-	    // regardless of how those arguments are actually used.
-	    public static ExampleBean createInstance (
-	        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
-	
-	        ExampleBean eb = new ExampleBean (...);
-	        // some other operations...
-	        return eb;
-	    }
-	
-	}
+    //私有构造函数
+    private ExampleBean(...) {
+        ...
+    }
+
+    // 静态工厂方法; the arguments to this method can be
+    // considered the dependencies of the bean that is returned,
+    // regardless of how those arguments are actually used.
+    public static ExampleBean createInstance (
+        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
+
+        ExampleBean eb = new ExampleBean (...);
+        // some other operations...
+        return eb;
+    }
+
+}
+```
 
 静态工厂方法的参数，应该通过`constructor-arg`元素产生，就像是bean的构造函数一样.工厂方法返回的类的类型无需和工厂类类型相同，虽然本例中他们是相同的。实例工厂方法(非静态）和静态工厂方法本质相同（除了使用`facory-bean`属性替代`class`属性，其他都相同），因此细节就不讨论了。
 
@@ -712,69 +693,72 @@ In the preceding example, setters are declared to match against the properties s
 
 <h5 id="beans-value-element">直接赋值(原始类型、String等等)</h5>
 `<property />`元素的`value`属性为对象域属性或者构造参数设置了一个可读的字串。Spring的会将其转换为实际的与属性或者参数的数据类型。
-	
-	<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-	    <!-- results in a setDriverClassName(String) call -->
-	    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-	    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
-	    <property name="username" value="root"/>
-	    <property name="password" value="masterkaoli"/>
-	</bean>
+```xml	
+<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- results in a setDriverClassName(String) call -->
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+    <property name="username" value="root"/>
+    <property name="password" value="masterkaoli"/>
+</bean>
+```
 
 下面的样例，是使用了XML配置中的[p命名空间](#beans-p-namespace)，他让XML更加简洁
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<beans xmlns="http://www.springframework.org/schema/beans"
-	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	    xmlns:p="http://www.springframework.org/schema/p"
-	    xsi:schemaLocation="http://www.springframework.org/schema/beans
-	    http://www.springframework.org/schema/beans/spring-beans.xsd">
-	
-	    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource"
-	        destroy-method="close"
-	        p:driverClassName="com.mysql.jdbc.Driver"
-	        p:url="jdbc:mysql://localhost:3306/mydb"
-	        p:username="root"
-	        p:password="masterkaoli"/>
-	
-	</beans>
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close"
+        p:driverClassName="com.mysql.jdbc.Driver"
+        p:url="jdbc:mysql://localhost:3306/mydb"
+        p:username="root"
+        p:password="masterkaoli"/>
+
+</beans>
+```
 
 上面的XML更简洁；然而，错别字，要在运行期才能发现而不能再开发期发现，除非你使用IDE支持自动补全。这样的的IDE的助手真心推荐。
 
 也可以这样配`java.unit.Properties`实例：
-
-	<bean id="mappings"
-	    class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-	
-	    <!-- typed as a java.util.Properties -->
-	    <property name="properties">
-	        <value>
-	            jdbc.driver.className=com.mysql.jdbc.Driver
-	            jdbc.url=jdbc:mysql://localhost:3306/mydb
-	        </value>
-	    </property>
-	</bean>
+```xml
+<bean id="mappings" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <!-- typed as a java.util.Properties -->
+    <property name="properties">
+        <value>
+            jdbc.driver.className=com.mysql.jdbc.Driver
+            jdbc.url=jdbc:mysql://localhost:3306/mydb
+        </value>
+    </property>
+</bean>
+```
 
 Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值转换到`java.util.Properties`实例。这是非常棒的，Spring团队最喜欢的几处好用之处之一：用内嵌`<value/>`元素替代 值属性风格。
 
 
 <h5 id='beans-idref-element'>元素<span class="scode">idref</span></h5>
 `idref`元素用来将容器内其它bean的id传给`<constructor-arg/>` 或 `<property/>`元素，同时提供错误验证功能。
-	
-	<bean id="theTargetBean" class="..."/>
-	
-	<bean id="theClientBean" class="...">
-	    <property name="targetName">
-	        <idref bean="theTargetBean" />
-	    </property>
-	</bean>
+```xml
+<bean id="theTargetBean" class="..."/>
 
+<bean id="theClientBean" class="...">
+    <property name="targetName">
+        <idref bean="theTargetBean" />
+    </property>
+</bean>
+```
 上面的bean定义在运行时等同于下面这一段定义：
 
-	<bean id="theTargetBean" class="..." />
-	
-	<bean id="client" class="...">
-	    <property name="targetName" value="theTargetBean" />
-	</bean>
+```xml
+<bean id="theTargetBean" class="..." />
+
+<bean id="client" class="...">
+    <property name="targetName" value="theTargetBean" />
+</bean>
+```
 
 第一种格式比第二种要跟可取 ，因为使用`idref`标签，在开发期将允许容器校验引用bean真是存在。在第二个中，对于client bean是属性 `targetName`的值则没有校验执行 .`client` bean真正的实例化时，错别字才会被发现（可能会导致致命错）。如果`client` bean是一个[原型bean](#beans-factory-scopes)，这个错字导致的异常也许会等到部署后才能被发现。
 
@@ -787,171 +771,178 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 <h5 id='#beans-ref-element'>引用其他bean(协作类)</h5>
 `ref`元素是`<constructor-arg/>`元素和`<property/>`元素内决定性元素。用它设置bean的属性以引用另一个容器管理的bean。引用的bean就是要设置属性的bean的依赖，在设置属性值之前它就要被初始化。(如果协作类是单例bean，它会在容器初始化时首先完成初始化)。差不多所有的bean都会引用其他对象。指定`id/name`的对象的作用域和依赖校验通过`bean`,`local` ,`parent`属性来配置。
 指定引用bean通常使用`<ref/>`标签，它允许引用本容器或者父容器中任意的bean，无需配置在同一个xml文件中 。`<ref/>`标签中`bean`的属性值，使用的被引用bean的`id`或者`name`。
-
-	<ref bean="someBean"/>
-
+```xml
+<ref bean="someBean"/>
+```
 通过指定目标bean的`parent`属性来引用当前容器的父容器中的bean。`parent`属性的值可以和引用bean的`id`或者`name`（引用bean的name之一）相同，引用的bean必须存在于当前容器的父容器中。若容器存在继承的情况，并且需要封装现有父容器中的某个bean到一个代理中，就可以用此种引用机制，一个与`parent` bean重名的bean。
-
-	<!-- 父容器中 -->
-	<bean id="accountService" class="com.foo.SimpleAccountService">
-	    <!-- 依赖 -->
-	</bean>
+```xml
+<!-- 父容器中 -->
+<bean id="accountService" class="com.foo.SimpleAccountService">
+    <!-- 依赖 -->
+</bean>
+```
 子容器中
-
-	<bean id="accountService" <!-- 和parent bean重名 -->
-	    class="org.springframework.aop.framework.ProxyFactoryBean">
-	    <property name="target">
-	        <ref parent="accountService"/> <!--注意如何引用 parent bean -->
-	    </property>
-	    <!-- 其他配置和依赖 -->
-	</bean>
-
+```xml
+<bean id="accountService" <!-- 和parent bean重名 -->
+    class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target">
+        <ref parent="accountService"/> <!--注意如何引用 parent bean -->
+    </property>
+    <!-- 其他配置和依赖 -->
+</bean>
+```
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 在4.0 beans xsd ，`ref `上的`local`属性不在支持。因次它不再支持正规bean的引用 。当你升级到到4.0时，记得清除已经存在于`ref`元素上的`local`属性。
 
 <h5 id='beans-inner-beans'>内部bean</h5>
 在`<property/>`元素或者`constructor-arg/>`元素内定义`<bean/>`元素，就是所谓的内部类。
-
-	<bean id="outer" class="...">
-	    <!-- 不是引用而是定义一个bean -->
-	    <property name="target">
-	        <bean class="com.example.Person"> <!-- 这就是内部类 -->
-	            <property name="name" value="Fiona Apple"/>
-	            <property name="age" value="25"/>
-	        </bean>
-	    </property>
-	</bean>
+```xml
+<bean id="outer" class="...">
+    <!-- 不是引用而是定义一个bean -->
+    <property name="target">
+        <bean class="com.example.Person"> <!-- 这就是内部类 -->
+            <property name="name" value="Fiona Apple"/>
+            <property name="age" value="25"/>
+        </bean>
+    </property>
+</bean>
+```
 
 内部bean的定义无需`id`或`name`；容器会忽略这些属性。也会忽略`scope`标记。内部通常是匿名的,伴随着外部类（的创建）而创建 。不能引用内部bean(ref属性不能指向内部bean)，除非使用闭合`bean`标签。
 
 *译者注，内部bean更直观*
 fuck goods，上干活
-
-	public class Customer {
-		private Person person;
-	 
-		public Customer(Person person) {
-			this.person = person;
-		}
-	 
-		public void setPerson(Person person) {
-			this.person = person;
-		}
-	 
-		@Override
-		public String toString() {
-			return "Customer [person=" + person + "]";
-		}
+```java
+public class Customer {
+	private Person person;
+ 
+	public Customer(Person person) {
+		this.person = person;
 	}
+ 
+	public void setPerson(Person person) {
+		this.person = person;
+	}
+ 
+	@Override
+	public String toString() {
+		return "Customer [person=" + person + "]";
+	}
+}
+```
 再来一段
-
-	public class Person {
-		private String name;
-		private String address;
-		private int age;
-	 
-		//getter and setter methods
-	 
-		@Override
-		public String toString() {
-			return "Person [address=" + address + ", 
-	                               age=" + age + ", name=" + name + "]";
-		}	
-	}
+```java
+public class Person {
+	private String name;
+	private String address;
+	private int age;
+ 
+	//getter and setter methods
+ 
+	@Override
+	public String toString() {
+		return "Person [address=" + address + ", 
+                               age=" + age + ", name=" + name + "]";
+	}	
+}
+```
 
 通常情况下，使用在`CustomerBean`bean内设置`ref`属性值为`Person`bean的标示符，即完成注入。
-	
-	<beans xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
-	 
-		<bean id="CustomerBean" class="com.example.common.Customer">
-			<property name="person" ref="PersonBean" />
-		</bean>
-	 
-		<bean id="PersonBean" class="com.example.common.Person">
-			<property name="name" value="MrChen" />
-			<property name="address" value="address1" />
-			<property name="age" value="28" />
-		</bean>
-	 
-	</beans>
-
+```xml	
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+ 
+	<bean id="CustomerBean" class="com.example.common.Customer">
+		<property name="person" ref="PersonBean" />
+	</bean>
+ 
+	<bean id="PersonBean" class="com.example.common.Person">
+		<property name="name" value="MrChen" />
+		<property name="address" value="address1" />
+		<property name="age" value="28" />
+	</bean>
+ 
+</beans>
+```
 In general, it’s fine to reference like this, but since the ‘MrChen’ person bean is only used for Customer bean only, it’s better to declare this ‘MrChen’ person as an inner bean as following :
 一般情况下，这样的引用很好用。但是如果'MrChen'这个person bean只用于`Customer`。最好是使用内部bean来声明`Person`，看起来更加直观，更具有可读性.
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd">
-	 
-		<bean id="CustomerBean" class="com.mkyong.common.Customer">
-			<property name="person">
-				<bean class="com.mkyong.common.Person">
-					<property name="name" value="mkyong" />
-					<property name="address" value="address1" />
-					<property name="age" value="28" />
-				</bean>
-			</property>
-		</bean>
-	</beans>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
+ 
+	<bean id="CustomerBean" class="com.mkyong.common.Customer">
+		<property name="person">
+			<bean class="com.mkyong.common.Person">
+				<property name="name" value="mkyong" />
+				<property name="address" value="address1" />
+				<property name="age" value="28" />
+			</bean>
+		</property>
+	</bean>
+</beans>
+```
 
 This inner bean also supported in constructor injection as following :
  内部bean也支持构造注入
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd">
- 
-		<bean id="CustomerBean" class="com.mkyong.common.Customer">
-			<constructor-arg>
-				<bean class="com.mkyong.common.Person">
-					<property name="name" value="mkyong" />
-					<property name="address" value="address1" />
-					<property name="age" value="28" />
-				</bean>
-			</constructor-arg>
-		</bean>
-	</beans>
+	<bean id="CustomerBean" class="com.mkyong.common.Customer">
+		<constructor-arg>
+			<bean class="com.mkyong.common.Person">
+				<property name="name" value="mkyong" />
+				<property name="address" value="address1" />
+				<property name="age" value="28" />
+			</bean>
+		</constructor-arg>
+	</bean>
+</beans>
+```
 
 <h5 id='beans-collection-elements'>集合</h5>
 `<list/>`,`<set/>`,`<map/>`,`<props/>`元素，用来设置`Java Collection`属性和参数，分别对应`List`,`Set`,`Map`,`Properties`
-
-	<bean id="moreComplexObject" class="example.ComplexObject">
-	    <!--调用setAdminEmails(java.util.Properties) -->
-	    <property name="adminEmails">
-	        <props>
-	            <prop key="administrator">administrator@example.org</prop>
-	            <prop key="support">support@example.org</prop>
-	            <prop key="development">development@example.org</prop>
-	        </props>
-	    </property>
-	    <!-- 调用setSomeList(java.util.List) -->
-	    <property name="someList">
-	        <list>
-	            <value>a list element followed by a reference</value>
-	            <ref bean="myDataSource" />
-	        </list>
-	    </property>
-	    <!-- 代用setSomeMap(java.util.Map) -->
-	    <property name="someMap">
-	        <map>
-	            <entry key="an entry" value="just some string"/>
-	            <entry key ="a ref" value-ref="myDataSource"/>
-	        </map>
-	    </property>
-	    <!-- 调用 setSomeSet(java.util.Set) -->
-	    <property name="someSet">
-	        <set>
-	            <value>just some string</value>
-	            <ref bean="myDataSource" />
-	        </set>
-	    </property>
-	</bean>
+```xml
+<bean id="moreComplexObject" class="example.ComplexObject">
+    <!--调用setAdminEmails(java.util.Properties) -->
+    <property name="adminEmails">
+        <props>
+            <prop key="administrator">administrator@example.org</prop>
+            <prop key="support">support@example.org</prop>
+            <prop key="development">development@example.org</prop>
+        </props>
+    </property>
+    <!-- 调用setSomeList(java.util.List) -->
+    <property name="someList">
+        <list>
+            <value>a list element followed by a reference</value>
+            <ref bean="myDataSource" />
+        </list>
+    </property>
+    <!-- 代用setSomeMap(java.util.Map) -->
+    <property name="someMap">
+        <map>
+            <entry key="an entry" value="just some string"/>
+            <entry key ="a ref" value-ref="myDataSource"/>
+        </map>
+    </property>
+    <!-- 调用 setSomeSet(java.util.Set) -->
+    <property name="someSet">
+        <set>
+            <value>just some string</value>
+            <ref bean="myDataSource" />
+        </set>
+    </property>
+</bean>
+```
 
 map.key，map.value，或者set.value，以可以是以下元素
 
@@ -986,10 +977,11 @@ Spring容器也支持集合合并。应用开发者可以定义父集合`<list/>
 ```
 
 注意，在bean `child`定义中，指定`property` `adminEmails`的`<props/>`元素中`merge=true`属性。当`child`bean被容器解析并且实例化时，实例有一个`adminEmails`的`Properties`集合，该集合包含了父子容器中`adminEmails`集合合并后的值。
-
+```
 administrator=administrator@example.com
 sales=sales@example.com
 support=support@example.co.uk
+```
 
 子`Properties`集合的将继承所有父集合中`<props/>`定义的值，并且重名属性值会覆盖父集合中的值.
 
@@ -1310,12 +1302,14 @@ bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`s
 
 若bean是另个bean的依赖，通常是指该bean是另个bean的属性。在XML中通过`<ref/>`[元素](#beans-ref-element)配置实现。然而，bean之间并不全是直接依赖。举个栗子,类中有个静态初始化需要出发,像注册数据库驱动这样的。`depends-on`属性能强制这些先决条件首先完成执行初始化，然后再去使用它（比如用于注入）。
 下面的样例中，展示了使用`depends-on`来表达bean之间的依赖关系：
+
 ```xml
 <bean id="beanOne" class="ExampleBean" depends-on="manager"/>
 <bean id="manager" class="ManagerBean" />
 ```
 
 也可以依赖多个bean，为`depends-on`属性值提供一个bean name列表，用逗号，空白，分号分隔。
+
 ```xml
 <bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
     <property name="manager" ref="manager" />
@@ -1324,27 +1318,13 @@ bean `foo`有属性`fred`,`fred`有属性`bob`,`bob`有属性`sammy`,最后的`s
 <bean id="manager" class="ManagerBean" />
 <bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
 ```
+
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 在[单例](#beans-factory-scopes-singleton)bean中，`depends-on`属性既可以设定依赖的初始化时机，也可以相应的设定依赖的销毁时机。在bean被销毁之前,bean使用`depdnds-on`属性定义的依赖bean会首先被销毁。因此`depends-on`也能控制销毁顺序。
 
-<h4 id="beans-factory-dependson">延迟初始化</h4>
-延迟初始化
 
-<h4 id="beans-factory-autowire">自动装配</h4>
-自动装配
 
-<h5 id="beans-autowired-exceptions">自动装配的限制和缺点</h5>
-自动装配的限制和缺点
 
-<h5 id="beans-factory-autowire-candidate>Excluding a bean from autowiring</h5>
-Excluding a bean from autowiring
-
-<h4 id="beans-factory-method-injection">方法注入</h4>
-方法注入
-<h5 id="beans-factory-lookup-method-injection>查找方法注入</h5>
-查找方法注入
-<h5 id="beans-factory-arbitrary-method-replacement">任意方法置换</h5>
-任意方法置换
 
 
 
