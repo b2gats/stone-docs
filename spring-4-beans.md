@@ -1166,6 +1166,95 @@ Spring对于属性的空参数转换为空字串。下面的XML片段，设置�
 
 	exampleBean.setEmail(null)
 
+<h5 id='beans-p-namespace'>XML简写p命名空间</h5>
+p-命名空间能让你使用`bean`元素属性替代内嵌`property/>`元素，用来描述属性值或者协作类。
+
+Spirng支持[命名空间](#xsd-config)扩展配置,命名空间基于XML Schema定义。本章讨论的`beans`配置格式定义在XML Schema文档中。然而，p命名空间并不是在XSD文件中，而是存在于Spring核心中。
+
+下面XML片段解释了:1使用了标准XML，第2个使用p-命名空间 
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean name="classic" class="com.example.ExampleBean">
+        <property name="email" value="foo@bar.com"/>
+    </bean>
+
+    <bean name="p-namespace" class="com.example.ExampleBean"
+        p:email="foo@bar.com"/>
+</beans>
+```
+
+上例中解释了，在bean定义中使用p-namespace设置`email` 属性。它告诉Spring这里有一个`property`声明。前面提到过，p-namespace 并不存在schema定义，所以`p`可以修改为其他名字。
+*译注,干活都是译者自己撰写用于验证，而非参考手册原版中的内容,之所以验证，是因为原版E文有看不懂的地方、或者翻译拿不准、或者就是闲来无事、或者就是为了凑篇幅，这些事儿得通过写代码验证搞定了*
+up fuck goods上干货
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ppp="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+    <bean name="p-namespace" class="com.example.spring.bean.p.PNamespaceBean"
+        ppp:email="foo@email.com"/>
+</beans>
+```
+注意p命名空间的用法`xmlns:ppp="http://www.springframework.org/schema/p"`和`ppp:email="foo@email.com"`
+
+go on fuck goods继续干货
+
+```java
+public class PNamespaceBean {
+	private String email;
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	
+}
+```
+
+下面样例中，2个bean都引用了同一个bean
+```xmxl
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!--传统-->
+    <bean name="john-classic" class="com.example.Person">
+        <property name="name" value="John Doe"/>
+        <property name="spouse" ref="jane"/>
+    </bean>
+
+	<!--时髦-->
+    <bean name="john-modern"
+        class="com.example.Person"
+        p:name="John Doe"
+        p:spouse-ref="jane"/>
+
+	<!---->
+    <bean name="jane" class="com.example.Person">
+        <property name="name" value="Jane Doe"/>
+    </bean>
+</beans>
+```
+
+样例中2个p-namespace设置属性值，出现了一种新的格式声明引用。第一个bean中，使用了` <property name="spouse" ref="jane"/>`应用bean jane.第二个bean中，使用了` p:spouse-ref="jane"`做了相同的好事儿,此时,`spouse`是属性名，然而`-ref`表示这不是直接量而是引用另一个bean。
+
+>*译注* 好事儿，我小时候虽然做好事儿不留名，但是总能被发现，令我非常苦恼。我的妈妈常常揪着我的耳朵问：这又是你干的好事儿吧。
+
+
 
 
 
