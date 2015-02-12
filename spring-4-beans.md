@@ -1385,3 +1385,44 @@ constructor | Analogous to byType, but applies to constructor arguments. If ther
 * 使用对bean名字进行模式匹配来对自动装配进行限制。其做法是在<beans/>元素的'default-autowire-candidates'属性中进行设置。比如，将自动装配限制在名字以'Repository'结尾的bean，那么可以设置为"*Repository“。对于多个匹配模式则可以使用逗号进行分隔。注意，如果在bean定义中的'autowire-candidate'属性显式的设置为'true' 或 'false'，那么该容器在自动装配的时候优先采用该属性的设置，而模式匹配将不起作用。*译注这一段翻译是从网上copy过来的，我勒个擦，得赶紧睡觉去了*
 
 这些设置非常有用。但是这些被排除出自动注入的bean是不会自动注入到其他bean，但是它本身是可以被自动注入的。
+
+
+<h4 id='beans-factory-method-injection'>方法注入</h4>
+一般情况，容器中的大部分的bean都是[单例的](#beans-factory-scopes-singleton)。当单例bean依赖另一个单例bean，或者一个非单例bean依赖另个非单例bean是，通常是将另一个bean定义成其他bean的属性。当bean的生命周期不同时，那么问题来了。假设单例bean A依赖非单例bean(prototype) B，也许会在每个方法里都需要B。容器之创建了一个单例bean A，因此只有一次将B注入的机会。A调用B，需要很多B的实例 ,但是容器不会这么干。
+
+解决办法是放弃一些IoC控制反转。令A实现接口`ApplicationContextAware`，此时A能[够感知容器](#beans-factory-aware)，即获取`ApplicationContext `，每次当A调用B时，调用容器的[getBean("B")方法用以创建B](#beans-factory-client)的实例。看样例:
+```java
+// a class that uses a stateful Command-style class to perform some processing
+package fiona.apple;
+
+// Spring-API imports
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+public class CommandManager implements ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
+
+    public Object process(Map commandState) {
+        // grab a new instance of the appropriate Command
+        Command command = createCommand();
+        // set the state on the (hopefully brand new) Command instance
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    protected Command createCommand() {
+        // notice the Spring API dependency!
+        return this.applicationContext.getBean("command", Command.class);
+    }
+
+    public void setApplicationContext(
+            ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
+```
+并不推荐上面的做法，因为业务代码耦合了Spring 框架。方法注入,是SpringIoc容器的高级特性，能够简洁的满足此场景。
+
+想要了解更多的方法注入，参看此[博客](https://spring.io/blog/2004/08/06/method-injection/)
