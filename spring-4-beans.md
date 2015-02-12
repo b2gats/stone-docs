@@ -1379,3 +1379,9 @@ constructor | Analogous to byType, but applies to constructor arguments. If ther
 * 通过设置`<bean/>`袁术的`primary`属性为`true`来指定单个bean定义作为主候选bean。
 * 使用基于注解的配置实现更细粒度的控制，参看[Section 5.9, “Annotation-based container configuration”](#beans-annotation-config).
 
+
+<h5 id='beans-factory-autowire-candidate'>排除自动装配bean</h5>
+在每个bean的设置中，你可以排除bean用于自动装配。XML配置中，设置`<bean/>`元素的`autowire-candidate`属性为`false`；容器将不使用该bean自动装配。（包括注解配置,像`@Autowired`）
+* 使用对bean名字进行模式匹配来对自动装配进行限制。其做法是在<beans/>元素的'default-autowire-candidates'属性中进行设置。比如，将自动装配限制在名字以'Repository'结尾的bean，那么可以设置为"*Repository“。对于多个匹配模式则可以使用逗号进行分隔。注意，如果在bean定义中的'autowire-candidate'属性显式的设置为'true' 或 'false'，那么该容器在自动装配的时候优先采用该属性的设置，而模式匹配将不起作用。*译注这一段翻译是从网上copy过来的，我勒个擦，得赶紧睡觉去了*
+
+这些设置非常有用。但是这些被排除出自动注入的bean是不会自动注入到其他bean，但是它本身是可以被自动注入的。
