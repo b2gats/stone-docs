@@ -1481,3 +1481,58 @@ public abstract class CommandManager {
 > 感兴趣的小读者也找找`ServiceLocatorFactoryBean`类(在`org.springframework.beans.factor.config`包)来玩玩。使用`ServiceLocatorFactoryBean`类的处理手法和另一个类`ObjectFactoryCreatingFactoryBean`类似，但是`ServiceLocatorFactoryBean`类与虚拟指定你自己的lookup接口(查找接口)，这与Spring指定lookup接口略有不同。详情参看这些类的javadocs
 
 *译注，今天加班晚了点，到家时23:30了，可是今天还没翻。进了家门，打开电脑，翻一小节再说，要不估计睡不着觉了。对于我自己的毅力，我还是有相当的认识的，比如：无论咳的多么严重，都能坚持抽烟，由此可见一斑。以上是玩笑。我的意志力并不强，但是意志薄弱也有意志薄弱的积极的正面的意义，比如我养成了每天翻点东西的习惯，哪怕就是再困、再饿、再累，也得翻译一下，因为要是不翻译的话，我就得跟自己的习惯作斗争了，准确的说是和自己斗争，而我却又没有与自己斗争的念想，我根本打不过我自己，就这样，我又翻了一小节*
+
+<h5 id="beans-factory-arbitrary-method-replacement">任意方法替换</h5>
+还有一种方法注入方式，不如`lookup method`注入方式好用，可以用其他bean方法实现替换受管理的bean的任意方法。你可以跳过本节，当真的需要时再回来也是可以的。
+
+在xml配置中,设置`replaced-method`元素，就可用其他实现来替换已经部署的bean中存在的方法实现。考虑下面的类，有一个我们要重写的方法`computeValue`
+```java
+public class MyValueCalculator {
+
+    public String computeValue(String input) {
+        // balbalba
+    }
+
+    // 其他方法...
+
+}
+```
+
+有个类实现了`org.springframework.beans.factory.support.MethodReplacer`接口，类中有新的方法定义
+```java
+/**
+ * 意味着用来重写MyValueCalculator类中computeValue(String)方法的实现
+ */
+public class ReplacementComputeValue implements MethodReplacer {
+
+    public Object reimplement(Object o, Method m, Object[] args) throws Throwable {
+        // get the input value, work with it, and return a computed result
+        String input = (String) args[0];
+        ...
+        return ...;
+    }
+}
+```
+
+bean定义，用来部署的源类，要设置方法重写，大概这么搞：
+```xml
+<bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
+    <!-- arbitrary method replacement -->
+    <replaced-method name="computeValue" replacer="replacementComputeValue">
+        <arg-type>String</arg-type>
+    </replaced-method>
+</bean>
+
+<bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/>
+```
+
+可以在`<replaced-method/>`元素内设置一个或多个`<arg-type/>`元素来指明被替换方法的参数类型。只有被覆盖的方法在类有重载，参数签名才是必要的。为了方便，`String`类型的参数只需要其完全限定类型名称的字串即可。比如，下面列出的均可匹配`java.lang.String`:
+```
+java.lang.String
+String
+Str
+```
+因为参数的数量基本就可以确定方法（重载的方法，基本上是参数数量有区别），此简写能大量减少打字,让你仅打几个字符就能匹配参数类型。
+*译注，Spring是工业品质的框架，如此细微的人性化设计，值得学习*
+
+
