@@ -1,4 +1,4 @@
-
+ 
 <div style="font-size:34px">Spring4参考手册中文版</div>
 
 <h1>作者简介</h1>  
@@ -1286,11 +1286,10 @@ public class PNamespaceBean {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 由于XML语法，索引标记需要`_`开头作为XML属性名称,而不能使用数字开头(尽管某些ID支持)
 
-在实际中，若真的有需要(特殊情况下)，匹配参数应用于（之于）构造注入还是很好用的（原文是efficient高效），（一般情况下）更推荐使用 name标识方式配置。
+在实际中，构造注入(name匹配/类型匹配/索引匹配)是非常高效的，一般情况下,推荐使用 name匹配方式配置。
 
 
 <h5 id='beans-compound-property-names'>复合属性</h5>
-You can use compound or nested property names when you set bean properties, as long as all components of the path except the final property name are not null. Consider the following bean definition.
 在设置bean属性时，可以使用复合或者内嵌属性,组件路径可以有多长写多长，除了最后一个属性，其他属性都不能为`null`。看下面的bean定义
 ```xml
 <bean id="foo" class="foo.Bar">
@@ -1426,3 +1425,59 @@ public class CommandManager implements ApplicationContextAware {
 并不推荐上面的做法，因为业务代码耦合了Spring 框架。方法注入,是SpringIoc容器的高级特性，能够简洁的满足此场景。
 
 想要了解更多的方法注入，参看此[博客](https://spring.io/blog/2004/08/06/method-injection/)
+
+
+
+<h5 id='#beans-factory-lookup-method-injection'>查找式方法注入</h5>
+查找式是指，容器为了覆盖它所管理的bean的方法，在容器范围内查找一个bean作为返回结果。通常是查找一个原型(prototype)bean，就像是上面章节中提到过的场景。Srping框架，使用`CGLIB`类库生成动态子类的字节码技术，覆盖方法。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 为了能让动态子类能运行，其父类不能是`final`类,被覆盖的方法也不能是`final`。还有，你得自己测试父类是否含有`abstract`方法，如果有，需要你提供默认实现。最后，被方法注入的对象不能序列化。Spring 3.2以后，不需要`CGLIB`的类路径了，因为`CGLIB`被打包入了org.springframework 包，和Spring-core 这个jar包在一起了。既是为了方便也是为了避免`CGLIB`包与应用中用到的`CGLIB`包冲突。
+ 
+来看看前面提到的`CommandManager`类的代码片段，Spring容器会动态的覆盖`createCommand()`方法的实现。这样`CommandManager`类就不会依赖任何Spring API了。下面是修改过后的
+```java
+package fiona.apple;
+
+// 不再有 Spring imports!
+
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        // grab a new instance of the appropriate Command interface
+		//
+        Command command = createCommand();
+        // set the state on the (hopefully brand new) Command instance
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    // okay... but where is the implementation of this method?
+	//okay....但是方法实现在哪里?
+    protected abstract Command createCommand();
+}
+```
+
+在含有被注入方法的类中（像`CmmandManager`类），被注入方法需要使用以下签名
+```
+<public|protected> [abstract] <return-type> theMethodName(no-arguments);
+```
+动态生成子类会实现抽象方法。若该方法不是抽象的，动态生成自来则会重写在源类中的方法。配置如下：
+```xml
+<!-- a stateful bean deployed as a prototype (non-singleton) -->
+<bean id="command" class="fiona.apple.AsyncCommand" scope="prototype">
+    <!-- inject dependencies here as required -->
+</bean>
+
+<!-- commandProcessor uses statefulCommandHelper -->
+<bean id="commandManager" class="fiona.apple.CommandManager">
+    <lookup-method name="createCommand" bean="command"/>
+</bean>
+```
+
+在`commandManager`类调用`createCommand`方法时，动态代理类将会被识别为`commandManager`返回一个`command` bean的实例。将`command`bean设置成`prototype`,一定要小心处理。若被设置成了`singleton`，每次调用将返回同一个`command`bean。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> The interested reader may also find the ServiceLocatorFactoryBean (in the org.springframework.beans.factory.config package) to be of use. The approach used in ServiceLocatorFactoryBean is similar to that of another utility class, ObjectFactoryCreatingFactoryBean, but it allows you to specify your own lookup interface as opposed to a Spring-specific lookup interface. Consult the javadocs of these classes for additional information.
+> 感兴趣的小读者也找找`ServiceLocatorFactoryBean`类(在`org.springframework.beans.factor.config`包)来玩玩。使用`ServiceLocatorFactoryBean`类的处理手法和另一个类`ObjectFactoryCreatingFactoryBean`类似，但是`ServiceLocatorFactoryBean`类与虚拟指定你自己的lookup接口(查找接口)，这与Spring指定lookup接口略有不同。详情参看这些类的javadocs
+
+*译注，今天加班晚了点，到家时23:30了，可是今天还没翻。进了家门，打开电脑，翻一小节再说，要不估计睡不着觉了。对于我自己的毅力，我还是有相当的认识的，比如：无论咳的多么严重，都能坚持抽烟，由此可见一斑。以上是玩笑。我的意志力并不强，但是意志薄弱也有意志薄弱的积极的正面的意义，比如我养成了每天翻点东西的习惯，哪怕就是再困、再饿、再累，也得翻译一下，因为要是不翻译的话，我就得跟自己的习惯作斗争了，准确的说是和自己斗争，而我却又没有与自己斗争的念想，我根本打不过我自己，就这样，我又翻了一小节*
