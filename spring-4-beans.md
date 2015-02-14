@@ -1553,6 +1553,22 @@ Spring bean定义时，实际上是创建类实例的配方。这个观点非常
 [application应用](#beans-factory-scopes-application) | 生命周期与`ServletContext`一样。该作用域只有在Spring web上下文环境中才有效
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> As of Spring 3.0, a thread scope is available, but is not registered by default. For more information, see the documentation for SimpleThreadScope. For instructions on how to register this or any other custom scope, see the section called “Using a custom scope”.
 > Spring3.0起 多了一个作用域-*thred*,但它默认是未注册的(不可用的意思?)。详情请参看文档去吧`SimpleThreadScope`。有关如何注册该作用域和注册自定义作用域，参看本章使用[自定义作用域](#beans-factory-scopes-custom-using)
  
+<h4 id="#beans-factory-scopes-singleton">单例作用域</h4>
+单例bean只会产生一个实例,对于所有的请求，Spring容器都只会返回一个实例。
+
+换句话说,当定义了单例bean，Srping容器只会创建一个实例，这个实例存储在单例池中，单例池应该属于缓存，接下来所有对于该单例bean的请求和引用，都将返回缓存中的对象。
+
+**Figure 5.2.**
+![替换的文本可选的](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/singleton.png) 
+
+
+Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*单例模式*不同。GOF的单例是硬编码级的对象作用域，因此导致每一个类加载器内会产生单例类的一个实例。Spring的单例恰如其名，在容器范围内只会产生一个类实例。Spring中，bean默认的作用域都是单例作用域。使用xml 定义单例bean，像这样:
+```xml
+<bean id="accountService" class="com.foo.DefaultAccountService"/>
+
+<!-- 和下面的写法相等，因为单例作用域是默认的，所以这么写有些画蛇添足，意思就是废话了 -->
+<bean id="accountService" class="com.foo.DefaultAccountService" scope="singleton"/>
+``` 
+
