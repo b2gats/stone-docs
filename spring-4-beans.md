@@ -1572,3 +1572,20 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 <bean id="accountService" class="com.foo.DefaultAccountService" scope="singleton"/>
 ``` 
 
+<h4 id='beans-factory-scopes-prototype'>prototype原型作用域</h4>
+设置bean作用域为`prototype`，就是非单例,对于每次请求都将返回一个该类的新实例。也就是说，原型bean注入另一个bean，或者是请求原型bean，都是通过在容器上调用`getBean()`方法产生的。一般来说 ，原型bean用于有状态bean，单例bean用于无状态bean。
+
+下图示例了Srping原型作用域。一个数据访问对象(DAO)通常不会配置成原型作用域,因为通常DAO不会持有任何会话状态；因为作者偷懒，所以重用了上面单例示意图。
+![替换的文本可选的](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/prototype.png)
+
+接下来看看如何在XML中定义原型bean:
+```xml
+<bean id="accountService" class="com.foo.DefaultAccountService" scope="prototype"/>
+```
+
+和其他作用域相比，Srping并不管理原型bean的完整的生命周期：容器实例化，配置或者组装原型独享，注入给其他类，然后并未进一步记录那个原型bean。因此，尽管对象的初始化回调方法会调用，不受scope影响,但是对于原型bean,销毁回调不会被调用。客户端代码必须清理原型对象并且释放原型bean持有的资源。为了让Spring容器释放原型bean持有的资源，可以用自定义的bean`[post-processor](#beans-factory-extension-bpp)`,
+它持有需要被清理bean的引用。
+
+某种意义上，对于原型bean来说,Spring容器的角色就是替换了new 操作符。所有的生命周期管理，在经过实例化之后，都需要由客户端来处理。(Spring 容器中bean的生命周期详情，请参看本章[5.6.1生命周期回调](#beans-factory-lifecycle))
+
+
