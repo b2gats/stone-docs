@@ -1477,7 +1477,6 @@ public abstract class CommandManager {
 在`commandManager`类调用`createCommand`方法时，动态代理类将会被识别为`commandManager`返回一个`command` bean的实例。将`command`bean设置成`prototype`,一定要小心处理。若被设置成了`singleton`，每次调用将返回同一个`command`bean。
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> The interested reader may also find the ServiceLocatorFactoryBean (in the org.springframework.beans.factory.config package) to be of use. The approach used in ServiceLocatorFactoryBean is similar to that of another utility class, ObjectFactoryCreatingFactoryBean, but it allows you to specify your own lookup interface as opposed to a Spring-specific lookup interface. Consult the javadocs of these classes for additional information.
 > 感兴趣的小读者也找找`ServiceLocatorFactoryBean`类(在`org.springframework.beans.factor.config`包)来玩玩。使用`ServiceLocatorFactoryBean`类的处理手法和另一个类`ObjectFactoryCreatingFactoryBean`类似，但是`ServiceLocatorFactoryBean`类与虚拟指定你自己的lookup接口(查找接口)，这与Spring指定lookup接口略有不同。详情参看这些类的javadocs
 
 *译注，今天加班晚了点，到家时23:30了，可是今天还没翻。进了家门，打开电脑，翻一小节再说，要不估计睡不着觉了。对于我自己的毅力，我还是有相当的认识的，比如：无论咳的多么严重，都能坚持抽烟，由此可见一斑。以上是玩笑。我的意志力并不强，但是意志薄弱也有意志薄弱的积极的正面的意义，比如我养成了每天翻点东西的习惯，哪怕就是再困、再饿、再累，也得翻译一下，因为要是不翻译的话，我就得跟自己的习惯作斗争了，准确的说是和自己斗争，而我却又没有与自己斗争的念想，我根本打不过我自己，就这样，我又翻了一小节*
@@ -1535,4 +1534,25 @@ Str
 因为参数的数量基本就可以确定方法（重载的方法，基本上是参数数量有区别），此简写能大量减少打字,让你仅打几个字符就能匹配参数类型。
 *译注，Spring是工业品质的框架，如此细微的人性化设计，值得学习*
 
+<h3 id='beans-factory-scopes`>bean作用域</h5>
+Spring bean定义时，实际上是创建类实例的配方。这个观点非常重要，因为她意味着，通过一个配方，即可创建很多类的对象。
 
+对于依据bean定义产生的bean,不仅可以控制依赖、设置对象的值，还可以对象作用域。这个手法强大而灵活，因为在配置过程中就可以可以控制的bean的作用域，无需在代码层面去控制，用代码去控制简直就是煎熬。要部署的bean可有设置1个或多个作用域：开箱即用，Spring框架支持5中作用域，其中有三种只有用web-aware`ApplicationContext`才能使用。
+
+下面了列出的作用域开箱即用，你也可以[自定义作用域](#beans-factory-scopes-custom)
+
+**Table 5.3. Bean scopes**
+
+**作用域**  | **描述**
+---------  | --------
+[单例singleton](#beans-factory-scopes-singleton) | 默认的。一个bean定义，在一个IoC容器内只会产生一个对象。
+[prototype原型](#beans-factory-scopes-prototype) | 一个bean定义会产生多个对象实例
+[request请求](#beans-factory-scopes-request) | 一个bean定义产生的bean生命周期为一个HTTP请求；也就是，每一个HTTP请求都会根据bean定义产生一个对象实例。该作用域只有在Spring web上下文环境中才有效。
+[session会话](#beans-factory-scopes-session) | 产生的bean生命周期在HTTP 会话期间。该作用域只有在Spring web上下文环境中才有效
+[gloabal session全局session](#beans-factory-scopes-global-session) | 声明周期为全局HTTP会话。通常使用portlet context时常用。该作用域只有在Spring web上下文环境中才有效。
+[application应用](#beans-factory-scopes-application) | 生命周期与`ServletContext`一样。该作用域只有在Spring web上下文环境中才有效
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> As of Spring 3.0, a thread scope is available, but is not registered by default. For more information, see the documentation for SimpleThreadScope. For instructions on how to register this or any other custom scope, see the section called “Using a custom scope”.
+> Spring3.0起 多了一个作用域-*thred*,但它默认是未注册的(不可用的意思?)。详情请参看文档去吧`SimpleThreadScope`。有关如何注册该作用域和注册自定义作用域，参看本章使用[自定义作用域](#beans-factory-scopes-custom-using)
+ 
