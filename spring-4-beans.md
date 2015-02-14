@@ -769,7 +769,7 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 
 一个老生常谈的问题(至少是2.0以前了)，`<idref/>`带来的好处，在使用`ProxyFactorybean`bean定义[AOP拦截器](#aop-pfb-1)时，当指定拦截器名字是使用`<idref/>`元素将，容器会校验拦截目标是否存在。
 
-<h5 id='#beans-ref-element'>引用其他bean(协作类)</h5>
+<h5 id='beans-ref-element'>引用其他bean(协作类)</h5>
 `ref`元素是`<constructor-arg/>`元素和`<property/>`元素内决定性元素。用它设置bean的属性以引用另一个容器管理的bean。引用的bean就是要设置属性的bean的依赖，在设置属性值之前它就要被初始化。(如果协作类是单例bean，它会在容器初始化时首先完成初始化)。差不多所有的bean都会引用其他对象。指定`id/name`的对象的作用域和依赖校验通过`bean`,`local` ,`parent`属性来配置。
 指定引用bean通常使用`<ref/>`标签，它允许引用本容器或者父容器中任意的bean，无需配置在同一个xml文件中 。`<ref/>`标签中`bean`的属性值，使用的被引用bean的`id`或者`name`。
 ```xml
@@ -1426,9 +1426,7 @@ public class CommandManager implements ApplicationContextAware {
 
 想要了解更多的方法注入，参看此[博客](https://spring.io/blog/2004/08/06/method-injection/)
 
-
-
-<h5 id='#beans-factory-lookup-method-injection'>查找式方法注入</h5>
+<h5 id='beans-factory-lookup-method-injection'>查找式方法注入</h5>
 查找式是指，容器为了覆盖它所管理的bean的方法，在容器范围内查找一个bean作为返回结果。通常是查找一个原型(prototype)bean，就像是上面章节中提到过的场景。Srping框架，使用`CGLIB`类库生成动态子类的字节码技术，覆盖方法。
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
@@ -1588,4 +1586,8 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 
 某种意义上，对于原型bean来说,Spring容器的角色就是替换了new 操作符。所有的生命周期管理，在经过实例化之后，都需要由客户端来处理。(Spring 容器中bean的生命周期详情，请参看本章[5.6.1生命周期回调](#beans-factory-lifecycle))
 
+<h4 id='beans-factory-scopes-sing-prot-interaction'>单例依赖原型</h4>
+单例类依赖了原型类，要知道依赖在单例类初始化的时候就已经注入好了。因此，若你注入了一个原型bean给单例bean，将会是一个新的原型bean的实例注入了单例bean实例。原型bean实例将会是唯一的实例，再也不会为单例bean产生新的实例。
+
+假若你需要单例bean在运行时重复的获取新的原型bean实例。那就不能将原型bean注入给单例bean，因为那样注入只会发生一次，就是发生在在Srping容器实例化单例bean并解析注入依赖时。如果需要多次获取新的原型bean实例，参看本章[5.4.6方法注入](#beans-factory-method-injection)
 
