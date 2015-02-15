@@ -1614,7 +1614,6 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 </web-app>
 ```
 
-Alternatively, if there are issues with your listener setup, consider the provided RequestContextFilter. The filter mapping depends on the surrounding web application configuration, so you have to change it as appropriate.
 如果设置`listener`有问题的话，可以考虑使用`RequestContextFilter`。filter映射要根据web 应用配置来调整:
 ```xml
 <web-app>
@@ -1632,4 +1631,12 @@ Alternatively, if there are issues with your listener setup, consider the provid
 ```
 `DispatcherServlet`,`RequestContextListener`,`RequestContextFilter`都是做相同的事儿，也就是绑定`HTTP`request对象到服务的`Thread`线程中，并开启接下来
 用到的`session-scoped`功能。
+
+<h5 id='beans-factory-scopes-request'>Request作用域</h5>
+考虑下面这种bean定义:
+```xml
+<bean id="loginAction" class="com.foo.LoginAction" scope="request"/>
+```
+Spring 使用该bean定义为每一次HTTP 请求创建一个新的`LoginAction`bean 的实例。也就是,`loginAction`bean作用域范围在HTTP 请求级别。可以改变实例的内部状态，多少实例都可以，因为根据此`loginAciton`bean定义创建的其他bean实例并不会看到这些状态的改变；他们为各自的request拥有。当reqeust完成处理，request作用的bean就被丢弃了。
+
 
