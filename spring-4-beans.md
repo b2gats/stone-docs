@@ -1640,3 +1640,10 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 Spring 使用该bean定义为每一次HTTP 请求创建一个新的`LoginAction`bean 的实例。也就是,`loginAction`bean作用域范围在HTTP 请求级别。可以改变实例的内部状态，多少实例都可以，因为根据此`loginAciton`bean定义创建的其他bean实例并不会看到这些状态的改变；他们为各自的request拥有。当reqeust完成处理，request作用的bean就被丢弃了。
 
 
+<h5 id="beans-factory-scopes-session">session作用域</h5>
+考虑下面这种bean定义:
+```xml
+<bean id="userPreferences" class="com.foo.UserPreferences" scope="session"/>
+```
+在一个session会话期间,Spring容器使用`userPreferences`定义创建了一个`UserPreferences`bean的实例。换句话说`userPreferences`bean在HTTP Session会话期间有效。和`request-scoped`bean相类似,可以改变bean实例的内部状态，不管bean创建了多少实例都可以，要知道，使用相同的`userPreferences`定义创建的其他的bean实例看不到这些状态的改变，因为他们都是为各自的HTTP Session服务的。当HTTP Session最终被丢弃时，该session内的`session-scoped`作用域的bean实例也会被丢弃。
+
