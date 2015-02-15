@@ -1593,3 +1593,43 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 
 <h4 id='beans-factory-scopes-other'> Request, session, and global session scopes</h4>
 `request`,`session`,`global session`作用域，只有在spring web `ApplicationContext`的实现中(比如`XmlWebApplicationContext`)才会起作用，若在常规Spring IoC容器中使用，比如`ClassPathXmlApplicationContext`中，就会收到一个异常`IllegalStateException `来告诉你不能识别的bean作用域
+
+<h5 id='beans-factory-scopes-other-web-configuration'>初始化web配置</h5>
+为了支持`request,sesssion,global session`这种级别bean的作用域(web作用域bean)，在定义bean之前需要一些初始化的小配置。（Spring标准作用域，包括单例和原型，无需此配置。）
+
+如何配置要根据具体的`Servlet`环境
+
+若使用 Spring Web MVC访问这些作用域bean，实际上是使用Srping `DispatcherServlet`类或者`DispatcherPortlet`类处理request，则无需特别配置：`DispatcherServlet` 和 `DispatcherPortlet`已经暴露了所有的相关状态。
+
+若使用了Servlet 2.5的web容器，使用了非Spring的`DispacherServlet`处理请求(比如，JSF或者Struts)，则需要注册`org.springframework.web.context.request.RequestContextListener ServletRequestListener`。若使用的Servlet 3.0+，这些设置可以通过编程式方式使用`WebApplicationInitializer`接口完成。若使用的是较老的容器,增加下面配置添加到你的web应用的`web.xml`文件中：
+```xml
+<web-app>
+    ...
+    <listener>
+        <listener-class>
+            org.springframework.web.context.request.RequestContextListener
+        </listener-class>
+    </listener>
+    ...
+</web-app>
+```
+
+Alternatively, if there are issues with your listener setup, consider the provided RequestContextFilter. The filter mapping depends on the surrounding web application configuration, so you have to change it as appropriate.
+如果设置`listener`有问题的话，可以考虑使用`RequestContextFilter`。filter映射要根据web 应用配置来调整:
+```xml
+<web-app>
+    ...
+    <filter>
+        <filter-name>requestContextFilter</filter-name>
+        <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>requestContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    ...
+</web-app>
+```
+`DispatcherServlet`,`RequestContextListener`,`RequestContextFilter`都是做相同的事儿，也就是绑定`HTTP`request对象到服务的`Thread`线程中，并开启接下来
+用到的`session-scoped`功能。
+
