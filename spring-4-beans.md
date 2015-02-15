@@ -1647,3 +1647,13 @@ Spring 使用该bean定义为每一次HTTP 请求创建一个新的`LoginAction`
 ```
 在一个session会话期间,Spring容器使用`userPreferences`定义创建了一个`UserPreferences`bean的实例。换句话说`userPreferences`bean在HTTP Session会话期间有效。和`request-scoped`bean相类似,可以改变bean实例的内部状态，不管bean创建了多少实例都可以，要知道，使用相同的`userPreferences`定义创建的其他的bean实例看不到这些状态的改变，因为他们都是为各自的HTTP Session服务的。当HTTP Session最终被丢弃时，该session内的`session-scoped`作用域的bean实例也会被丢弃。
 
+<h5 id="beans-factory-scopes-global-session">全局Session作用域</h5>
+考虑下面这种bean定义:
+```xml
+<bean id="userPreferences" class="com.foo.UserPreferences" scope="globalSession"/>
+```
+全局session作用域与标准HTTP [Session作用域](#beans-factory-scopes-session)类似，仅能应用于基于portlet的web应用的上下文环境中。portlet规范中定义的`global Session`概念是，在由单个portlet web应用创建的所有的的portlets中共享。全局session作用域的bean和`global portlet Session`全局portlet会话生命周期相同。
+若是在标准的基于Servelt web应用中定义了全局session作用域bean，那么将会使用标准的Session作用域,不会报错。
+
+
+
