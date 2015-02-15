@@ -1591,3 +1591,5 @@ Spring单例bean的概念，和四人帮GOF那本《设计模式》中定义的*
 
 假若你需要单例bean在运行时重复的获取新的原型bean实例。那就不能将原型bean注入给单例bean，因为那样注入只会发生一次，就是发生在在Srping容器实例化单例bean并解析注入依赖时。如果需要多次获取新的原型bean实例，参看本章[5.4.6方法注入](#beans-factory-method-injection)
 
+<h4 id='beans-factory-scopes-other'> Request, session, and global session scopes</h4>
+`request`,`session`,`global session`作用域，只有在spring web `ApplicationContext`的实现中(比如`XmlWebApplicationContext`)才会起作用，若在常规Spring IoC容器中使用，比如`ClassPathXmlApplicationContext`中，就会收到一个异常`IllegalStateException `来告诉你不能识别的bean作用域
