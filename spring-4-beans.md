@@ -1655,5 +1655,11 @@ Spring 使用该bean定义为每一次HTTP 请求创建一个新的`LoginAction`
 全局session作用域与标准HTTP [Session作用域](#beans-factory-scopes-session)类似，仅能应用于基于portlet的web应用的上下文环境中。portlet规范中定义的`global Session`概念是，在由单个portlet web应用创建的所有的的portlets中共享。全局session作用域的bean和`global portlet Session`全局portlet会话生命周期相同。
 若是在标准的基于Servelt web应用中定义了全局session作用域bean，那么将会使用标准的Session作用域,不会报错。
 
+<h5 id="beans-factory-scopes-application">应用作用域</h5>
+考虑下面这种bean定义:
+```xml
+<bean id="appPreferences" class="com.foo.AppPreferences" scope="application"/>
+```
+Spring 容器使用该定义为整个web应用创建一个`AppPreferences`bean的实例。`appPreFerences`bean作用域是`ServeletContext`级别,存储为一个常规的`ServletContext`属性。这个Spring单例作用域有几分相似，但是和单例作用域相比有两个重要不同：1、他是每一个`ServeltContext`一个实例，而不是Spring`ApplicationContext`范围。2、它是直接暴露的，作为`ServletContext`属性，因此可见。
 
 
