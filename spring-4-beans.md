@@ -1662,4 +1662,68 @@ Spring 使用该bean定义为每一次HTTP 请求创建一个新的`LoginAction`
 ```
 Spring 容器使用该定义为整个web应用创建一个`AppPreferences`bean的实例。`appPreFerences`bean作用域是`ServeletContext`级别,存储为一个常规的`ServletContext`属性。这个Spring单例作用域有几分相似，但是和单例作用域相比有两个重要不同：1、他是每一个`ServeltContext`一个实例，而不是Spring`ApplicationContext`范围。2、它是直接暴露的，作为`ServletContext`属性，因此可见。
 
+<h5 id='beans-factory-scopes-other-injection'>不同级别作用域bean之间依赖</h5>
+Spring IoC容器不仅管理bean的实例化，也负责组装（或者依赖）。如果想将HTTP request作用域bean注入给其他bean，就得给作用域bean(request或者session)注入一个AOP代理用来替换作用域bean。通过注入一个代理对象暴露于作用域bean相同的的接口，他是代理对象也能从相关作用域（request或者session）中检索到真正的被代理对象,并委派方法调用实际对象的方法。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 不需要再单例或者原型bean内部使用`<aop:scoped-proxy/>`
+
+The configuration in the following example is only one line, but it is important to understand the "why" as well as the "how" behind it.
+下面的配置虽然简单，但是重要的理解“为什么”和“如何搞”
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- an HTTP Session-scoped bean exposed as a proxy -->
+    <bean id="userPreferences" class="com.foo.UserPreferences" scope="session">
+        <!-- instructs the container to proxy the surrounding bean -->
+        <aop:scoped-proxy/>
+    </bean>
+
+    <!-- a singleton-scoped bean injected with a proxy to the above bean -->
+    <bean id="userService" class="com.foo.SimpleUserService">
+        <!-- a reference to the proxied userPreferences bean -->
+        <property name="userPreferences" ref="userPreferences"/>
+    </bean>
+</beans>
+```
+为了创建一个代理，得在作用域bean定义内插入子元素`<aop:scoped-proxy/>`。详情参看 [“Choosing the type of proxy to create”](#beans-factory-scopes-other-injection-proxies) 和 [Chapter 34, XML Schema-based configuration.)](#xsd-config)。`request`, `session`, `globalSession` , `custom-scope`，为什么这些级别的作用域需要`<aop:scoped-proxy/>`元素？ 下面来做个小测验，一个单例bean定义，对比一下，它如果要实现前面提到的作用域bean注入，该如何配置。（下面的`userPreferences`bean，实际上并不完整）。
+```xml
+<bean id="userPreferences" class="com.foo.UserPreferences" scope="session"/>
+
+<bean id="userManager" class="com.foo.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+```
+上例中，HTTP Session作用域bean`userPreferences`注入给了单例bean`userManger`。注意，`userManager`bean是一个单例bean:每个容器只会实例化一个，他的依赖(本例中只有一个，`userPreferences`bean)也仅会注入一次。也就是说，`userManager`bean只能操作相同的`userPreferences`对象，就是注入的那一个。
+
+
+
+将一个短生命周期作用域bean注入给长生命周期作用域bean，比如将HTTP Session作用域bean作为依赖注入给一个单例bean。然而，你需要一个`userManager`对象，在HTTP Session会话期间，需要与session同生命周期的对象`userPreferences`。 因此，容器会创建一个对象，该对象拥有和`UserPreferences`完全相同的public接口并暴露所有的public接口。，该对象能根据作用域机制获取真真的`UserPreferences`对象。容器会将这个代理对象注入给`userManager`bean,`userManager`类则浑然不知这货居然是个代理。样例中，当`UserManager`实例调用依赖`UserPreferences`对象上的方法时，，实际上调用的是代理对象上的方法。代理对象从 `Session`范围内获取真正的`UserPreferences`对象，并将在代理对象上方法的调用“呼叫转移”给检索到的真正的`UserPreferences`对象。
+
+将一个`request`,`session`,`globalSession`作用域bean注入给其他作用域bean，下面是正确的、完整的配置
+```xml
+<bean id="userPreferences" class="com.foo.UserPreferences" scope="session">
+    <aop:scoped-proxy/>
+</bean>
+<bean id="userManager" class="com.foo.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+```
+
+
+
+
+
+
+
+
+
 
