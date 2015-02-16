@@ -1668,7 +1668,6 @@ Spring IoC容器不仅管理bean的实例化，也负责组装（或者依赖）
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 不需要再单例或者原型bean内部使用`<aop:scoped-proxy/>`
 
-The configuration in the following example is only one line, but it is important to understand the "why" as well as the "how" behind it.
 下面的配置虽然简单，但是重要的理解“为什么”和“如何搞”
 
 ```xml
@@ -1717,6 +1716,28 @@ The configuration in the following example is only one line, but it is important
     <property name="userPreferences" ref="userPreferences"/>
 </bean>
 ```
+<h5 id='beans-factory-scopes-other-injection-proxies'>选择代理类型</h5>
+使用`<aop:scoped-proxy/>`元素为bean 创建代理时，Spring 容器默认使用`CGLIB`类型创建代理。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> CGLIB代理只会拦截public方法调用。非public方法不会“呼叫转移”给实际的作用域bean。
+
+还有个选择，通过配置，使Spring容器为这些作用域bean创建标准的JDK `interface-based`代理,设置`<aop:scoped-proxy/>`元素`proxy-target-class`属性的值为`false`即可。使用标准JDK接口代理好处是无需引入第三方jar包。然而，作用域bean 至少实现一个接口，需要注入作用域bean的类则依赖这些接口。
+
+```xml
+<!-- DefaultUserPreferences implements the UserPreferences interface -->
+<bean id="userPreferences" class="com.foo.DefaultUserPreferences" scope="session">
+    <aop:scoped-proxy proxy-target-class="false"/>
+</bean>
+<bean id="userManager" class="com.foo.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+```
+For more detailed information about choosing class-based or interface-based proxying, see Section 9.6, “Proxying mechanisms”.
+关于如何选择`class-based`和`interface-based`代理，详情参看[Section 9.6, “Proxying mechanisms”](#aop-proxying).
+
+<h4 id='beans-factory-scopes-custom'>自定义作用域</h4>
+bean的作用域机制是可扩展的；可以定义自己的作用域，甚至重新定义已存在的作用域，经管后者不推荐，并且，不能重写内置单例作用域和原型作用域。
 
 
 
