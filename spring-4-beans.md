@@ -1767,6 +1767,85 @@ void registerDestructionCallback(String name, Runnable destructionCallback)
 String getConversationId()
 ```
 
+<h5 id='beans-factory-scopes-custom-using'>使用自定义作用域</h5>
+
+可能是`HelloWorld`，或者是更多的自定义的`Scope`实现,得让Spring知道新写的作用域。下面的方法就是如何注册新的作用域到Spring 容器的核心方法:  
+
+```java
+void registerScope(String scopeName, Scope scope);
+```  
+
+This method is declared on the ConfigurableBeanFactory interface, which is available on most of the concrete ApplicationContext implementations that ship with Spring via the BeanFactory property.
+此方法声明在`ConfigurableBeanFactory`接口中,该在大部分`ApplicationContext`具体实现中都是可用的，通过`BeanFactor`属性设置
+
+`registerScope(..)`方法第一个参数是作用域名称，该名称具有唯一性。比如Spring容器内置的作用域`singleton`和`prototype`。第二个参数是自定义作用域实现的实例，就是你想注册的、使用的那个自定义作用域。
+
+写好了自定义作用域的实现，就可以像下面那样注册它了：
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 下面的`SimpleThreadScope`作用域，是Spring内置的，但是默认并未注册到容器中。
+你自定义的作用域实现，应该也使用相同的代码来注册。
+
+```java
+Scope threadScope = new SimpleThreadScope();
+beanFactory.registerScope("thread", threadScope);
+```
+接下来是创建一个bean定义，该定义要遵守自定义作用域的规则
+
+```xml
+<bean id="..." class="..." scope="thread">
+```
+
+自定义作用域的实现,不局限于编程式注册。也可以使用`CustomScopeConfigurer`类声明式注册
+```
+*译注*，编程式就是指硬编码,hard-code，声明式就是指配置，可以是xml可以是注解总之无需直接使用代码去撰写相关代码。不得不说，*编程式和声明式*与*硬编码和配置*相比，更加高端大气上档次。技术人员尤其要学习这种官方的、概念性的、抽象的上档次的语言或者说式地道的表达，假若谈吐用的全是这种词汇，逼格至少提升50%，镇住其他人（入行时间不长的同行，或者面试官）的概率将大大提升。当然了，和生人谈吐要用高逼格词汇，比如*声明式*，*编程式*，然而和自己人就要用人话了，比如*硬编码*,*xml配置*，因为他们得能先听懂才能干活。
+总之，**装逼用官话,聊天用人话**，闲话少絮，看如何声明式注册(因为此处要装逼，人话是看如何xml)
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="thread">
+                    <bean class="org.springframework.context.support.SimpleThreadScope"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="bar" class="x.y.Bar" scope="thread">
+        <property name="name" value="Rick"/>
+        <aop:scoped-proxy/>
+    </bean>
+
+    <bean id="foo" class="x.y.Foo">
+        <property name="bar" ref="bar"/>
+    </bean>
+
+</beans>
+```
+
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> When you place <aop:scoped-proxy/> in a FactoryBean implementation, it is the factory bean itself that is scoped, not the object returned from getObject().
+> 如果在`FactoryBean`实现中设置了`<aop:scoped-proxy/>`，表示是工厂bean他本身的作用域，并不是`getObject()`返回的对象的作用域。TODO
+
+
+
+
+
+
+
+
+
 
 
 
