@@ -195,17 +195,17 @@ Spring IoC容器管理一个或多个bean。这些bean根据提供给容器的�
 
 **The bean definition**  
 
-**属性**  |**详情**  
+**属性**  | **详情**  
 ------------- | -------------
-**class** |[Section 5.3.2, “Instantiating beans”](#beans-factory-class)  
-**name**  |[Section 5.3.1, “Naming beans”](#beans-beanname)  
-**scope** |[Section 5.5, “Bean scopes”](#beans-factory-scopes)  
-**constructor arguments**|[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
-**properties**|[Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
-**autowiring mode**|[Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire)  
-**lazy-initialization mode**|[Section 5.4.4, “Lazy-initialized beans”](#beans-factory-lazy-init)  
-**initialization method**|[the section called “Initialization callbacks”](#beans-factory-lifecycle-initializingbean)  
-**destruction method**|[the section called “Destruction callbacks”](#beans-factory-lifecycle-disposablebean)  
+**class** | [Section 5.3.2, “Instantiating beans”](#beans-factory-class)  
+**name**  | [Section 5.3.1, “Naming beans”](#beans-beanname)  
+**scope** | [Section 5.5, “Bean scopes”](#beans-factory-scopes)  
+**constructor arguments** | [Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
+**properties** | [Section 5.4.1, “Dependency injection”](#beans-factory-collaborators)  
+**autowiring mode** | [Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire)  
+**lazy-initialization mode** | [Section 5.4.4, “Lazy-initialized beans”](#beans-factory-lazy-init)  
+**initialization method** | [the section called “Initialization callbacks”](#beans-factory-lifecycle-initializingbean)  
+**destruction method** | [the section called “Destruction callbacks”](#beans-factory-lifecycle-disposablebean)  
 
 除了bean的信息以外，`BeanDefinition`也包含创建特殊bean的信息，`ApplicationContext`的实现也允许注册由用户创建而非IoC容器创建的对象。通过访问ApplicationContext’s BeanFactory的方法`getBeanFactory()`，该方法返回BeanFactory的实现`DefaultListableBeanFactory`。`DefaultListableBeanFactory`类支持这种注册，通过`registerSingleton(..)`和`registerBeanDefinition(..)`方法实现。然而，典型的应用只用元数据定义的bean就可以单独运行。
 
@@ -413,7 +413,7 @@ public class DefaultServiceLocator {
 企业应用绝不会只有1个简单对象（或者说Spring bean）。哪怕是最简单的应用，也会包含许多对象协同工作。下一章节讲述，如何为真正的应用定义大量的、独立的bean，并让这些对象一起合作。
 
 <h4 id="beans-factory-collaborators">依赖注入</h4>
-*依赖注入(DI)*，是一个有对象定义依赖的手法，也就是，如何与其他对象合作，通过构造参数、工厂方法参数、或是在对象实例化之后设置对象属性，实例化既可以构造也可以是使用工厂方法。容器在它创建bean之后注入依赖。这个过程从根本上发生了反转，因此又名控制反转（Ioc），因为Spring bean自己控制依赖类的实例化或者定位 ，Spring bean中就有依赖类的定义，容器使用依赖类构造器创建依赖类实例，使用*Service Locator*模式`定位依赖类。
+*依赖注入(DI)*，是一个有对象定义依赖的手法，也就是，如何与其他对象合作，通过构造参数、工厂方法参数、或是在对象实例化之后设置对象属性，实例化既可以构造也可以是使用工厂方法。容器在它创建bean之后注入依赖。这个过程从根本上发生了反转，因此又名控制反转（Ioc），因为Spring bean自己控制依赖类的实例化或者定位 ，Spring bean中就有依赖类的定义，容器使用依赖类构造器创建依赖类实例，使用*Service Locator*模式定位依赖类。
 
 DI机制使代码简洁，对象提供它们的依赖，解耦更高效。对象无需自己查找依赖。同样的，类更容易测试，尤其当依赖接口或者抽象类时，测试允许在单元测试中使用`stub`或者`mock`（模拟技术）实现。
 
@@ -1738,6 +1738,39 @@ For more detailed information about choosing class-based or interface-based prox
 
 <h4 id='beans-factory-scopes-custom'>自定义作用域</h4>
 bean的作用域机制是可扩展的；可以定义自己的作用域，甚至重新定义已存在的作用域，经管后者不推荐，并且，不能重写内置单例作用域和原型作用域。
+
+
+<h5 id='beans-factory-scopes-custom-creating'>创建自定义作用域</h5>
+实现`org.springframework.beans.factory.config.Scope`接口，就可以将自定义作用域集成到Srping容器中,本章主要将如何实现该接口。如何实现自定义作用域，参看Spring内置的作用域实现和`Scope`类的javadocs,javadocs中解释了有关需要实现的方法的细节。
+
+`Scope`接口共有4个方法用于从作用域获取对象、从作用域删除对象、销毁对象(应该是指作用域内，英文档中未提到)
+
+下面的方法作用是返回作用域中对象。比如，`session`作用域的实现，该方法返回`session-scoped`会话作用域bean(若不存在，方法创建该bean的实例，并绑定到session会话中，用于引用，然后返回该对象)
+
+```java
+Object get(String name, ObjectFactory objectFactory)
+```
+
+下面的方法作用是从作用域中删除对象。以`session`作用域实现为例,方法内删除对象后，会返回该对象，但是若找不到指定对象，则会返回`null`
+```java
+Object remove(String name)
+```
+下面的方法作用是注册销毁回调函数，销毁是指对象销毁或者是作用域内对象销毁。销毁回调的详情请参看javadocs或者Spring 作用域实现。  
+
+```java
+void registerDestructionCallback(String name, Runnable destructionCallback)
+```
+
+下面的方法，用于获取作用域会话标识。每个作用域的标识都不一样。比如，`session`作用域的实现中，标识就是`session`标识（应该是指sessionId吧）
+
+```java
+String getConversationId()
+```
+
+
+
+
+
 
 
 
