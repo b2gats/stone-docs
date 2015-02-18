@@ -1889,3 +1889,60 @@ public class AnotherExampleBean implements InitializingBean {
 }
 ```
 
+<h5 id='beans-factory-lifecycle-disposablebean'>销毁回调</h5>
+实现`org.springframework.beans.factory.DisposableBean`接口，作用是Spring销毁bean时调用该方法。	`DisposableBean`接口只有一个方法:
+```java
+void destroy() throws Exception;
+```
+和上面初始化函数一样，推荐你不要使用`DisposableBean`回调接口，因为会产生不必要的耦合之类的balbalbal。还是和上面一样，能使用 [`@PreDestroy`](#beans-postconstruct-and-predestroy-annotations)注解或者指定一个spring bean定义支持的方法TODO？？若使用XML配置，可是使用`<bean/>`元素的`destroy-method`属性来完成该设置。若是使用Java config，可以使用`@Bean`注解的`destroyMethod`属性来完成销毁回调设置。[see the section called “Receiving lifecycle callbacks”](#beans-java-lifecycle-callbacks)。看样例：
+```xml
+<bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/>
+```
+```java
+public class ExampleBean {
+
+    public void cleanup() {
+        // do some destruction work (like releasing pooled connections)
+    }
+
+}
+```
+和下面代码效果一样，但是上面的代码不和Spring耦合
+```xml
+<bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+```
+
+```java
+public class AnotherExampleBean implements DisposableBean {
+
+    public void destroy() {
+        // do some destruction work (like releasing pooled connections)
+    }
+
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> `<bean>`元素的`destroy-method`属性可以指定一个特别的值，设置该值后Spring将会自动探测指定类上的public `close`或者`shutdown`方法。这个设置*自动探测销毁方法*的属性，也可以设置给`<beans/>`元素的`default-destroy-method`属性，用来设置`<beans>`元素内的所有的`<bean>` *自动探测销毁方法*，详情参看[section called “Default initialization and destroy methods”](#beans-factory-lifecycle-default-init-destroy-methods)。注意，在Java config配置元数据中，这种*自动探测*是默认的。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
