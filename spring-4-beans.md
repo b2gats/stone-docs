@@ -1854,27 +1854,38 @@ Spring使用`BeanPostProcessor`实现类处理所有的回调接口并调用相�
 
 本章讲解生命周期回调接口。
 
+<h5 id='beans-factory-lifecycle-initializingbean'>初始化回调</h5>
+`org.springframework.beans.factory.InitializingBean`接口类的作用是，在容器设置bean必须的属性之后，执行初始化工作。`InitializingBean`接口中只有一个方法:
+```java
+void afterPropertiesSet() throws Exception;
+```
 
+推荐，尽量不用`InitializingBean`接口，因为这将导致不必要的与Spring的耦合。还有更好的办法，使用[`@PostConstruct`](#beans-postconstruct-and-predestroy-annotations)注解，或者指定一个POJO的`initialization`方法。XML配置元数据中，使用`init-method`属性用来指定，其值为初始化方法名，初始化方法得是一个无参无返回值(void)方法。如果使用java Config，得在`@Bean`注解中使用`initMehtod`属性 ,详情参看 [the section called “Receiving lifecycle callbacks”](#beans-java-lifecycle-callbacks)。看代码
+```xml
+<bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
+```
+```java
+public class ExampleBean {
 
+    public void init() {
+        // do some initialization work
+    }
 
+}
+```
 
+和下面的效果相同，但上面的没有耦合Spring。
 
+```xml
+<bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+```
+```java
+public class AnotherExampleBean implements InitializingBean {
 
+    public void afterPropertiesSet() {
+        // do some initialization work
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
+```
 
