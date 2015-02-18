@@ -1838,6 +1838,24 @@ beanFactory.registerScope("thread", threadScope);
 > When you place <aop:scoped-proxy/> in a FactoryBean implementation, it is the factory bean itself that is scoped, not the object returned from getObject().
 > 如果在`FactoryBean`实现中设置了`<aop:scoped-proxy/>`，表示是工厂bean他本身的作用域，并不是`getObject()`返回的对象的作用域。TODO
 
+<h3 id='beans-factory-nature'>Customizing the nature of a bean自定义bean的xxx擦这个nature该怎么翻</h3>
+
+<h4 id='beans-factory-lifecycle'>生命周期回调函数</h4>
+Spring容器可以控制bean的生命周期,通过实现Spring`InitializingBean`和`DisposableBean`接口。容器会调用`InitializingBean`接口的`afterPropertiesSet()`方法,也会调用`DisposableBean`接口的`destroy()`方法。,也就是运行bean自定义的初始化方法和销毁方法。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> **Tip**
+> JSR-250中,在现代Spring应用中，一般都是用`@PostConstruct`和`@PreDestroy`注解定义生命周期回调函数。使用注解的话，你的bean就无需和Spring API耦合了。，详情参看[Section 5.9.7, “@PostConstruct and @PreDestroy”](#beans-postconstruct-and-predestroy-annotations)
+> 如果不想用JSR-250，但又想解耦（Spring API），可以在定义对象的配置中指定`init-method`和`destroy-method`
+
+Spring使用`BeanPostProcessor`实现类处理所有的回调接口并调用相应的方法，接口由Spring 负责查找。若需要自定义功能或其他生命周期行为，Spring并未提供开箱即用的支持,但是可以自己实现`BeanPostProcessor`类。详情参看["Section 5.8, “Container Extension Points”](#beans-factory-extension)
+
+除了`initialization`和`destruction`方法,Spring bean也可以实现`Lifecycle`接口，这些接口可以参与Spring容器生命周期的`startup`和`shutdown`过程。
+
+本章讲解生命周期回调接口。
+
+
+
 
 
 
