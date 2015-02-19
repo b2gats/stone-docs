@@ -1925,6 +1925,51 @@ public class AnotherExampleBean implements DisposableBean {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > `<bean>`元素的`destroy-method`属性可以指定一个特别的值，设置该值后Spring将会自动探测指定类上的public `close`或者`shutdown`方法。这个设置*自动探测销毁方法*的属性，也可以设置给`<beans/>`元素的`default-destroy-method`属性，用来设置`<beans>`元素内的所有的`<bean>` *自动探测销毁方法*，详情参看[section called “Default initialization and destroy methods”](#beans-factory-lifecycle-default-init-destroy-methods)。注意，在Java config配置元数据中，这种*自动探测*是默认的。
 
+*译注，现在是羊年除夕夜23:40，再过30分钟，公司服务器上的一些定时器就要开始运行了。不知道还会不会线程挂起了，多线程中使用网络输出流时如果发生断网，线程则会处于阻塞状态，然后就没有然后一直阻塞，已经修改过了。外面的烟花炮仗声逐渐的密集了起来，放炮仗，污染太重了，国家抑制的手段就和抑制烟草手段一样，重税。心乱了，不能专心翻译了。*
+
+<h5 id='beans-factory-lifecycle-default-init-destroy-methods'>默认的初始化函数和销毁函数</h5>
+若不是使用`InitializingBean`和`DisposableBean`接口实现初始化和销毁回到方法，通常使用规范的方法名比如`init`,`initialize()`,`dispose()`等等。理论上，生命周期回调方法名的规范性，应该贯穿于整个项目中，所有的开发者都应该使用相同的方法名保持一致性。*译注，编码规范，Spring最讲究这个了*
+
+可以配置容器查找所有bean的初始化回调和销毁回调，当应用类中的初始化回调方法命名为`init()`，就不需要在bean定义中配置`init-method="init"`属性。Spring IoC容器在bean初始化时调用`init()`回调。该功能强制初始化和销毁回调方法命名的规范性。
+
+Suppose that your initialization callback methods are named init() and destroy callback methods are named destroy(). Your class will resemble the class in the following example.
+假设，初始化回调方法命为`init()`，销毁回调方法命名为`destroy()`。应该和下面的样例差不多:
+```java
+public class DefaultBlogService implements BlogService {
+
+    private BlogDao blogDao;
+
+    public void setBlogDao(BlogDao blogDao) {
+        this.blogDao = blogDao;
+    }
+
+    // this is (unsurprisingly) the initialization callback method
+    public void init() {
+        if (this.blogDao == null) {
+            throw new IllegalStateException("The [blogDao] property must be set.");
+        }
+    }
+
+}
+```
+
+```xml
+<beans default-init-method="init">
+
+    <bean id="blogService" class="com.foo.DefaultBlogService">
+        <property name="blogDao" ref="blogDao" />
+    </bean>
+</beans>
+```
+
+在顶级`<bean/>`元素中定义了`default-init-method`属性，使Spring Ioc 容器解析bean中名为`init`的方法为初始化回调方法。当bean创建实例并组装时，若bean类中有个一个`init()`方法，该初始化回调会在合适的时间调用。
+
+
+
+
+
+
+
 
 
 
