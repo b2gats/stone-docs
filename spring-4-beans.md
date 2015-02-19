@@ -1981,6 +1981,67 @@ Spring2.5 以后,控制bean生命周期行为，有三种生命周期回调机�
 * `DisposableBean`回调接口中的`destroy()`方法
 * 自定义的` destroy()`方法
 
+<h5 id='beans-factory-lifecycle-processor'>容器启动和关闭回调</h5>
+`Lifecycle`接口定了对象有自己生命周期需求的必须的方法（比如启动停止某些后台处理）
+```java
+public interface Lifecycle {
+
+    void start();
+
+    void stop();
+
+    boolean isRunning();
+
+}
+```
+任何Spring管理的对象都可以实现此接口。当`ApplicationContext `接口启动和关闭时，它会调用本容器内所有的`Lifecycle`实现。通过`LifecycleProcessor`来调用,
+```java
+public interface LifecycleProcessor extends Lifecycle {
+
+    void onRefresh();
+
+    void onClose();
+
+}
+```
+
+注意`LifecycleProcessor`接口继承了`Lifcycle`接口。同时，增加了2个方法，用于处理容器的`refreshed`和`closed`事件。
+
+
+The order of startup and shutdown invocations can be important. If a "depends-on" relationship exists between any two objects, the dependent side will start after its dependency, and it will stop before its dependency. However, at times the direct dependencies are unknown. You may only know that objects of a certain type should start prior to objects of another type. In those cases, the SmartLifecycle interface defines another option, namely the getPhase() method as defined on its super-interface, Phased.
+
+`startup`和`shutdown`方法调用次序非常重要。若两个对象有依赖关系,依赖方会在依赖启动之后启动,会在依赖停止之前停止。然而,有时依赖并不直接。也许你仅知道某些类型对象优先于另外一种类型启动。此场景中，`SmartLifecycle`接口也许是个好主意,该接口有个方法`getPhase()`,此方法是其父接口`Phased`中的方法:
+```java
+public interface Phased {
+
+    int getPhase();
+
+}
+public interface SmartLifecycle extends Lifecycle, Phased {
+
+    boolean isAutoStartup();
+
+    void stop(Runnable callback);
+
+}
+```
+
+启动时，最低层次的`phase`最先启动，停止时，该次序逆序执行。因此，若对象实现了`SmartLifecycle`接口，它的`getPhase()`方法返回`Integer.MIN_VALUE`，那么该对象最先启动，最后停止。若是返回了`Integer.MAX_VALUE`，那么该方法最后启动最先停止（因为该对象依赖其他bean才能运行）。关于`phase`的值，常规的并未实现`SmartLifecycle`接口的`Lifecycle`对象，其值默认为0。因此，负`phase`值表示要在常规`Lifecycle`对象之前启动（在常规`Lifecycyle`对象之后停止），使用 正值则恰恰相反。
+
+As you can see the stop method defined by SmartLifecycle accepts a callback. Any implementation must invoke that callback’s run() method after that implementation’s shutdown process is complete. That enables asynchronous shutdown where necessary since the default implementation of the LifecycleProcessor interface, DefaultLifecycleProcessor, will wait up to its timeout value for the group of objects within each phase to invoke that callback. The default per-phase timeout is 30 seconds. You can override the default lifecycle processor instance by defining a bean named "lifecycleProcessor" within the context. If you only want to modify the timeout, then defining the following would be sufficient:
+
+如你所见，`SmartLifecycle`中`stop()`方法有一个回调参数。所有的实现在关闭处理完成后会调用回调的`run()`方法。TODO 。它相当于开启了异步关闭功能，和`LifecycleProcessor`接口默认实现`DefaultLifecycleProcessor`类的异步，该类会为每个`phase`的回调等待超时。每个`phase`默认的超时是30秒。可以重写该类默认的实例，该类在容器内默认bean名称是`lifecycleProcessor`。如果你仅想修改超时，这么写就足够了。
+```xml
+<bean id="lifecycleProcessor" class="org.springframework.context.support.DefaultLifecycleProcessor">
+    <!-- timeout value in milliseconds -->
+    <property name="timeoutPerShutdownPhase" value="10000"/>
+</bean>
+```
+
+As mentioned, the LifecycleProcessor interface defines callback methods for the refreshing and closing of the context as well. The latter will simply drive the shutdown process as if stop() had been called explicitly, but it will happen when the context is closing. The refresh callback on the other hand enables another feature of SmartLifecycle beans. When the context is refreshed (after all objects have been instantiated and initialized), that callback will be invoked, and at that point the default lifecycle processor will check the boolean value returned by each SmartLifecycle object’s isAutoStartup() method. If "true", then that object will be started at that point rather than waiting for an explicit invocation of the context’s or its own start() method (unlike the context refresh, the context start does not happen automatically for a standard context implementation). The "phase" value as well as any "depends-on" relationships will determine the startup order in the same way as described above.
+
+TODO 书接前文，`LifecycleProcessor`接口也定义了容器的`refreshing`和`closing`事件。后者会驱动`shutdown`处理，就像是明确的调用了`stop()`方法,但是它是发生在容器关闭期间。`refresh`回调开启了`SmartLifecycle`bean的另一个功能 。当上下文环境刷新时(在所有的对象实例化和初始化之后),则会调用refresh回调，同时，默认的`lifecycle processor`检查每个`SmartLifecycle`对象的`isAutoStartup()`方法返回的布尔值。若为`true`,对象则会在那时启动，而不是等待容器显示调用之后或者是他自己的`start()`方法调用之后(这和容器刷新不同，标准的容器实现启动不会自动发生)。`phase`值和`depends-on`关系一样，都使用了相同的方法决定了的启动次序。
+
 
 
 
