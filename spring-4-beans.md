@@ -1965,6 +1965,22 @@ public class DefaultBlogService implements BlogService {
 在顶级`<bean/>`元素中定义了`default-init-method`属性，使Spring Ioc 容器解析bean中名为`init`的方法为初始化回调方法。当bean创建实例并组装时，若bean类中有个一个`init()`方法，该初始化回调会在合适的时间调用。
 
 
+<h5 id='beans-factory-lifecycle-combined-effects'>联合混合使用多种生命周期回调机制</h5>
+Spring2.5 以后,控制bean生命周期行为，有三种生命周期回调机制，或者说是三种方式实现:[InitializingBean](#beans-factory-lifecycle-initializingbean) 和 [DisposableBean](#beans-factory-lifecycle-disposablebean) 回调接口；自定义`init()`和`destroy()`方法;[ @PostConstruct and @PreDestroy ](#beans-postconstruct-and-predestroy-annotations)注解。这些方式可以混合使用。  
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 如何一个bean上配置了多种生命周期回调机制,并且每种机制都使用了不同的方法，那么所有的回调方法都会按次序执行。然而，如果配置了相同的方法名，比如`init()`方法作为初始化方法，该方法在多种生命周期回调机制中都有配置，但是，该方法只会执行一次。
+
+在一个bean中，配置多种生命周期回调机制，每种机制使用了不同的初始化方法，会按照下列次序调用：  
+* 带`@PostConstruct`注解的方法
+* `InitializingBean`回调接口中的`afterPropertiesSet()`方法
+* 自定义的`init()`方法
+
+销毁回调也使用相同的次序
+* 带`@PreDestroy`注解的方法
+* `DisposableBean`回调接口中的`destroy()`方法
+* 自定义的` destroy()`方法
+
 
 
 
