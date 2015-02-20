@@ -2091,4 +2091,26 @@ public interface BeanNameAware {
 The callback is invoked after population of normal bean properties but before an initialization callback such as InitializingBean afterPropertiesSet or a custom init-method.
 TODO这个回调在设置属性之后调用，但是在`initialization`回调之前，比如`InitializingBean`的`afterPropertiesSet`或者 自定义的`init-method`
 
+<h4 id='aware-list'>Other Aware interfaces</h4>
+Besides ApplicationContextAware and BeanNameAware discussed above, Spring offers a range of Aware interfaces that allow beans to indicate to the container that they require a certain infrastructure dependency. The most important Aware interfaces are summarized below - as a general rule, the name is a good indication of the dependency type:
+
+除上面讨论过的`ApplicationContextAware`和`BeanNameAware`，Spring提供了一些了`Aware`接口，这些接口可以提供容器中相关的基础(SpringAPI)依赖。最重要的`Aware`接口参看下面的摘要，命名相当规范，看名字就能知道依赖类型：
+**Table 5.4. Aware interfaces**  
+名称 | 注入依赖 | 详情
+---- | ---- | ------
+ApplicationContextAware | ApplicationContext | 	[Section 5.6.2, “ApplicationContextAware and BeanNameAware”](#beans-factory-aware)
+ApplicationEventPublisherAware | 发布事件 | [Section 5.15, “Additional Capabilities of the ApplicationContext”](#context-introduction)
+BeanClassLoaderAware | 加载bean的类加载器 |[ Section 5.3.2, “Instantiating beans”](#beans-factory-class)
+BeanFactoryAware | 声明BeanFactory | [Section 5.6.2, “ApplicationContextAware and BeanNameAware”](#beans-factory-aware)
+BeanNameAware | 生命bean 的名字 | [Section 5.6.2, “ApplicationContextAware and BeanNameAware”](#beans-factory-aware)
+BootstrapContextAware | Resource adapter BootstrapContext the container runs in. Typically available only in JCA aware ApplicationContexts | [Chapter 26, JCA CCI](#cci)
+LoadTimeWeaverAware | Defined weaver for processing class definition at load time | [Section 9.8.4, “Load-time weaving with AspectJ in the Spring Framework”](#aop-aj-ltw)
+MessageSourceAware | Configured strategy for resolving messages (with support for parametrization and internationalization) | [Section 5.15, “Additional Capabilities of the ApplicationContext”](#context-introduction)
+NotificationPublisherAware | Spring JMX notification publisher | [Section 25.7, “Notifications”](#jmx-notifications)
+PortletConfigAware | Current PortletConfig the container runs in. Valid only in a web-aware Spring ApplicationContext | [Chapter 20, Portlet MVC Framework](#portlet)
+PortletContextAware | Current PortletContext the container runs in. Valid only in a web-aware Spring ApplicationContext | [Chapter 20, Portlet MVC Framework](#portlet)
+ResourceLoaderAware | Configured loader for low-level access to resources | [Chapter 6, Resources](#resources)
+ServletConfigAware | Current ServletConfig the container runs in. Valid only in a web-aware Spring ApplicationContext | [Chapter 17, Web MVC framework](#mvc)
+
+注意，这些接口的用法使代码与Spring API耦合，这不符合IoC风格。同样，除非有需求的基础bean才使用编程式访问容器。
 
