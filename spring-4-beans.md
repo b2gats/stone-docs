@@ -1532,7 +1532,7 @@ Str
 因为参数的数量基本就可以确定方法（重载的方法，基本上是参数数量有区别），此简写能大量减少打字,让你仅打几个字符就能匹配参数类型。
 *译注，Spring是工业品质的框架，如此细微的人性化设计，值得学习*
 
-<h3 id='beans-factory-scopes`>bean作用域</h5>
+<h3 id='beans-factory-scopes'>bean作用域</h3>
 Spring bean定义时，实际上是创建类实例的配方。这个观点非常重要，因为她意味着，通过一个配方，即可创建很多类的对象。
 
 对于依据bean定义产生的bean,不仅可以控制依赖、设置对象的值，还可以对象作用域。这个手法强大而灵活，因为在配置过程中就可以可以控制的bean的作用域，无需在代码层面去控制，用代码去控制简直就是煎熬。要部署的bean可有设置1个或多个作用域：开箱即用，Spring框架支持5中作用域，其中有三种只有用web-aware`ApplicationContext`才能使用。
@@ -2066,30 +2066,29 @@ public final class Boot {
 }
 ```
 
+<h4 id='beans-factory-aware'>ApplicationContextAware and BeanNameAware</h4>
+`org.springframework.context.ApplicationContextAware`接口实现类的实例将会持有`ApplicationContext`的引用：
+```java
+public interface ApplicationContextAware {
 
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException;
 
+}
+```
 
+因此可以编程式的使用`ApplicationContext`手动的创建bean,通过`ApplicationContext`接口或者是该接口的子类，比如`ConfigurableApplicationContext`，该类还增加了方法。用途之一是编程式的检索bean，有时非常有用。然而，大多数情况下，要避免编程式检索bean，这样的话你的代码就会和Spring耦合，这不是IoC的风格，Ioc的风格是协作类作为bean的属性。`ApplicationContext`类的其他方法提供了文件资源的访问接口、发布应用事件、访问`MessageSource`消息资源。这些附加的功能请参看[Section 5.15, “Additional Capabilities of the ApplicationContext”](#context-introduction)
 
+自Spring2.5起，可以使用自动装配获取`ApplicationContext`引用。传统的`constructor`和`byType`自动装配模式(详情参看 [Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire)能为构造参数或者`setter`方法提供一个`ApplicationContext`类的依赖注入。为了更加灵活，还增加了自动注入的注解功能，它能自动注入属性和自动注入多参数方法。使用注解，`ApplicationContext`可以自动注入到`ApplicationContext`类型的属性、构造参数、方法参数。详情参看[Section 5.9.2, “@Autowired”](#beans-autowired-annotation).
 
+`org.springframework.beans.factory.BeanNameAware`接口的实现类，若是由`ApplicationContext`创建了该类的实例,该实例将会持有相关的对象定义的引用。
+```java
+public interface BeanNameAware {
 
+    void setBeanName(string name) throws BeansException;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
+```
+The callback is invoked after population of normal bean properties but before an initialization callback such as InitializingBean afterPropertiesSet or a custom init-method.
+TODO这个回调在设置属性之后调用，但是在`initialization`回调之前，比如`InitializingBean`的`afterPropertiesSet`或者 自定义的`init-method`
 
 
