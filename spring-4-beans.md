@@ -2152,7 +2152,7 @@ Spring bean定义包含各种配置信息，包括构造参数，属性值，容
 
 上述的父bean不能实例化，因为她不完整，是抽象的bean，作为子bean的纯模板时，它是非常有用的。试试通过属性引用或者使用`getBean()`方法调用该bean，会抛错。容器内部的`preInstantiateSingletons()`方法会忽略抽象bean。
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> `ApplicationContext`类默认会预先实例化所有的单例bean。因此，如果有做模板用的父bean，父bean定义中指定了`classs`属性,则必须指定`abstract`为`true`,这是非常重要的,否则容器会预先实例化该bean。
+> `ApplicationContext`类默认会预先实例化所有的单例bean。因此，如果有做模板用的父bean，父bean定义中指定了`classs`属性,则必须指定`abstract`为`true`,这是非常重要的,否则容器会预先实例化该bean。 
 
 
 
