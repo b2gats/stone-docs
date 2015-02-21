@@ -1800,7 +1800,7 @@ beanFactory.registerScope("thread", threadScope);
 *译注*，编程式就是指硬编码,hard-code，声明式就是指配置，可以是xml可以是注解总之无需直接使用代码去撰写相关代码。不得不说，*编程式和声明式*与*硬编码和配置*相比，更加高端大气上档次。技术人员尤其要学习这种官方的、概念性的、抽象的上档次的语言或者说式地道的表达，假若谈吐用的全是这种词汇，逼格至少提升50%，镇住其他人（入行时间不长的同行，或者面试官）的概率将大大提升。当然了，和生人谈吐要用高逼格词汇，比如*声明式*，*编程式*，然而和自己人就要用人话了，比如*硬编码*,*xml配置*，因为他们得能先听懂才能干活。
 总之，**装逼用官话,聊天用人话**，闲话少絮，看如何声明式注册(因为此处要装逼，人话是看如何xml)
 ```
-
+blablablab
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -1832,8 +1832,6 @@ beanFactory.registerScope("thread", threadScope);
 
 </beans>
 ```
-
-
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > When you place <aop:scoped-proxy/> in a FactoryBean implementation, it is the factory bean itself that is scoped, not the object returned from getObject().
 > 如果在`FactoryBean`实现中设置了`<aop:scoped-proxy/>`，表示是工厂bean他本身的作用域，并不是`getObject()`返回的对象的作用域。TODO
@@ -2113,4 +2111,50 @@ ResourceLoaderAware | Configured loader for low-level access to resources | [Cha
 ServletConfigAware | Current ServletConfig the container runs in. Valid only in a web-aware Spring ApplicationContext | [Chapter 17, Web MVC framework](#mvc)
 
 注意，这些接口的用法使代码与Spring API耦合，这不符合IoC风格。同样，除非有需求的基础bean才使用编程式访问容器。
+
+
+<h3 id='beans-child-bean-definitions'>Spring Bean的继承</h3>
+Spring bean定义包含各种配置信息，包括构造参数，属性值，容器特定信息例如初始化方法、静态工厂方法等等。Spring子bean定义继承父bean定义配置。子bean能覆盖值，若有需要还能增加其他配置。使用继承能少打好多字。这是模板的一种形式，讲究的就是效率。
+
+编程式的方式使用`ApplicationContext`场景，子bean的定义代表`ChildBeanDefinition`类。大多数用户不需要使用如此底层的SpringAPI，通常是使用类似`ClassPathXmlApplicationContext`的bean声明。若用XML配置，通过`parent`属性表示子bean定义，指定父bean的标识作为`parent`属性值。
+```xml
+<bean id="inheritedTestBean" abstract="true"
+        class="org.springframework.beans.TestBean">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithDifferentClass"
+        class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBean" init-method="initialize">
+    <property name="name" value="override"/>
+    <!-- the age property value of 1 will be inherited from parent -->
+</bean>
+```
+
+若子bean中未指定`class`属性，则子bean集成父bean的`class`属性，子bean可以重写覆盖此属性。若要覆盖重写`class`属性，子bean的class类型必须兼容父bean的class,也就是，子bean必须能接收父bean的属性值。
+
+其他的属性也是通常取自子bean的配置：*depends on, autowire mode, dependency check, singleton, lazy init*.
+
+前面样例中，使用`abstract`属性指定了父bean为抽象定义。如父bean中未指定class,则必须指定父bean为抽象bean。看代码:
+```xml
+<bean id="inheritedTestBeanWithoutClass" abstract="true">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithClass" class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBeanWithoutClass" init-method="initialize">
+    <property name="name" value="override"/>
+    <!-- age will inherit the value of 1 from the parent bean definition-->
+</bean>
+```
+
+上述的父bean不能实例化，因为她不完整，是抽象的bean，作为子bean的纯模板时，它是非常有用的。试试通过属性引用或者使用`getBean()`方法调用该bean，会抛错。容器内部的`preInstantiateSingletons()`方法会忽略抽象bean。
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> `ApplicationContext`类默认会预先实例化所有的单例bean。因此，如果有做模板用的父bean，父bean定义中指定了`classs`属性,则必须指定`abstract`为`true`,这是非常重要的,否则容器会预先实例化该bean。
+
+
+
+
 
