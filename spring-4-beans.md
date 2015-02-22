@@ -2154,7 +2154,6 @@ Spring bean定义包含各种配置信息，包括构造参数，属性值，容
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > `ApplicationContext`类默认会预先实例化所有的单例bean。因此，如果有做模板用的父bean，父bean定义中指定了`classs`属性,则必须指定`abstract`为`true`,这是非常重要的,否则容器会预先实例化该bean。 
 
-
-
-
+<h3 id='beans-factory-extension'>容器扩展点</h3>
+通常开发者无需自己实现`APplicationContext`，而是使用插件扩展Spring IoC容器，插件是某些指定的集成接口的实现。下面记账讲解这些集成接口。
 
