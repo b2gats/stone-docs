@@ -2157,3 +2157,113 @@ Spring bean定义包含各种配置信息，包括构造参数，属性值，容
 <h3 id='beans-factory-extension'>容器扩展点</h3>
 通常开发者无需自己实现`APplicationContext`，而是使用插件扩展Spring IoC容器，插件是某些指定的集成接口的实现。下面记账讲解这些集成接口。
 
+<h4 id='beans-factory-extension-bp'>使用BeanPostProcessor自定义bean</h4>
+`BeanPostProcessor`接口定义了实例化逻辑、依赖逻辑等回调方法,即可以自定义也可以覆盖容器默认方法。若果要在Spring容器完成实例化、配置、初始化bean之后执行自定义逻辑,则以插件方式实现`BeanPostProcessor`。
+
+可以配置多个`BeanPostProcessor`实例，可以设置`BeanPostProcessors`的`order`属性来控制其执行次序。让`BeanPostProcessor`实现`Ordered`接口，就能设置次属性。如果使用自定义`BeanPostProcessor`，也得考虑实现`Ordered`接口。更多的细节，参阅`BeanPostProcessor`和`Ordered`接口的javadocs。也可以查阅[programmatic registration of BeanPostProcessors](#)*译注，SPring参考手册中这个链接确实没有*
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>**NOTE**
+>`BeanPostProcessors`操作bean的*实例*;也就是，Spring IoC容器实例化bean的实例时`BeanPostProcessors`开始运行。  
+>
+>`BeanPostProcessors`在各自容器内有效。当使用容器继承时，`BeanPostProcessors`缺不会继承。如果在某容器内定义了`BeanPostProcessor`，近在本容器中生效。或句话说，一个容器中的bean不会使用另一个容器内的`BeanPostProcessor`处理，继承的容器也不行。
+>
+>要改变bean定义(也就是，bean定义的蓝图，*译注蓝图应该是指各种配置元数据，比如xml、注解等*),你得使用`BeanFactorPostProcessor`，详情参看[in Section 5.8.2, “Customizing configuration metadata with a BeanFactoryPostProcessor”](#beans-factory-extension-factory-postprocessors)
+
+`org.springframework.beans.factory.config.BeanPostProcessor`接口有2个回调方法组成。当这样的类在容器内注册为`post-processor`，容器创建所有bean,在容器初始化方法(比如`InitializingBean`的`afterProperieSet()`方法和其他所有的声明的`init`方法)和所有bean 初始化回调之前，运行`post-processor`回调。
+
+`ApplicationContext`自动探测在配置元数据中定义的`BeanPostProcessor`。`ApplicationContext`注册这些bean为`post-processors`，这样就可以在bean创建之前调用。Bean的`post-processors`可以像其他bean那样部署到容器里。
+
+注意，在`configuration`类中，使用`@Bean`工厂方法声明`BeanPostProcessor`，该工厂方法的返回类型必须是该实现类或者至少得是`org.springframework.beans.factory.config.BeanPostProcessor`接口，清楚的标识出`post-processor`。否则,`ApplicationContext`不会开启根据类型自动探测。因为`BeanPostProcessor`需要尽早的实例化，这样在容器中即可用于其他bean的初始化,因此这种尽早的类型探测至关重要。
+
+>**注意**
+>**编程式注册BeanPostProcessor**
+>尽管推荐的`BeanPostProcessor`的注册方式是通过`ApplicationContext`的自动探测机制,但是也可以使用`ConfigurableBeanFactory`类调用其`addBeanPostProcessor`实现编程式的注册。编程式注册是非常有用的，比如用于在注册之前实现等价的逻辑，再比如跨容器复制`post processors`。注意使用编程式注册`BeanPostProcessors`并不会遵守`Ordered`接口的次序。注册的顺序就是执行的次序。此外还得记得，编程式的注册`BeanPostProcessors`会在自动探测注册的`BeanPostProcessors`之前处理,无论自动探测注册的`BeanPostProcessors`指定了多么优先的次序。
+>**注意**
+>**BeanPostProcessor和AOP的自动代理**
+>Classes that implement the BeanPostProcessor interface are special and are treated differently by the container. All BeanPostProcessors and beans that they reference directly are instantiated on startup, as part of the special startup phase of the ApplicationContext. Next, all BeanPostProcessors are registered in a sorted fashion and applied to all further beans in the container. Because AOP auto-proxying is implemented as a BeanPostProcessor itself, neither BeanPostProcessors nor the beans they reference directly are eligible for auto-proxying, and thus do not have aspects woven into them.
+>容器会特殊对待`BeanPostProcessor`接口。所有的`BeanPostProcessors`及引用了`BeanPostProcessors`的bean会在启动时实例化，作为`ApplicationContext`特殊的启动阶段。接下来，所有的`BeanPostProcessors`都会按照次序注册到容器中，在其他bean使用`BeanPostProcessors`处理时也会使用此顺序。因为AOP的*auto-proxying*自动代理是`BeanPostProcessor`的默认实现，它既不引用`BeanPostProcessors`也不引用其他bean，不会发生*auto-proxying*自动代理,因此不会有切面织入。TODO
+>  
+>对于`BeanPostProcessor`类型的bean，会看到这样一条日志:"Bean foo is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying)"
+>注意，如果有bean通过自动注入或者`@Resource`(可能会导致自动注入)注入到`BeanPostProcessor`,在使用类型匹配检索依赖bean时Spring也许会访问到不期望的bean，导致生成不合适的auto-proxying自动代理或者其他`post-processing`。举个栗子，如果使用`@Resouce`依赖注解，而且`field/setter`上注解的名字和bean中声明名字不一致时,Spring将会使用类型匹配访问其他bean。  
+  
+  
+下面 示例中讲解了在`ApplicationContext`中如何撰写、注册、使用`BeanPostProcessors`  
+
+**栗子：Hello World,BeanPostProcessor风格**
+第一个示例，讲解基础用法。栗子展示了一个自定义`BeanPostProcessor`实现，功能是在容器创建bean时，调用每一个bean的`toString()`方法并输出到控制台。
+上干活，fuck goods
+```java
+package scripting;
+
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.BeansException;
+
+public class InstantiationTracingBeanPostProcessor implements BeanPostProcessor {
+
+    // simply return the instantiated bean as-is
+    public Object postProcessBeforeInitialization(Object bean,
+            String beanName) throws BeansException {
+        return bean; // we could potentially return any object reference here...
+    }
+
+    public Object postProcessAfterInitialization(Object bean,
+            String beanName) throws BeansException {
+        System.out.println("Bean '" + beanName + "' created : " + bean.toString());
+        return bean;
+    }
+
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/lang
+        http://www.springframework.org/schema/lang/spring-lang.xsd">
+
+    <lang:groovy id="messenger"
+            script-source="classpath:org/springframework/scripting/groovy/Messenger.groovy">
+        <lang:property name="message" value="Fiona Apple Is Just So Dreamy."/>
+    </lang:groovy>
+
+    <!--
+    when the above bean (messenger) is instantiated, this custom
+    BeanPostProcessor implementation will output the fact to the system console
+    -->
+    <bean class="scripting.InstantiationTracingBeanPostProcessor"/>
+
+</beans>
+```
+
+注意`InstantiationTracingBeanPostProcessor`是如何定义的。它甚至没有名字，因为它能像其他bean那样依赖注入。（上面的配置中，使用`Groovy script`创建了个bean。Spring动态语言支持的详细讲解参看[Chapter 29, Dynamic language support](#dynamic-language)
+
+下面的java应用使用上面的配置和代码执行,
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.scripting.Messenger;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("scripting/beans.xml");
+        Messenger messenger = (Messenger) ctx.getBean("messenger");
+        System.out.println(messenger);
+    }
+
+}
+```
+
+将会输出：
+Bean messenger created : org.springframework.scripting.groovy.GroovyMessenger@272961
+org.springframework.scripting.groovy.GroovyMessenger@272961
+
+**Example: The RequiredAnnotationBeanPostProcessor**
+对于扩展Spring IoC容器，使用回调函数或者注解联结一个自定义`BeanPostProcessor`实现类是常用的手段。例如Spring的`RequiredAnnotationBeanPostProcessor`，是个`BeanPostProcessor`实现类，spring内置，作用是确保Spring bean定义上的带注解的JavaBean属性确实被注入了值。
+
+
