@@ -2378,3 +2378,16 @@ bean `foo`有属性`fred`,`fred`有属性`bob`，`bob`有属性`sammy`，`sammy`
 <context:property-override location="classpath:override.properties"/>
 ```
 
+<h4 id='beans-factory-extension-factorybean'>使用FactoryBean自定义实例化逻辑</h4>
+对象实现`org.springframework.beans.factory.FactoryBean`接口,则成为它本身的工厂。
+
+`FactoryBean`接口是Spring IoC容器实例化逻辑的扩展点。假如初始化代码非常复杂，此时使用java编码比使用XML配置更容易表达。这种场景中，就可以自定义`FactoryBean`,在类中撰写复杂的初始化程序，并将其作为插件加入到容器中。
+
+`FactoryBean`接口有3个方法：
+* Object getObject():返回本工厂创建的对象实例。此实例也许是共享的，依赖于该工厂返回的是单例或者是原型。
+* boolean isSingleton():如果`FactoryBean`返回的是单例,该方法返回值为`true`,否则为`false`
+* Class getObjectType():返回对象类型。对象类型是`getObject()`方法返回的对象的类型，如果不知道的类型则返回null。
+
+`FactoryBean`概念和接口在Spring框架中大量使用。Spring内置的有超过50个实现。
+
+当使用`ApplicationContext`的`getBean()`方法获取`FactoryBean`实例本身而不是它所产生的bean，则要使用`&`符号+id。比如，现有`FactoryBean`，它有id，在容器上调用`getBean("myBean")`将返回`FactoryBean`所产生的bean，调用`getBean("&myBean")`将返回`FactoryBean`它本身的实例。
