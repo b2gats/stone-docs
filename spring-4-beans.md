@@ -2445,3 +2445,146 @@ public class SimpleMovieLister {
 ```
 
 这个注解意思是受到影响的bean属性在配置时必须赋值,在bean定义中明确指定其属性值或者通过自动注入。若该属性未指定值，容器会抛异常。这导致及时明确的失败，避免`NullPointerExceptions`或者晚一些时候才发现。仍然推荐，你在编码过程中使用断言，举个栗子，在`init`方法，做了这些强制的必须引用的检查，但是属性值甚至不再容器范围内。
+
+<h4 id='beans-autowired-annotation'>@Autowired</h4>
+如你所料,`@Autowired`注解也是应用在"传统的"setter方法上：
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>**注意**
+> 在下面的样例中，使用JSR 330的`@Inject`注解可以替代`@autowired`注解。[详情参看这里](#beans-standard-annotations)
+
+也可以将注解用于带一个或多个参数的其他方法上，看样例:
+```java
+public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(MovieCatalog movieCatalog,
+            CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+
+}
+```
+
+`@Autowired`也可以应用于构造函数上或者属性上：
+```java
+public class MovieRecommender {
+
+    @Autowired
+    private MovieCatalog movieCatalog;
+
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+
+}
+```
+
+也可以用在数组上 ，注解标注于属性或者方法上，数组的类型是`ApplicationContext`中定义的bean的类型。
+```java
+public class MovieRecommender {
+
+    @Autowired
+    private MovieCatalog[] movieCatalogs;
+
+    // ...
+
+}
+```
+同样也可以应用于集合
+```java
+public class MovieRecommender {
+
+    private Set<MovieCatalog> movieCatalogs;
+
+    @Autowired
+    public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    // ...
+
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>**注意**
+> 如果你想指定数组元素或者集合元素的次序，那么可以通过以下方式：bean实现`org.springframework.core.Ordered`接口，或者使用`Order`或者使用`@priority`注解。
+
+甚至Map也可以自动注入autowired，只要key的类型是`String`。 Map的value将会包含期待类型的所有bean，key是相应bean的name:
+```java
+public class MovieRecommender {
+
+    private Map<String, MovieCatalog> movieCatalogs;
+
+    @Autowired
+    public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    // ...
+
+}
+```
+
+默认情况下，当没有候选bean可用的时候自动注入会失败；在方法上、构造函数上、域上的注解，默认是必须的。这个也是可以设置为非必须的，看样例：
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired(required=false)
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> Only one annotated constructor per-class can be marked as required, but multiple non-required constructors can be annotated. In that case, each is considered among the candidates and Spring uses the greediest constructor whose dependencies can be satisfied, that is the constructor that has the largest number of arguments.
+>  每个类中只有一个被注解的构造函数能被标记为`required`,但是其他构造函数也能被注解。这种情况下，每个构造函数都会在候选者之间被考虑，Spring使用*贪婪模式*选取构造函数，也就是拥有最多数量构造参数的那一个。TODO
+> 推荐使用`@Autowired`的`required`属性覆盖`@Required`注解。`required`属性表名那个属性对于自动注入可能不需要,如果不能被装配则属性将会被忽略。`Required`，另一方面，更加强调的是，强制执行设置属性值，可以通过容器提供的任何手段。
+
+可以使用`@Autowired`注入常见的Spring API的依赖：`BeanFactory`,`ApplicationContext`,`Environment`,`ResourceLoader`,`ApplicationEventPublisher`,`MessageSource`。这些接口和他们的子类及实现类都可以比如，`ConfigurableApplicationContext`,`ResourcePatternResolver`都可以自动解析,无需特别设置。
+```java
+public class MovieRecommender {
+
+    @Autowired
+    private ApplicationContext context;
+
+    public MovieRecommender() {
+    }
+
+    // ...
+
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> ` @Autowired, @Inject, @Resource, and @Value`注解由`BeanPostProcessor`接口的实现类处理，也就是说你不能使用自定义的`BeanPostProcessor`或者自定义`BeanFactoryPostProcessor`应用这些注解。这些类型的组装，必须明确的由XML或者使用Spring `@Bean`方法完成。
