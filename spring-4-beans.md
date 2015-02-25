@@ -2425,7 +2425,23 @@ bean `foo`有属性`fred`,`fred`有属性`bob`，`bob`有属性`sammy`，`sammy`
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 >**注意**
-> <context:annotation-config/> only looks for annotations on beans in the same application context in which it is defined. This means that, if you put <context:annotation-config/> in a WebApplicationContext for a DispatcherServlet, it only checks for @Autowired beans in your controllers, and not your services. See Section 17.2, “The DispatcherServlet” for more information.
-  
 > `<context:annotation-config/>`仅会检索它所在的应用context上下文中bean上的注解。也就是，如果在`WebApplicationContext`中为`DispatcherServlet`设置`<context:annotation-config/>`，它仅会检查`controllers`中`@Autowired`的bean,并不会检查`service`。详情参看[Section 17.2, “The DispatcherServlet”](#mvc-servlet)
 
+<h4 id='beans-required-annotation'>@Required</h4>
+`@Required`注解应用于bean的setter方法，像这样:
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Required
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+
+这个注解意思是受到影响的bean属性在配置时必须赋值,在bean定义中明确指定其属性值或者通过自动注入。若该属性未指定值，容器会抛异常。这导致及时明确的失败，避免`NullPointerExceptions`或者晚一些时候才发现。仍然推荐，你在编码过程中使用断言，举个栗子，在`init`方法，做了这些强制的必须引用的检查，但是属性值甚至不再容器范围内。
