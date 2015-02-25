@@ -2391,3 +2391,41 @@ bean `foo`有属性`fred`,`fred`有属性`bob`，`bob`有属性`sammy`，`sammy`
 `FactoryBean`概念和接口在Spring框架中大量使用。Spring内置的有超过50个实现。
 
 当使用`ApplicationContext`的`getBean()`方法获取`FactoryBean`实例本身而不是它所产生的bean，则要使用`&`符号+id。比如，现有`FactoryBean`，它有id，在容器上调用`getBean("myBean")`将返回`FactoryBean`所产生的bean，调用`getBean("&myBean")`将返回`FactoryBean`它本身的实例。
+
+<h3 id='beans-annotation-config'>基于注解的把配置元数据</h3>
+**注解比XML好么?**
+```
+注解比XML好么，简单的说得看情况。详细的说，各有优缺点。因为定义的方式，注解在声明处提供了大量的上下文信息，所以注解配置要更简洁。然而,XML擅长在不接触源码或者无需反编译的情况下组装组件。虽然有这样的争议：注解类不再是`POJO`，并且配置更加分散难以控制，但是还是有人更喜欢在源码上使用注解配置。
+
+无论选择哪一样，Spring都能很好的支持，甚至混合也行。值得指出的是，使用`[JavaConfig](#beans-java)`选项，Spring能在不接触目标组件源码的情况下无侵入的使用注解，这可以通过IDE完成 [Spring Tool Suite](https://spring.io/tools/sts)
+```
+
+对于XML配置，还有另外一个选择，基于注解的配置，它是依赖于字节码元数据，替代XML组装组件。码农码畜可以使用注解替代XML描述bean的组装，开发者将配置撰写到组件类上，使用注解标注相关的类、方法、域上。就像前面提到的 [in the section called “Example: The RequiredAnnotationBeanPostProcessor”](#beans-factory-extension-bpp-examples-rabpp)，使用`BeanPostProcessor`联结注解是常见的扩展Spring IoC容器的手段。举个栗子，Spring2.0引入的通过[`@Required`](#beans-required-annotation)注解强制检查必须属性值。Spring 2.5采用了类似的手法使用注解处理依赖注入。本质上，`@Autowired`注解提供了相同的能力，在这一章有详解[Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire),但是`@Autowired`提供了更细粒度的控制和更强的能力。Spirng 2.5也增加了对JSR-250注解的支持，比如`@PostConstruct`,`@PreDestory`。Srping3.0增加支持了JSR-330(JAVA依赖注入)注解,这些注解在`javax.inject`包内，例如`@Inject`和`@Named`。详情参看那些注解的[相关章节](#beans-standard-annotations)。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>**注意**
+> 注解注入在XML注入*之前*执行，因此同时使用这两种方式注入时，XML配置会覆盖注解配置。
+
+同样的Spring风格，就像特别的bean定义那样注册他们，但是也能像下面这样隐式注册（注意包含context namespace上下文命名空间）
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+</beans>
+```
+(隐式注册的`post-processors`包括`AutowiredAnnotationBeanPostProcessor`,`CommonAnnotationBeanPostProcessor`,`PersistenceAnnotationBeanPostProcessor`,还有前面提到的`RequiredAnnotationBeanPostProcessor`)
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+>**注意**
+> <context:annotation-config/> only looks for annotations on beans in the same application context in which it is defined. This means that, if you put <context:annotation-config/> in a WebApplicationContext for a DispatcherServlet, it only checks for @Autowired beans in your controllers, and not your services. See Section 17.2, “The DispatcherServlet” for more information.
+  
+> `<context:annotation-config/>`仅会检索它所在的应用context上下文中bean上的注解。也就是，如果在`WebApplicationContext`中为`DispatcherServlet`设置`<context:annotation-config/>`，它仅会检查`controllers`中`@Autowired`的bean,并不会检查`service`。详情参看[Section 17.2, “The DispatcherServlet”](#mvc-servlet)
+
