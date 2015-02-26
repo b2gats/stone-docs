@@ -2841,5 +2841,38 @@ public class MovieRecommender {
 </beans>
 ```
 
+<h4 id='beans-generics-as-qualifiers'>范型作为自动装配限定符</h4>
+`@Qualifier`注解，也常用于java范型作为隐式的限定符qualification。比如：假如有下列配置：
+```java
+@Configuration
+public class MyConfiguration {
 
+    @Bean
+    public StringStore stringStore() {
+        return new StringStore();
+    }
 
+    @Bean
+    public IntegerStore integerStore() {
+        return new IntegerStore();
+    }
+
+}
+```
+
+假设上面的bean实现了范型接口，也就是`Store<String>`和`Store<Integer>`，那么久可以使用`@Autowired`注解`Store`接口，范型作为限定符qualifier:
+```java
+@Autowired
+private Store<String> s1; // <String> qualifier, injects the stringStore bean
+
+@Autowired
+private Store<Integer> s2; // <Integer> qualifier, injects the integerStore bean
+```
+
+范型限定符qualifiers也同样应用于自动装配`Lists`,`Maps`和`Arrays`:
+```java
+// Inject all Store beans as long as they have an <Integer> generic
+// Store<String> beans will not appear in this list
+@Autowired
+private List<Store<Integer>> s;
+```
