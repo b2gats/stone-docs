@@ -2876,3 +2876,23 @@ private Store<Integer> s2; // <Integer> qualifier, injects the integerStore bean
 @Autowired
 private List<Store<Integer>> s;
 ```
+<h4 id='beans-custom-autowire-configurer'>CustomAutowireConfigurer</h4>
+`CustomAutowireConfigurer`是`BeanFactoryPostProcessor`，允许注册自定义限定符qualifier注解类型，无需指定`@Qualifier`注解：
+```xml
+<bean id="customAutowireConfigurer"
+        class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
+    <property name="customQualifierTypes">
+        <set>
+            <value>example.CustomQualifier</value>
+        </set>
+    </property>
+</bean>
+```
+`AutowireCandidateResolver`是自动装配候选者而定：
+* 每一个bean定义中的`autowire-candidate`值
+* `<bean/>`元素上`default-autowire-candidates`可用的模式
+* the presence of @Qualifier annotations and any custom annotations registered with the CustomAutowireConfigurer
+* 出现的`@Qualifier`注解和任何通过`CustomAutowireConfigurer`注册的自定义注解。
+
+When multiple beans qualify as autowire candidates, the determination of a "primary" is the following: if exactly one bean definition among the candidates has a primary attribute set to true, it will be selected.
+当多个bean的qualify限定符作为自动装配的候选者，“首要bean”决定于：候选者中有bean指定了`primary`属性值为`true`，那么它将陪选中（注入）。
