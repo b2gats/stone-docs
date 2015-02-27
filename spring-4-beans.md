@@ -2970,3 +2970,7 @@ public class CachingMovieLister {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 关于多重生命周期变量机制，详情参看[the section called “Combining lifecycle mechanisms”](#beans-factory-lifecycle-combined-effects)
 
+<h3 id='beans-classpath-scanning'>ClassPath扫描和管理组件</h3>
+本章大多数的样例都是使用XML格式配置元数据配置Spring bean，然后Spring容器根据这些配置产生`BeanDefinition`。虽然前面章节([Section 5.9, “Annotation-based container configuration”](#beans-annotation-config))展示了大量的源码级别注解配置元数据的情况,但是，注解也仅仅用于驱动依赖注入，"base"bean依然是在明确的在XML文件中定义。本章将讲解新的内容，如何通过扫描classpath ，隐式检索特殊的Spring bean，也就是后面提到的候选者组件。候选者组件是class类,这些类经过过滤匹配，由Spring容器注册注册的bean定义，成为Spring bean。这样就没有XML什么事儿了，*译注go egg,太粗鲁了吧*，也就是无需使用XML定义bean，而是使用注解(比如`@Component`),`AspectJ`表达式,或者是自定义的过滤器，使用自定义的过滤器选择那些类将会被注册到容器中。
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> Spring3.0开始，`JavaConfig`项目中很多功能已经集成到Spring框架中。这就可以使用Java定义beans而不是传统的XML了。看看`@Configuration`,`@Bean`,`@Import`,`@DependsOn`的样例，即可学习如何使用这些功能。
