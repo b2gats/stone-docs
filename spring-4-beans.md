@@ -2949,3 +2949,24 @@ public class MovieRecommender {
 
 }
 ```
+
+<h4 id='beans-postconstruct-and-predestroy-annotations'>@PostConstruct and @PreDestroy</h4>
+`CommonAnnotationBeanPostProcessor`不仅能识别`@Resource`注解，也能识别JSR-250生命周期注解。Spring 2.5提供了对这些注解的支持，也提供了以下注解的支持:[initialization callbacks](#beans-factory-lifecycle-initializingbean) and [destruction callbacks](#beans-factory-lifecycle-disposablebean)。`CommonAnnotationBeanPostProcessor `提供了这些注解的支持，它是Spring `ApplicationContext`注册，它会在相应的Spring bean生命周期调用相应的方法，就像是Spring生命周期接口方法，或者是明确声明的回调函数。在下面的样例中，会根据初始化方法执行缓存，在销毁时执行清理。
+```java
+public class CachingMovieLister {
+
+    @PostConstruct
+    public void populateMovieCache() {
+        // populates the movie cache upon initialization...
+    }
+
+    @PreDestroy
+    public void clearMovieCache() {
+        // clears the movie cache upon destruction...
+    }
+
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 关于多重生命周期变量机制，详情参看[the section called “Combining lifecycle mechanisms”](#beans-factory-lifecycle-combined-effects)
+
