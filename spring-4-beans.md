@@ -2394,7 +2394,7 @@ bean `foo`有属性`fred`,`fred`有属性`bob`，`bob`有属性`sammy`，`sammy`
 
 <h3 id='beans-annotation-config'>基于注解的把配置元数据</h3>
 **注解比XML好么?**
-```
+```text
 注解比XML好么，简单的说得看情况。详细的说，各有优缺点。因为定义的方式，注解在声明处提供了大量的上下文信息，所以注解配置要更简洁。然而,XML擅长在不接触源码或者无需反编译的情况下组装组件。虽然有这样的争议：注解类不再是`POJO`，并且配置更加分散难以控制，但是还是有人更喜欢在源码上使用注解配置。
 
 无论选择哪一样，Spring都能很好的支持，甚至混合也行。值得指出的是，使用`[JavaConfig](#beans-java)`选项，Spring能在不接触目标组件源码的情况下无侵入的使用注解，这可以通过IDE完成 [Spring Tool Suite](https://spring.io/tools/sts)
@@ -2894,5 +2894,58 @@ private List<Store<Integer>> s;
 * the presence of @Qualifier annotations and any custom annotations registered with the CustomAutowireConfigurer
 * 出现的`@Qualifier`注解和任何通过`CustomAutowireConfigurer`注册的自定义注解。
 
-When multiple beans qualify as autowire candidates, the determination of a "primary" is the following: if exactly one bean definition among the candidates has a primary attribute set to true, it will be selected.
 当多个bean的qualify限定符作为自动装配的候选者，“首要bean”决定于：候选者中有bean指定了`primary`属性值为`true`，那么它将陪选中（注入）。
+
+<h4 id='#beans-resource-annotation'>@Resouce</h4>
+Spring也支持JSR-250`@Resource`注解注入，标注在域field或者属性setter方法上。这是 Java EE 5 and 6中常用的模式，比如JSF1.2管理的bean或者JAX-WS2.0的endpoints。 Spring管理Spring对象支持这些模式。
+
+`@Resource`使用name属性，Spring默认解释其value值作为注入bean的名字。看样例：
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Resource(name="myMovieFinder")
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+}
+```
+
+如果没有明确的指定name ,默认的name取值就是域field name或者从setter方法派生。如果是域name,则原封不动的使用该域;如果是setter方法派生，将获取setter方法内设置的属性property名字(*译注，应该就是field name域名字*)。所以下面的样例中，会吧bean名字为"movieFinder"注入给setter方法：
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Resource
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> `ApplicationContext`若使用了`CommonAnnotationBeanPostProcessor`，注解提供的name名字将被解析为bean的name名字。如果配置了明确的Spring的`SimpleJndiBeanFactory`，这些name名字将通过`JNDI`解析。然而，推荐你使用默认的行为，简单的使用Spring的`JNDI`，这样可以保持逻辑引用，而不是直接引用。
+
+`@Resource`没有明确指定name时，和`@Autowired`相似,对于特定bean(SpringAPI内的bean)，`@Resource`会以类型匹配方式替代bean name名字匹配方式，比如：`BeanFactory, ApplicationContext, ResourceLoader, ApplicationEventPublisher, and MessageSource `接口
+
+因此，下面的样例中，`customerPreferenceDao`field域首先查找名字为`customerPreferenceDao`的bean，若未找到，则会使用类型匹配`CustomerPreferenceDao`类的实例。`context`field域将会注入`ApplicationContext`：
+```java
+public class MovieRecommender {
+
+    @Resource
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Resource
+    private ApplicationContext context;
+
+    public MovieRecommender() {
+    }
+
+    // ...
+
+}
+```
