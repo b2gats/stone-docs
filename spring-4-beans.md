@@ -2979,3 +2979,34 @@ public class CachingMovieLister {
 `@Repository`注解注解用于DAO层。使用此注解会自动转换异常，详情参看[Section 15.2.2, “Exception translation”](#orm-exception-translation)
 
 Spring提供了各层代码注解：`@Component, @Service, and @Controller`。`@Component`是通用的Spring bean，也即是由Spring管理的组件。`@Repository, @Service, @Controller`和`@Component`相比，更加精准的用于各个代码层，它们分别用于持久化层persistence,service服务层,和presentation layers表现层。因此，可以将类注解`@Component`，但是如果使用` @Repository, @Service, or @Controller`替代，也许更适于工具去处理，或者和`aspects`关联。比如，在某层代码上做切点。也许在Spring框架未来的版本中，` @Repository, @Service, and @Controller `会附加更多的功能，也就是易于扩展。因此，对于在service层使用`@Component`还是`@Service `的纠结，无疑`@Service`是最好的选择。同理，在持久化层要选择`@Repository`,它能自动转换异常。
+
+<h4 id='beans-meta-annotations'>Meta-annotations元注解</h4>
+Many of the annotations provided by Spring can be used as "meta-annotations" in your own code. A meta-annotation is simply an annotation, that can be applied to another annotation. For example, The @Service annotation mentioned above is meta-annotated with with @Component:
+
+Spring提供的很多注解能作为“元注解”使用。元注解是简单的注解，可以应用于其他注解。比如，前面提及的`@Service`注解就是`@Component`的元注解。
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component // Spring will see this and treat @Service in the same way as @Component
+public @interface Service {
+
+    // ....
+
+}
+```
+多个元注解也能联合起来，成为复合注解。比如，Spring MVC中的`@RestController`注解就是有`@Controller`和`@ResponseBody`。
+With the exception of value(), meta-annotated types may redeclare attributes from the source annotation to allow user customization. This can be particularly useful when you want to only expose a subset of the source annotation attributes. For example, here is a custom @Scope annotation that defines session scope, but still allows customization of the proxyMode.
+对于`value()`的异常，元注解也许会重新定义源码注解中的属性。当仅需要暴露源码注解子集注解属性时，这非常有用。比如，现有自定义`@Scope`注解定义了session 作用域,但是仍然允许代理模式的自定义。TODO
+```java
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Scope("session")
+public @interface SessionScope {
+
+    ScopedProxyMode proxyMode() default ScopedProxyMode.DEFAULT
+
+}
+```
+
