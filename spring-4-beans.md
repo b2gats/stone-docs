@@ -2981,8 +2981,6 @@ public class CachingMovieLister {
 Spring提供了各层代码注解：`@Component, @Service, and @Controller`。`@Component`是通用的Spring bean，也即是由Spring管理的组件。`@Repository, @Service, @Controller`和`@Component`相比，更加精准的用于各个代码层，它们分别用于持久化层persistence,service服务层,和presentation layers表现层。因此，可以将类注解`@Component`，但是如果使用` @Repository, @Service, or @Controller`替代，也许更适于工具去处理，或者和`aspects`关联。比如，在某层代码上做切点。也许在Spring框架未来的版本中，` @Repository, @Service, and @Controller `会附加更多的功能，也就是易于扩展。因此，对于在service层使用`@Component`还是`@Service `的纠结，无疑`@Service`是最好的选择。同理，在持久化层要选择`@Repository`,它能自动转换异常。
 
 <h4 id='beans-meta-annotations'>Meta-annotations元注解</h4>
-Many of the annotations provided by Spring can be used as "meta-annotations" in your own code. A meta-annotation is simply an annotation, that can be applied to another annotation. For example, The @Service annotation mentioned above is meta-annotated with with @Component:
-
 Spring提供的很多注解能作为“元注解”使用。元注解是简单的注解，可以应用于其他注解。比如，前面提及的`@Service`注解就是`@Component`的元注解。
 ```java
 @Target({ElementType.TYPE})
@@ -3009,4 +3007,64 @@ public @interface SessionScope {
 
 }
 ```
+
+<h4 id='beans-scanning-autodetection'>自动探测类和自动注册bean定义</h4>
+Spring能自定探测各代码层的类并在`ApplicationContext`内注册相应的`BeanDefinitions`。比如：下面两个类就可以被自动探测
+```java
+@Service
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired
+    public SimpleMovieLister(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+}
+```
+blablabal
+```java
+@Repository
+public class JpaMovieFinder implements MovieFinder {
+    // implementation elided for clarity
+}
+```
+要想自动探测这些类并注册相应的Spring bean，得在`@Configuration`注解的类上增加`@ComponentScan`,其`basePackages`属性就是上面两个类的所在的父级包路径。(或者，可以使用两个类各自所在的包路径,用 `,逗号/;分号/ 空格`分隔的)
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example")
+public class AppConfig  {
+    ...
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 为了简介，上面的也会使用注解的`value`替代`basepackage`,也就是`ComponentScan("org.example")`
+
+下面是XML格式的配置
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="org.example"/>
+
+</beans>
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 使用`<context:component-scan>`将会隐式的启用`<context:annotation-config>`。当使用`<context:component-scan>`时，一般不需要`<context:annotation-config/>`元素
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 扫描类包需要相应的目录在`classpath`内存在。使用`Ant`构建JAR包时，确保打包任务不要开启*仅打包文件(无需相应的目录)*选项。当然了，在某些环境装因为安全策略，classpath目录也许不能访问。比如，基于JDK1.7.0_45或更高版本的JDK的单独的应用(需要在manifests包清单中设置信任类库Trusted-Library；详情参看http://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)
+
+此外，当使用`component-scan`元素时，`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`都会隐式使用。意味着这两个组件也是自动探测和注入的--所有这些都不需要XML配置。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 通过设置`annotation-config`属性值为`false`即禁用`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`的注册。
 
