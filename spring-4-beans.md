@@ -3070,7 +3070,9 @@ public class AppConfig  {
 
 <h4 id='beans-scanning-filters'>使用过滤器自定义扫描</h4>
 默认情况下，使用注解`@Component, @Repository, @Service, @Controller`以及基于`@Component`的元注解的类是唯一的被扫描的目标。然而，可以通过自定义过滤器轻易修改、扩展此行为。设置`@ComponentScan`注解的*includeFilters* 和*excludeFilters*参数(或者是XML中，设置`component-scan`元素的子元素include-filter or exclude-filter)。每个过滤器元素需要设置`type`和`expression`属性。下面的列表中描述的过滤器的选项：
+
 **Table 5.5. Filter Types**
+
 Filter Type | Example Expression | Description
 ----------- | ------------------ | ------------
 annotation (default) | `org.example.SomeAnnotation` | 目标组件上出现类注解
@@ -3078,6 +3080,7 @@ assignable | `org.example.SomeClass` | 指定类或者接口
 aspectj | `org.example..*Service+` | AspectJ 类型表达式匹配目标组件
 regex | `org\.example\.Default.*` | 正则表达式匹配目标组件的类名
 custom | `org.example.MyTypeFilter` | 自定义的`org.springframework.core.type .TypeFilter`接口实现
+
 
 下例展示了如何忽略所有`@Repository`注解的类，而仅使用包含字串"stub"的repositories
 ```java
