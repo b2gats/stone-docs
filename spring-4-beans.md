@@ -3068,3 +3068,39 @@ public class AppConfig  {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 通过设置`annotation-config`属性值为`false`即禁用`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`的注册。
 
+<h4 id='beans-scanning-filters'>使用过滤器自定义扫描</h4>
+默认情况下，使用注解`@Component, @Repository, @Service, @Controller`以及基于`@Component`的元注解的类是唯一的被扫描的目标。然而，可以通过自定义过滤器轻易修改、扩展此行为。设置`@ComponentScan`注解的*includeFilters* 和*excludeFilters*参数(或者是XML中，设置`component-scan`元素的子元素include-filter or exclude-filter)。每个过滤器元素需要设置`type`和`expression`属性。下面的列表中描述的过滤器的选项：
+**Table 5.5. Filter Types**
+Filter Type | Example Expression | Description
+----------- | ------------------ | ------------
+annotation (default) | `org.example.SomeAnnotation` | 目标组件上出现类注解
+assignable | `org.example.SomeClass` | 指定类或者接口
+aspectj | `org.example..*Service+` | AspectJ 类型表达式匹配目标组件
+regex | `org\.example\.Default.*` | 正则表达式匹配目标组件的类名
+custom | `org.example.MyTypeFilter` | 自定义的`org.springframework.core.type .TypeFilter`接口实现
+
+下例展示了如何忽略所有`@Repository`注解的类，而仅使用包含字串"stub"的repositories
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example",
+        includeFilters = @Filter(type = FilterType.REGEX, pattern = ".*Stub.*Repository"),
+        excludeFilters = @Filter(Repository.class))
+public class AppConfig {
+    ...
+}
+```
+
+和下面的XML配置效果相同
+```xml
+<beans>
+    <context:component-scan base-package="org.example">
+        <context:include-filter type="regex"
+                expression=".*Stub.*Repository"/>
+        <context:exclude-filter type="annotation"
+                expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan>
+</beans>
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 可以关闭默认的过滤器，通过在注解上设置`useDefaultFilters=false`，或者在`<component-scan/>`元素上设置`use-default-filters="false"`属性。这将会关闭`@Component, @Repository, @Service, or @Controller`自动探测类注解。
