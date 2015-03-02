@@ -2981,6 +2981,7 @@ public class CachingMovieLister {
 Spring提供了各层代码注解：`@Component, @Service, and @Controller`。`@Component`是通用的Spring bean，也即是由Spring管理的组件。`@Repository, @Service, @Controller`和`@Component`相比，更加精准的用于各个代码层，它们分别用于持久化层persistence,service服务层,和presentation layers表现层。因此，可以将类注解`@Component`，但是如果使用` @Repository, @Service, or @Controller`替代，也许更适于工具去处理，或者和`aspects`关联。比如，在某层代码上做切点。也许在Spring框架未来的版本中，` @Repository, @Service, and @Controller `会附加更多的功能，也就是易于扩展。因此，对于在service层使用`@Component`还是`@Service `的纠结，无疑`@Service`是最好的选择。同理，在持久化层要选择`@Repository`,它能自动转换异常。
 
 <h4 id='beans-meta-annotations'>Meta-annotations元注解</h4>
+*译注，元注解就是修饰注解的注解*
 Spring提供的很多注解能作为“元注解”使用。元注解是简单的注解，可以应用于其他注解。比如，前面提及的`@Service`注解就是`@Component`的元注解。
 ```java
 @Target({ElementType.TYPE})
@@ -3063,7 +3064,7 @@ public class AppConfig  {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 扫描类包需要相应的目录在`classpath`内存在。使用`Ant`构建JAR包时，确保打包任务不要开启*仅打包文件(无需相应的目录)*选项。当然了，在某些环境装因为安全策略，classpath目录也许不能访问。比如，基于JDK1.7.0_45或更高版本的JDK的单独的应用(需要在manifests包清单中设置信任类库Trusted-Library；详情参看http://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)
 
-此外，当使用`component-scan`元素时，`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`都会隐式使用。意味着这两个组件也是自动探测和注入的--所有这些都不需要XML配置。
+此外，当使用`component-scan`元素时，`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`都会隐式启用。意味着这两个组件也是自动探测和注入的--所有这些都不需要XML配置。
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 通过设置`annotation-config`属性值为`false`即禁用`AutowiredAnnotationBeanPostProcessor`和`CommonAnnotationBeanPostProcessor`的注册。
@@ -3107,3 +3108,75 @@ public class AppConfig {
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 可以关闭默认的过滤器，通过在注解上设置`useDefaultFilters=false`，或者在`<component-scan/>`元素上设置`use-default-filters="false"`属性。这将会关闭`@Component, @Repository, @Service, or @Controller`自动探测类注解。
+
+<h4 id='beans-factorybeans-annotations'>在组件内定义Spring bean</h4>
+Spring组件也能为容器定义bean定义元数据。在`@Configuration`注解的类中使用`@Bean`注解定义bean元数据(也就是Spring bean)。看样例:
+```java
+@Component
+public class FactoryMethodComponent {
+
+    @Bean
+    @Qualifier("public")
+    public TestBean publicInstance() {
+        return new TestBean("publicInstance");
+    }
+
+    public void doWork() {
+        // Component method implementation omitted
+    }
+
+}
+```
+*译注，上面样例是SPring参考手册中给出的源码，待验证@Component类中使用@Bean?不是@Configuration么TODO*
+
+这个类是一个Spring组件，有个方法`doWork()`。然而，它还有一个工厂方法`publicInstance()`，用于产生一个bean定义。`@Bean`注解了工厂方法，还设置了其他的bean定义的属性，比如使用`@Qulifier`设置了其标示符的值。此外还支持一些方法级别注解，`@Scope,@Lazy,`或者是自定义的qualifier 注解。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 除了它本身作为组件初始化的角色，`@Lazy`注解也可以在`@Autowired`或者`@Inject`处使用。这种情况下，该注入将会变成延迟注入代理lazy-resolution proxy
+
+前面讨论过的,`@Bean`注解的方法支持自动注入域和自动:
+```java
+@Component
+public class FactoryMethodComponent {
+
+    private static int i;
+
+    @Bean
+    @Qualifier("public")
+    public TestBean publicInstance() {
+        return new TestBean("publicInstance");
+    }
+
+    // use of a custom qualifier and autowiring of method parameters
+
+    @Bean
+    protected TestBean protectedInstance(
+            @Qualifier("public") TestBean spouse,
+            @Value("#{privateInstance.age}") String country) {
+        TestBean tb = new TestBean("protectedInstance", 1);
+        tb.setSpouse(spouse);
+        tb.setCountry(country);
+        return tb;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    private TestBean privateInstance() {
+        return new TestBean("privateInstance", i++);
+    }
+
+    @Bean
+    @Scope(value = WebApplicationContext.SCOPE_SESSION, proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public TestBean requestScopedInstance() {
+        return new TestBean("requestScopedInstance", 3);
+    }
+
+}
+```
+
+样例中，自动注入的方法参数，类型`String`,名称为`country`，将会被设置为另一个实例`privateInstance`的`Age`属性。Spring EL表达式语言通过`#{<expression>}`定义属性值。对于`@Value`注解，表达式解析器在解析表达式后，会查找bean的名字并设置value。
+
+在Spring component中处理`@Bean`和在`@Configuration`中处理是不一样的。区别在于，在`@Component`中，不会使用`CGLIB`增强去拦截方法和属性的调用。在`@Configuration`注解的类中，`@Bean`注解的方法创建的bean对象的方法和属性的调用，是使用`CGLIB`代理。方法的调用不是常规的java语法。作为对比，`@Component`类中的对于`@Bean`注解的方法或者属性的调用，是标准的java语法。//TODO
+
+
+
