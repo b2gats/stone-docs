@@ -3341,3 +3341,68 @@ public class SimpleMovieLister {
 
 }
 ```
+
+<h4 id='beans-named'>@Named:相当于@Component</h4>
+使用`@javax.inject.Named`替代`@Component`:
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named("movieListener")
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+
+`@Component`通常不指定组件名字。`@Named`也能这么用：
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+
+使用`@Named`，也可以Spring注解一样的使用component-scanning组件扫描
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example")
+public class AppConfig  {
+    ...
+}
+```
+
+<h4 id='beans-standard-annotations-limitations'>标准注解的限制</h4>
+使用标准注解时，要知道下列重要功能不可用，这非常重要:
+
+**Table 5.6. Spring annotations vs. standard annotations**
+
+Spring | javax.inject.* | javax.inject restrictions / comments
+------- | -------------- | -----------------------------------
+@Autowired | @Inject | @Inject 没有`required`属性
+@Component | @Named | -
+@Scope("singleton") |@Singleton | JSR-330默认的作用域类似于Spring的prototype原型作用域。为了保持Spring的一致性，在Spring容器中的JSR-330的bean声明，默认是singleton单例。除了singleton，若要设置作用域，得使用Spring的`@Scope`注解。`javax.inject`也提供了一个`@Scope`注解。然而，这个注解仅仅是为了让你创建自定义注解用的*译注,也就是元注解的源码注解?*。
+@Qualifier | @Named | -
+@Value | - | 无等价注解
+@Required | - | 无等价注解
+@Lazy | - | 无等价注解
