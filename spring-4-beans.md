@@ -3179,4 +3179,41 @@ public class FactoryMethodComponent {
 在Spring component中处理`@Bean`和在`@Configuration`中处理是不一样的。区别在于，在`@Component`中，不会使用`CGLIB`增强去拦截方法和属性的调用。在`@Configuration`注解的类中，`@Bean`注解的方法创建的bean对象的方法和属性的调用，是使用`CGLIB`代理。方法的调用不是常规的java语法。作为对比，`@Component`类中的对于`@Bean`注解的方法或者属性的调用，是标准的java语法。//TODO
 
 
+<h4 id='beans-scanning-name-generator'>命名自动注册组件</h4>
+扫描处理过程其中一步就是自动探测组件,扫描器使用`BeanNameGenerator`对探测到的组件命名。默认情况下，各代码层注解(`@Component,@Repository,@Service,@Controller`)所包含的`name`值，将会作为相应的bean定义的名字。
+
+如果这些注解没有`name`值，或者是其他一些被探测到的组件（比如使用自定义过滤器探测到的），默认的bean name生成器生成，以小写类名作为bean名字。比如，下面两个组件被探测到，bean name将会是`myMovieLister`和`movieFinderImpl`:
+```java
+@Service("myMovieLister")
+public class SimpleMovieLister {
+    // ...
+}
+```
+
+```java
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+    // ...
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 若你不需要默认的bean命名策略，也可以自己实现命名策略。首先，实现`BeanNameGenerator`接口，然后确保其包含默认的无参构造函数(即空构造)。然后，在配置扫描器后提供全限定类名:
+> 
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", nameGenerator = MyNameGenerator.class)
+public class AppConfig {
+    ...
+}
+```
+```xml
+<beans>
+    <context:component-scan base-package="org.example"
+        name-generator="org.example.MyNameGenerator" />
+</beans>
+```
+	
+
+生成规则应当如下，考虑和注解一起生成name，便于其他组件明确的引用。另一方面，当容器负责组装时，自动生成的名字要能胜任。
 
