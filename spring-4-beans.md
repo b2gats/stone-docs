@@ -3287,5 +3287,57 @@ public class CachingMovieCatalog implements MovieCatalog {
 ```
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> 如要使用同一个类产生多个bean定义，bean间的区别使用qualifier标识符，可以使用XML替代注解定义bean，记住注解元数据是类定义本身的，因此`@Qualifier`产生的标识符只能属于一个bean定义，而XML的bean定义中的qualifier标识符才是属于bean实例的。
+> 如要使用同一个类产生多个bean定义，bean间的区别是qualifier标识符，可以使用XML替代注解定义bean，记住注解元数据是类定义本身的，因此`@Qualifier`产生的标识符只能属于一个bean定义，而XML的bean定义中的qualifier标识符才是属于bean实例的。
+> 就大多数的标注替换而言，元数据和类本身是结合在一起的；而使用xml的时候，允许同一类型的beans在qualifieer元数据中提供变量，因为元数据是依据实例而不是类来提供的。
 
+<h3 id='beans-standard-annotations'>使用JSR-330标准注解</h3>
+Spring3.0开始，Spring提供了对JSR-330标准注解（依赖注入）的支持。这些注解以Spring注解相同的方式被扫描。你只需要在classpath中引入相关jar包
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 若使用`Maven`,`javax.inject` artifact三围坐标在标准maven仓库中都是可用的(http://repo1.maven.org/maven2/javax/inject/javax.inject/1/)，在pom.xml中增加dependency
+> 
+```xml
+<dependency>
+    <groupId>javax.inject</groupId>
+    <artifactId>javax.inject</artifactId>
+    <version>1</version>
+</dependency>
+```
+
+<h4 id='beans-inject-named'>使用@Inject @Name依赖注入</h4>
+替代`@Autowired`，`@javax.inject.Inject`这样用：
+```java
+import javax.inject.Inject;
+
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
+
+和`@Autowired`一样，`@Inject`可用于类注解、域注解、方法注解、构造参数注解。如果需要注入指定qualifier标识符的bean，应该使用`@Named`注解，像这样：
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(@Named("main") MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+
+}
+```
