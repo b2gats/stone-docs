@@ -3217,3 +3217,75 @@ public class AppConfig {
 
 生成规则应当如下，考虑和注解一起生成name，便于其他组件明确的引用。另一方面，当容器负责组装时，自动生成的名字要能胜任。
 
+<h4 id='beans-scanning-scope-resolver'>为自动探测组件提供作用域</h4>
+通常来说，Spring管理的组件，默认的最常见的作用域是单例singleton。然而，有时候需要其他的作用域，Spring2.5提供了一个新的注解`@Scope`。只需要给他提供一个name,该注解即可设置作用域:
+```java
+@Scope("prototype")
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+    // ...
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 若不想使用基于现有注解的方式,而是提供自定义作用域策略,得实现`ScopeMetadataResolver`接口，该实现得有一个空构造（无参构造）。然后，配置扫描时提供该实现类全限定类名:
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", scopeResolver = MyScopeResolver.class)
+public class AppConfig {
+    ...
+}
+```
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example"
+            scope-resolver="org.example.MyScopeResolver" />
+</beans>
+```
+
+当使用某个非单例作用域时，为作用域对象生成代理也许非常必要。原因参看[the section called “Scoped beans as dependencies”](#beans-factory-scopes-other-injection)。`component-scan`元素中有一个`scope-proxy`属性，即可实现此目的。它的值有三个选项：`no, interfaces, and targetClass`，比如下面的配置会生成标准的JDK动态代理：
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", scopedProxy = ScopedProxyMode.INTERFACES)
+public class AppConfig {
+    ...
+}
+```
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example"
+        scoped-proxy="interfaces" />
+</beans>
+```
+
+<h4 id='beans-scanning-qualifiers'>为注解提供标示符Qualifier</h4>
+有关`@Qualifier`注解的讨论在[in Section 5.9.3, “Fine-tuning annotation-based autowiring with qualifiers”](#beans-autowired-annotation-qualifiers)。那章节中的样例展示了`@Qualifier`注解和自定义标识符qualifier注解的用法，藉此用来更细粒度的控制自动注入。因为样例都是基于XML 的bean定义,所以标识符都是在XML中的bean定义上，通过设置`qualifier`或者`meta`子元素在设置的。当使用classpath扫描、自动探测组件时，得在候选者类上使用类注解来提供标识符qualifier元数据。下面的三个样例展示此技术：
+```java
+@Component
+@Qualifier("Action")
+public class ActionMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+```java
+@Component
+@Genre("Action")
+public class ActionMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+```java
+@Component
+@Offline
+public class CachingMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 如要使用同一个类产生多个bean定义，bean间的区别使用qualifier标识符，可以使用XML替代注解定义bean，记住注解元数据是类定义本身的，因此`@Qualifier`产生的标识符只能属于一个bean定义，而XML的bean定义中的qualifier标识符才是属于bean实例的。
+
