@@ -3455,3 +3455,10 @@ The AppConfig class above would be equivalent to the following Spring <beans/> X
 
 ```
 
+<h4 id='beans-java-instantiating-container'>使用AnnotationConfigApplicationContext实例化Spring IoC容器</h4>
+Spring的`AnnotationConfigApplicationContext`部分，是Spring3.0中新增的。这是一个强大的(*译注原文中是多才多艺的versatile*)`ApplicationContext`实现,不仅能解析`@Configuration`注解类，也能解析`@Componnet`注解的类和使用`JSR-330`注解的类。
+
+使用`@Configuration`注解的类作为配置元数据的时候，`@Configuration`类本身也会注册为一个bean定义，类内所有的`@Bean`注解的方法也会注册为bean定义。
+
+使用`@Component`和JSR-330注解类作为配置元数据时，他们本身被注册为bean定义,并假设DI(依赖注入)元数据，像类内使用的`@Autowired`或者`@Inject`都是必须的。
+
