@@ -3406,3 +3406,5 @@ Spring | javax.inject.* | javax.inject restrictions / comments
 @Value | - | 无等价注解
 @Required | - | 无等价注解
 @Lazy | - | 无等价注解
+
+<h3 id='beans-java'>基于Java的配置元数据</h3>
