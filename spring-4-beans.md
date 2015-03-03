@@ -3462,3 +3462,6 @@ Spring的`AnnotationConfigApplicationContext`部分，是Spring3.0中新增的�
 
 使用`@Component`和JSR-330注解类作为配置元数据时，他们本身被注册为bean定义,并假设DI(依赖注入)元数据，像类内使用的`@Autowired`或者`@Inject`都是必须的。
 
+<h4 id='beans-java-instantiating-container-contstructor'>简单结构</h4>
+In much the same way that Spring XML files are used as input when instantiating a ClassPathXmlApplicationContext, @Configuration classes may be used as input when instantiating an AnnotationConfigApplicationContext. This allows for completely XML-free usage of the Spring container:
+
