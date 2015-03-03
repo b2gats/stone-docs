@@ -2395,9 +2395,14 @@ bean `foo`有属性`fred`,`fred`有属性`bob`，`bob`有属性`sammy`，`sammy`
 <h3 id='beans-annotation-config'>基于注解的把配置元数据</h3>
 **注解比XML好么?**
 ```text
-注解比XML好么，简单的说得看情况。详细的说，各有优缺点。因为定义的方式，注解在声明处提供了大量的上下文信息，所以注解配置要更简洁。然而,XML擅长在不接触源码或者无需反编译的情况下组装组件。虽然有这样的争议：注解类不再是`POJO`，并且配置更加分散难以控制，但是还是有人更喜欢在源码上使用注解配置。
+注解比XML好么，简单的说得看情况。详细的说，各有优缺点。因为定义的方式，注解在声明处提供了大量的
+上下文信息，所以注解配置要更简洁。然而,XML擅长在不接触源码或者无需反编译的情况下组装组件。
+虽然有这样的争议：注解类不再是`POJO`，并且配置更加分散难以控制，
+但是还是有人更喜欢在源码上使用注解配置。
 
-无论选择哪一样，Spring都能很好的支持，甚至混合也行。值得指出的是，使用`[JavaConfig](#beans-java)`选项，Spring能在不接触目标组件源码的情况下无侵入的使用注解，这可以通过IDE完成 [Spring Tool Suite](https://spring.io/tools/sts)
+无论选择哪一样，Spring都能很好的支持，甚至混合也行。值得指出的是，
+使用`[JavaConfig](#beans-java)`选项，Spring能在不接触目标组件源码的情况下
+无侵入的使用注解，这可以通过IDE完成 [Spring Tool Suite](https://spring.io/tools/sts)
 ```
 
 对于XML配置，还有另外一个选择，基于注解的配置，它是依赖于字节码元数据，替代XML组装组件。码农码畜可以使用注解替代XML描述bean的组装，开发者将配置撰写到组件类上，使用注解标注相关的类、方法、域上。就像前面提到的 [in the section called “Example: The RequiredAnnotationBeanPostProcessor”](#beans-factory-extension-bpp-examples-rabpp)，使用`BeanPostProcessor`联结注解是常见的扩展Spring IoC容器的手段。举个栗子，Spring2.0引入的通过[`@Required`](#beans-required-annotation)注解强制检查必须属性值。Spring 2.5采用了类似的手法使用注解处理依赖注入。本质上，`@Autowired`注解提供了相同的能力，在这一章有详解[Section 5.4.5, “Autowiring collaborators”](#beans-factory-autowire),但是`@Autowired`提供了更细粒度的控制和更强的能力。Spirng 2.5也增加了对JSR-250注解的支持，比如`@PostConstruct`,`@PreDestory`。Srping3.0增加支持了JSR-330(JAVA依赖注入)注解,这些注解在`javax.inject`包内，例如`@Inject`和`@Named`。详情参看那些注解的[相关章节](#beans-standard-annotations)。
@@ -3408,3 +3413,45 @@ Spring | javax.inject.* | javax.inject restrictions / comments
 @Lazy | - | 无等价注解
 
 <h3 id='beans-java'>基于Java的配置元数据</h3>
+
+<h4 id='beans-java-basic-concepts'>基本概念@Bean和@Configuration</h4>
+Spring新功能Java-cofiguration支持`@Configuration`类注解和`@Bean`方法注解
+
+`@Bean`注解用于表明一个方法将会实例化、配置、初始化一个新对象，该对象由Spring IoC容器管理。大家都熟悉Spring的`<beans/>`XML配置，`@Bean`注解方法和它一样。可以在任何Spring `@Component`中使用`@Bean`注解方法，当然了，大多数情况下,`@Bean`是配合`@Configuration`使用的。
+
+`@Configuration`注解的类表明该类的主要目的是作为bean定义的源。此外,`@Configuration`类允许依赖本类中使用`@Bean`定义的bean。看样例：
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public MyService myService() {
+        return new MyServiceImpl();
+    }
+
+}
+```
+
+The AppConfig class above would be equivalent to the following Spring <beans/> XML:
+上面的`AppConfig`类等价于下面的XML
+```xml
+<beans>
+    <bean id="myService" class="com.acme.services.MyServiceImpl"/>
+</beans>
+```
+
+`@Bean and @Configuration`注解下面会深入的探讨。首先，以Java-based配置方式用各种方式创建Spring容器
+
+```Text
+**Full @Configuration vs lite @Beans mode?**
+**完全@Configuration模式 VS 简易@Beans模式**
+在非@Configuration 注解的类内使用@Bean的话，Spring容器使用简易模式处理@Bean。
+比如，在`@Component`注解的类内，甚至是`plain old class`内使用`@Bean`都将使用简易模式。
+
+和完全`@Configuration`模式不同，简易`@Bean·模式不能容易的使用类内依赖。
+一般来说，在简易模式中,`@Bean`方法不应该引用另一个在方法上注解的`@Bean`
+
+为了确保开启完全模式，只推荐在`@Configuration`注解的类中使用`@Bean`的手法。
+
+```
+
