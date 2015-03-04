@@ -3494,3 +3494,61 @@ public static void main(String[] args) {
     myService.doStuff();
 }
 ```
+
+<h5 id='beans-java-instantiating-container-scan'>开启组件扫描</h5>
+要开启组件扫描，只需要像这样注解`@Configuration`类:
+```java
+@Configuration
+@ComponentScan(basePackages = "com.acme")
+public class AppConfig  {
+    ...
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> Spring老炮儿可能知道它和下面的xml是等同效果的，下面的xml使用了Spring `context`命名空间
+> 
+```xml
+<beans>
+    <context:component-scan base-package="com.acme"/>
+</beans>
+```
+
+上面的栗子中，会扫描`com.acme package`包，检索出所有`@Component-annotated`类，Spring容器将会注册这些类为Spring bean定义。`AnnotationConfigApplicationContext`暴露的`scan(String...)`方法也允许扫描类，完成相同的功能:
+```java
+public static void main(String[] args) {
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+    ctx.scan("com.acme");
+    ctx.refresh();
+    MyService myService = ctx.getBean(MyService.class);
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 记住，`@Configuration`注解是`@Component`注解的元注解，所以它是`component-scanning`的候选者!上面栗子中，假设`AppConfig`在`com.acme package`包内生命的（或者是该包路径下的）,在`scan()`期间，它也会被扫描，在所有`@Bean`方法处理并且注册为Spring bean定义之后，它也会注册到容器中，然后在执行`refresh()`方法。 
+*译注，E文看的不大明白，就翻看了源码*
+```java
+// 先看
+org.springframework.context.annotation.AnnotationConfigApplicationContext
+
+public AnnotationConfigApplicationContext(String... basePackages) {
+	scan(basePackages);
+	refresh();
+}
+
+//接下来看扫描处理
+org.springframework.context.annotation.ClassPathBeanDefinitionScanner
+
+public int scan(String... basePackages) {
+	int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
+	//扫描
+	doScan(basePackages);
+
+	//注册config
+	// Register annotation config processors, if necessary.
+	if (this.includeAnnotationConfig) {
+		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+	}
+
+	return this.registry.getBeanDefinitionCount() - beanCountAtScanStart;
+}
+
+```
