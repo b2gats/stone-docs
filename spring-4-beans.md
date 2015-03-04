@@ -3432,7 +3432,6 @@ public class AppConfig {
 }
 ```
 
-The AppConfig class above would be equivalent to the following Spring <beans/> XML:
 上面的`AppConfig`类等价于下面的XML
 ```xml
 <beans>
@@ -3455,14 +3454,14 @@ The AppConfig class above would be equivalent to the following Spring <beans/> X
 
 ```
 
-<h4 id='beans-java-instantiating-container'>使用AnnotationConfigApplicationContext实例化Spring IoC容器</h4>
+<h5 id='beans-java-instantiating-container'>使用AnnotationConfigApplicationContext实例化Spring IoC容器</h5>
 Spring的`AnnotationConfigApplicationContext`部分，是Spring3.0中新增的。这是一个强大的(*译注原文中是多才多艺的versatile*)`ApplicationContext`实现,不仅能解析`@Configuration`注解类，也能解析`@Componnet`注解的类和使用`JSR-330`注解的类。
 
 使用`@Configuration`注解的类作为配置元数据的时候，`@Configuration`类本身也会注册为一个bean定义，类内所有的`@Bean`注解的方法也会注册为bean定义。
 
 使用`@Component`和JSR-330注解类作为配置元数据时，他们本身被注册为bean定义,并假设DI(依赖注入)元数据，像类内使用的`@Autowired`或者`@Inject`都是必须的。
 
-<h4 id='beans-java-instantiating-container-contstructor'>简单结构</h4>
+<h5 id='beans-java-instantiating-container-contstructor'>简单结构</h5>
 Spring以XML作为配置元数据实例化一个`ClassPathXmlApplicationContext`,以`@Configuration`类作为配置元数据时，Spring以差不多的方式，实例化一个`AnnotationConfigApplicationContext`。因此，Spring 容器可以实现零XML配置。
 ```java
 public static void main(String[] args) {
@@ -3482,3 +3481,16 @@ public static void main(String[] args) {
 ```
 
 上述代码中，假设`MyServiceImpl,Dependency1 ,Dependency2`使用了Spring依赖注入注解，比如`@Autowired`。
+
+<h5 id='beans-java-instantiating-container-register'>使用 register(Class<?>…)编程式构造Spring容器</h5>
+`AnnotationConfigApplicationContext`也可以通过无参构造函数实例化，然后调用`registor()`方法配置。此法应用于编程式构造`AnnotationConfigApplicationContext`
+```java
+public static void main(String[] args) {
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+    ctx.register(AppConfig.class, OtherConfig.class);
+    ctx.register(AdditionalConfig.class);
+    ctx.refresh();
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
