@@ -3463,5 +3463,22 @@ Spring的`AnnotationConfigApplicationContext`部分，是Spring3.0中新增的�
 使用`@Component`和JSR-330注解类作为配置元数据时，他们本身被注册为bean定义,并假设DI(依赖注入)元数据，像类内使用的`@Autowired`或者`@Inject`都是必须的。
 
 <h4 id='beans-java-instantiating-container-contstructor'>简单结构</h4>
-In much the same way that Spring XML files are used as input when instantiating a ClassPathXmlApplicationContext, @Configuration classes may be used as input when instantiating an AnnotationConfigApplicationContext. This allows for completely XML-free usage of the Spring container:
+Spring以XML作为配置元数据实例化一个`ClassPathXmlApplicationContext`,以`@Configuration`类作为配置元数据时，Spring以差不多的方式，实例化一个`AnnotationConfigApplicationContext`。因此，Spring 容器可以实现零XML配置。
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
 
+上述代码中，`AnnotationConfigApplicationContext`不是仅能与`@Configuration`注解类配合使用。任何`@Component`或者JSR-330注解的类都可以作为其构造函数的参数:
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(MyServiceImpl.class, Dependency1.class, Dependency2.class);
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
+
+上述代码中，假设`MyServiceImpl,Dependency1 ,Dependency2`使用了Spring依赖注入注解，比如`@Autowired`。
