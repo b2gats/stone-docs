@@ -3524,17 +3524,20 @@ public static void main(String[] args) {
 ```
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 记住，`@Configuration`注解是`@Component`注解的元注解，所以它是`component-scanning`的候选者!上面栗子中，假设`AppConfig`在`com.acme package`包内生命的（或者是该包路径下的）,在`scan()`期间，它也会被扫描，在所有`@Bean`方法处理并且注册为Spring bean定义之后，它也会注册到容器中，然后在执行`refresh()`方法。 
+
 *译注，E文看的不大明白，就翻看了源码*
-```java
+
 // 先看
+```java
 org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public AnnotationConfigApplicationContext(String... basePackages) {
 	scan(basePackages);
 	refresh();
 }
-
+```
 //接下来看扫描处理
+```java
 org.springframework.context.annotation.ClassPathBeanDefinitionScanner
 
 public int scan(String... basePackages) {
@@ -3550,5 +3553,4 @@ public int scan(String... basePackages) {
 
 	return this.registry.getBeanDefinitionCount() - beanCountAtScanStart;
 }
-
 ```
