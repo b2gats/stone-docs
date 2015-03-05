@@ -3612,3 +3612,28 @@ public int scan(String... basePackages) {
 <h4 id='beans-java-bean-annotation'>使用@Bean注解</h4>
 `@Bean`是方法注解，和XML中的`<bean/>`元素十分相似。该注解支持`<bean/>`的一些属性，比如[init-method](#beans-factory-lifecycle-initializingbean), [destroy-method](#beans-factory-lifecycle-disposablebean), [autowiring](#beans-factory-autowire)和`name`
 
+<h5 id='beans-java-declaring-a-bean'>声明bean</h5>
+要声明bean非常简单，只需要在方法上使用`@Bean`注解。使用此方法，将会在`ApplicationContext`内注册一个bean，bean的类型是方法的返回值类型。
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl();
+    }
+
+}
+```
+
+上面的配置和下面的XML配置等价:
+```xml
+<beans>
+    <bean id="transferService" class="com.acme.TransferServiceImpl"/>
+</beans>
+```
+
+上面两种配置，都会在`ApplicationContext`内产生一个bean定义，名称为`transferService`，该Spring bean绑定到一个类型为`TransferServiceImpl`的实例:
+```java
+transferService -> com.acme.TransferServiceImpl
+```
