@@ -3608,3 +3608,7 @@ public int scan(String... basePackages) {
     </servlet-mapping>
 </web-app>
 ```
+
+<h4 id='beans-java-bean-annotation'>使用@Bean注解</h4>
+`@Bean`是方法注解，和XML中的`<bean/>`元素十分相似。该注解支持`<bean/>`的一些属性，比如[init-method](#beans-factory-lifecycle-initializingbean), [destroy-method](#beans-factory-lifecycle-disposablebean), [autowiring](#beans-factory-autowire)和`name`
+
