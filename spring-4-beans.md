@@ -3637,3 +3637,71 @@ public class AppConfig {
 ```java
 transferService -> com.acme.TransferServiceImpl
 ```
+
+<h5 id='beans-java-lifecycle-callbacks'>接收生命周期回调</h5>
+使用`@Bean`注解的bean定义，都支持常规生命周期回调，能使用JSR-250中的`@PostConstruct`和`@PreDestroy`注解，[JSR-250详情请参看这里](#beans-postconstruct-and-predestroy-annotations)
+
+常规Spring[生命周期](#beans-factory-nature)回调也完全支持，若bean实现了`InitializingBean, DisposableBean, or Lifecycle`，他们各自的方法都会被容器调用。
+
+标准的那一套`*Aware`接口，像`BeanFactoryAware, BeanNameAware, MessageSourceAware, ApplicationContextAware`等等，也都完全支持。
+
+`@Bean`注解支持初始化回调和销毁回调，很像Spring XML中`<bean/>`元素的`init-method`和`destroy-method`属性
+```java
+public class Foo {
+    public void init() {
+        // initialization logic
+    }
+}
+
+public class Bar {
+    public void cleanup() {
+        // destruction logic
+    }
+}
+
+@Configuration
+public class AppConfig {
+
+    @Bean(initMethod = "init")
+    public Foo foo() {
+        return new Foo();
+    }
+
+    @Bean(destroyMethod = "cleanup")
+    public Bar bar() {
+        return new Bar();
+    }
+
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 默认情况下，使用java config定义的bean中`close`方法或者`shutdown`方法，会作为销毁回调自动调用。若bean中有`close`,`shutdown`方法，又不是销毁回调，通过设置`@Bean(destroyMethod="")`，即可关闭该默认的自动匹配销毁回调模式。
+> You may want to do that by default for a resource that you acquire via JNDI as its lifecycle is managed outside the application. In particular, make sure to always do it for a DataSource as it is known to be problematic.
+> 对于某些由JNDI获取的资源，也许就要关闭自动匹配销毁回调行为了,因为该资源的生命周期并不由应用管理。尤其是，使用`DataSource`时一定要关闭它，不关会有问题。TODO
+```java
+@Bean(destroyMethod="")
+public DataSource dataSource() throws NamingException {
+    return (DataSource) jndiTemplate.lookup("MyDS");
+}
+```
+
+Of course, in the case of Foo above, it would be equally as valid to call the init() method directly during construction:
+当然了，上面`Foo`的例子中，也可以在构造函数中调用`init()`方法，和上面栗子中的效果相同
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public Foo foo() {
+        Foo foo = new Foo();
+        foo.init();
+        return foo;
+    }
+
+    // ...
+
+}
+```
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 如果是直接使用java，对于对象，你想怎么搞就怎么搞，并不总需要依赖容器生命周期
