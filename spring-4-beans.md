@@ -3705,3 +3705,23 @@ public class AppConfig {
 
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 如果是直接使用java，对于对象，你想怎么搞就怎么搞，并不总需要依赖容器生命周期
+
+<h5 id='beans-java-specifying-bean-scope'>指定bean作用域scope</h5>
+<h6 id='beans-java-available-scopes'>使用@Scope注解</h6>
+通过`@Bean`注解定义的bean也许需要指定作用域。可以使用[bean作用域](#beans-factory-scopes)章节中的任意标准作用域。
+默认的作用域是`singleton`单例,但是可以使用`@Scope`注解覆盖此设置:
+```java
+@Configuration
+public class MyConfiguration {
+
+    @Bean
+    @Scope("prototype")
+    public Encryptor encryptor() {
+        // ...
+    }
+
+}
+```
+
+<h6 id='#beans-java-scoped-proxy'>@Scope 和作用域代理</h6>
+Spring offers a convenient way of working with scoped dependencies through [scoped proxies](#beans-factory-scopes-other-injection). The easiest way to create such a proxy when using the XML configuration is the <aop:scoped-proxy/> element. Configuring your beans in Java with a @Scope annotation offers equivalent support with the proxyMode attribute. The default is no proxy ( ScopedProxyMode.NO), but you can specify ScopedProxyMode.TARGET_CLASS or ScopedProxyMode.INTERFACES.
