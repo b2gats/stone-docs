@@ -3724,4 +3724,21 @@ public class MyConfiguration {
 ```
 
 <h6 id='#beans-java-scoped-proxy'>@Scope 和作用域代理</h6>
-Spring offers a convenient way of working with scoped dependencies through [scoped proxies](#beans-factory-scopes-other-injection). The easiest way to create such a proxy when using the XML configuration is the <aop:scoped-proxy/> element. Configuring your beans in Java with a @Scope annotation offers equivalent support with the proxyMode attribute. The default is no proxy ( ScopedProxyMode.NO), but you can specify ScopedProxyMode.TARGET_CLASS or ScopedProxyMode.INTERFACES.
+Spring提供了非常方便的方式，通过[scoped proxies](#beans-factory-scopes-other-injection)作用域代理完成作用域bean依赖。若使用XML配置，最简单的方式是使用`<aop:scoped-proxy/>`元素创建一个代理。若是在Java代码中配置bean,有一种等价的做法，使用`@Scope`注解并配置其`proxyMOde`属性.默认配置是没有代理`ScopedProxyMode.NO`,但是你可以设置`ScopedProxyMode.TARGET_CLASS`或者`ScopedProxyMode.INTERFACES`。
+如果将XML格式的作用域代理示例转换成Java中使用`@Bean`，差不多是这样:
+```java
+// an HTTP Session-scoped bean exposed as a proxy
+@Bean
+@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
+public UserPreferences userPreferences() {
+    return new UserPreferences();
+}
+
+@Bean
+public Service userService() {
+    UserService service = new SimpleUserService();
+    // a reference to the proxied userPreferences bean
+    service.setUserPreferences(userPreferences());
+    return service;
+}
+```
