@@ -3787,3 +3787,28 @@ public class AppConfig {
 }
 ```
 
+<h4 id='beans-java-configuration-annotation'>使用@Configuration注解</h4>
+`@Configuration`是类注解，表名该类将作为bean定义的配置元数据。`@Configuration`类内只用`@Bean`注解方法。在`@Configuration`类上调用`@Bean`方法，也能用于内部bean依赖。详情参看[Section 5.12.1, “Basic concepts: @Bean and @Configuration”](#beans-java-basic-concepts)
+
+<h5 id='beans-java-injecting-dependencies'>注入内部bean依赖</h5>
+当`@Beans`依赖其他bean,依赖的表达式非常简单，仅需要调用被依赖的bean的方法:
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public Foo foo() {
+        return new Foo(bar());
+    }
+
+    @Bean
+    public Bar bar() {
+        return new Bar();
+    }
+
+}
+```
+
+在上面的样例中，foo bean接收一个参数，该参数是通过构造返回的实例`bar`,以此完成注入。
+
+
