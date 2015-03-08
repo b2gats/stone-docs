@@ -3742,3 +3742,18 @@ public Service userService() {
     return service;
 }
 ```
+
+<h5 id='beans-java-customizing-bean-naming'>自定义bean名字</h5>
+默认情况下，配置类中，使用`@Bean`的方法名作为返回bean的名字。通过配置可以覆盖此设置，使用`name`属性 即可。
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean(name = "myFoo")
+    public Foo foo() {
+        return new Foo();
+    }
+
+}
+```
+
