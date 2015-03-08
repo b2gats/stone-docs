@@ -3771,5 +3771,19 @@ public class AppConfig {
 }
 ```
 
+<h5 id='#beans-java-bean-description'>bean描述</h5>
+有时候，给bean提供一个更具细节的描述，是非常有好处的。用于监视目的(通过JMX)的时候，非常有用。
+给一个`@Bean`增加描述，可使用`@Description`注解:
+```java
+@Configuration
+public class AppConfig {
 
+    @Bean
+    @Description("Provides a basic example of a bean")
+    public Foo foo() {
+        return new Foo();
+    }
+
+}
+```
 
