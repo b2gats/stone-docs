@@ -3757,3 +3757,19 @@ public class AppConfig {
 }
 ```
 
+<h5 id='beans-java-bean-aliasing'>bean别名</h5>
+在之前讨论过的bean别名[Section 5.3.1, “Naming beans”](#beans-beanname),有时候需要给一个bean指定多个name。`@Bean`注解的`name`属性就是干这个用，该属性接收一个字串数组。
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean(name = { "dataSource", "subsystemA-dataSource", "subsystemB-dataSource" })
+    public DataSource dataSource() {
+        // instantiate, configure and return DataSource bean...
+    }
+
+}
+```
+
+
+
