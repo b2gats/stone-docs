@@ -3853,3 +3853,42 @@ public CommandManager commandManager() {
     }
 }
 ```
+
+<h5 id='beans-java-further-information-java-config'>基于java配置的内部工作原理</h5>
+下面示例中，展示了`@Bean`注解的方法被调用了2次:
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public ClientService clientService1() {
+        ClientServiceImpl clientService = new ClientServiceImpl();
+        clientService.setClientDao(clientDao());
+        return clientService;
+    }
+
+    @Bean
+    public ClientService clientService2() {
+        ClientServiceImpl clientService = new ClientServiceImpl();
+        clientService.setClientDao(clientDao());
+        return clientService;
+    }
+
+    @Bean
+    public ClientDao clientDao() {
+        return new ClientDaoImpl();
+    }
+
+}
+```
+
+`clientDao()`被`clientService1()`调用了一次，被`clientService2()`调用了一次。因为这个方法会创建一个`ClientDaoImpl`类的实例并返回，也许你以为会有2个实例(分别返回给各个service)。这个定义会有问题：在Spring中，实例化bean默认的作用域是单例。这就是它的神奇之处:所有的`@Configuration`类在启动时，都是通过`CGLIB`创建一个子类。在调用父类的方法并创建一个新的实例之前，子类中的方法首先检查是否缓存过。注意，自Spring3.2其，不在需要将`CGLIB`加入到classpath中，因为`CGLIB`包已经被打包进`org.springframework`下，在Spring核心包中已经内置了。
+
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 该行为也许有些不同，这得根据具体的bean的作用域。这里讨论的是singleton单例作用域。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 因为一些限制，导致`CLGIB`会在启动时动态增加功能
+> * **Configuration**配置类不能是`final`
+> * 他们应该有空构造
