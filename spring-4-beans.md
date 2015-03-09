@@ -3812,3 +3812,7 @@ public class AppConfig {
 
 在上面的样例中，foo bean接收一个参数，该参数是通过构造返回的实例`bar`,以此完成注入。
 
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 声明内部bean依赖的做法，仅在`@Configuration`类内的`@Bean`注解的方法上有效。`@Component`类不能使用此做法。
+
+
