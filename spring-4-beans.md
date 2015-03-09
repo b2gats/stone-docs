@@ -3815,4 +3815,41 @@ public class AppConfig {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 声明内部bean依赖的做法，仅在`@Configuration`类内的`@Bean`注解的方法上有效。`@Component`类不能使用此做法。
 
+<h5 id='beans-java-method-injection'>查找方法注入</h5>
+早先提到过,方法注入[lookup method injection](#beans-factory-method-injection) 是一个高级功能，很少会用到。但是，在一个单例bean依赖原型作用域bean的场景中，就非常有用了。Java中，提供了很友好的api实现此模式。
+```java
+public abstract class CommandManager {
+    public Object process(Object commandState) {
+        // grab a new instance of the appropriate Command interface
+        Command command = createCommand();
 
+        // set the state on the (hopefully brand new) Command instance
+        command.setState(commandState);
+    return command.execute();
+    }
+
+    // okay... but where is the implementation of this method?
+    protected abstract Command createCommand();
+}
+```
+使用基于java的元注解配置，可以创建一个`CommandManager`的子类，子类重写父类抽象 方法，该方法返回一个`new`创建的对象。
+```java
+@Bean
+@Scope("prototype")
+public AsyncCommand asyncCommand() {
+    AsyncCommand command = new AsyncCommand();
+    // inject dependencies here as required
+    return command;
+}
+
+@Bean
+public CommandManager commandManager() {
+    // return new anonymous implementation of CommandManager with command() overridden
+    // to return a new prototype Command object
+    return new CommandManager() {
+        protected Command createCommand() {
+            return asyncCommand();
+        }
+    }
+}
+```
