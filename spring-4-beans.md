@@ -3892,3 +3892,43 @@ public class AppConfig {
 > 因为一些限制，导致`CLGIB`会在启动时动态增加功能
 > * **Configuration**配置类不能是`final`
 > * 他们应该有空构造
+
+<h4 id='beans-java-composing-configuration-classes'>组装java配置元数据</h4>
+<h5 id='beans-java-using-import'>使用@Import注解</h5>
+在Spring XML配置中使用`<import/>`元素，意在模块化配置，`@Import`注解也允许从其他配置类中加载`@Bean`定义。
+```java
+@Configuration
+public class ConfigA {
+
+     @Bean
+    public A a() {
+        return new A();
+    }
+
+}
+
+@Configuration
+@Import(ConfigA.class)
+public class ConfigB {
+
+    @Bean
+    public B b() {
+        return new B();
+    }
+
+}
+```
+
+现在，实例化context时，不需要同时指定`ConfigA.class`和`ConfigB.class`，而是仅需要提供`ConfigB`即可:
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(ConfigB.class);
+
+    // now both beans A and B will be available...
+    A a = ctx.getBean(A.class);
+    B b = ctx.getBean(B.class);
+}
+```
+
+该方式简化了容器实例化，只需要一个类去处理，而不是需要开发者在构造期间记着大量的`@Configuration`。
+
