@@ -3932,3 +3932,126 @@ public static void main(String[] args) {
 
 该方式简化了容器实例化，只需要一个类去处理，而不是需要开发者在构造期间记着大量的`@Configuration`。
 
+TOADD
+<h5 id='beans-java-injecting-imported-beans'>在导入的bean上注入依赖</h5>
+上面的栗子可以运行，但是太简单了。在大部分实际场景中，bean都会跨配置依赖。若使用XML，这不是问题，因为不包含编译器，开发者简单的声明`ref=somBean`并相信Spring在容器实例化期间会正常运行。但是，使用`@Configuration`类,配置模型替换为java编译器，为了引用另一个bean，Java编译器会校验该引用必须是有效的合法Java语法。
+
+非常幸运，解决这个这个问题非常简单。还记得不，`@Configuration`类在容器中本身就是一个bean，这意味着他们能使用高级`@Autowired`注入元数据，就像其他bean一样。
+
+来一个更加真实的场景，使用了多个`@Configuration`类，每个配置都依赖其他配置中是bean声明:
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl(accountRepository);
+    }
+
+}
+
+@Configuration
+public class RepositoryConfig {
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(dataSource);
+    }
+
+}
+
+@Configuration
+@Import({ServiceConfig.class, RepositoryConfig.class})
+public class SystemTestConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        // return new DataSource
+    }
+
+}
+
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+    // everything wires up across configuration classes...
+    TransferService transferService = ctx.getBean(TransferService.class);
+    transferService.transfer(100.00, "A123", "C456");
+}
+```
+
+在上面的场景中，`@Autowired`可以很好的工作，使设计更具模块化，但是自动注入的是哪个bean依然有些模糊不清。举个栗子，开发者正在查找`ServiceConfig`,你怎么知道一定会有`@Autowired`注解的`AccountRepository`类型bean声明?代码中并未明确指出，还好，Spring Tool Suite提供了可视化工具，用来展示bean之间是如何装配的，也许这就是你需要的。另外，你的Java IDE也很容易找到所有的有关`AccountReository`类型的声明和调用，并很快的定位返回该类型的`@Bean`方法。 
+
+万一需求不允许这种模糊的装配，并且你要在IDE内从`Configuration`类直接定位到依赖类bean，考虑使用硬编码，即由依赖类本身定位:
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private RepositoryConfig repositoryConfig;
+
+    @Bean
+    public TransferService transferService() {
+        // navigate 'through' the config class to the @Bean method!
+        return new TransferServiceImpl(repositoryConfig.accountRepository());
+    }
+
+}
+```
+
+上栗中，`AccountRepository`已经定义好了，它非常明确。然而，`ServiceConfig`和`RepositoryConfig`已经紧耦合在一起了；这是一个折中的方案。可以通过面向接口或者抽象类解耦。看这段：
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private RepositoryConfig repositoryConfig;
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl(repositoryConfig.accountRepository());
+    }
+}
+
+@Configuration
+public interface RepositoryConfig {
+
+    @Bean
+    AccountRepository accountRepository();
+
+}
+
+@Configuration
+public class DefaultRepositoryConfig implements RepositoryConfig {
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(...);
+    }
+
+}
+
+@Configuration
+@Import({ServiceConfig.class, DefaultRepositoryConfig.class}) // import the concrete config!
+public class SystemTestConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        // return DataSource
+    }
+
+}
+
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+    TransferService transferService = ctx.getBean(TransferService.class);
+    transferService.transfer(100.00, "A123", "C456");
+}
+```
+
+现在`ServiceConfig`已经和具体实现类`DefaultRepositoryConfig`解耦了，IDE内置的工具此时也很有用：它能很容器的获取`RepositoryConfig`实现的集成层级。与常规的面向接口的代码定位相比，用这种方式，导航`@Configuration`类和它们的依赖将毫无困难。
