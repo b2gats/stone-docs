@@ -3932,7 +3932,6 @@ public static void main(String[] args) {
 
 该方式简化了容器实例化，只需要一个类去处理，而不是需要开发者在构造期间记着大量的`@Configuration`。
 
-TOADD
 <h5 id='beans-java-injecting-imported-beans'>在导入的bean上注入依赖</h5>
 上面的栗子可以运行，但是太简单了。在大部分实际场景中，bean都会跨配置依赖。若使用XML，这不是问题，因为不包含编译器，开发者简单的声明`ref=somBean`并相信Spring在容器实例化期间会正常运行。但是，使用`@Configuration`类,配置模型替换为java编译器，为了引用另一个bean，Java编译器会校验该引用必须是有效的合法Java语法。
 
@@ -4055,3 +4054,29 @@ public static void main(String[] args) {
 ```
 
 现在`ServiceConfig`已经和具体实现类`DefaultRepositoryConfig`解耦了，IDE内置的工具此时也很有用：它能很容器的获取`RepositoryConfig`实现的集成层级。与常规的面向接口的代码定位相比，用这种方式，导航`@Configuration`类和它们的依赖将毫无困难。
+
+<h5 id='beans-java-conditional'>过滤@Configuration或者@Bean</h5>
+在某些需求下，开启或者关闭一个`@Configuration`类，甚至是针对个别`@Bean`方法开启或者关闭，通常很有用。Spring环境中，通常使用`@Profile`注解，在某种条件下来激活bean,来实现此效果([see Section 5.13.1, “Bean definition profiles”](#beans-definition-profiles) for details)。
+
+`@Profile`注解实现了更具弹性`@Conditional`注解。`@Conditional`注解表名，指定的`org.springframework.context.annotation.Condition`实现必须在`@Bean`注册之前运行。
+
+`Condition`接口的实现只需要实现一个简单的方法, `matches(...)`，该方法返回`true`或者`false`。举个栗子，下面是`Condition`的实现，用于@Profile
+```java
+@Override
+public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (context.getEnvironment() != null) {
+        // Read the @Profile annotation attributes
+        MultiValueMap<String, Object> attrs = metadata.getAllAnnotationAttributes(Profile.class.getName());
+        if (attrs != null) {
+            for (Object value : attrs.get("value")) {
+                if (context.getEnvironment().acceptsProfiles(((String[]) value))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    return true;
+}
+```
+See the @Conditional [javadocs](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/Conditional.html) for more detail.
