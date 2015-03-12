@@ -4085,4 +4085,74 @@ See the @Conditional [javadocs](http://docs.spring.io/spring/docs/current/javado
 <h5 id='beans-java-combining'>混合java和xml配置</h5>
 Spring的`@Configuration`类并非是为了完全替换Spring XML。有些工具，比如XML命名空间就是一种理想的配置方式。如果XML更方便或是必须的，你就得选择:或者选择基于XML的配置方式实例化容器，比如使用`ClassPathXmlApplicationContext`，或者选择基于Java配置风格使用`AnnotationConfigApplcationContext`加上`@ImportResource`注解导入必须的XML。
 
+<h6 id='beans-java-combining-xml-centric'>基于XML混合使用@Configuration类</h6>
+ad-hoc风格也许是稍好的以XML引导Spring容器，并引入`@Configuration`类。举个栗子，已存在大量的使用了SPringXML的代码，有需求需要使用`@Configuration`类，这些配置类需要引入到现存的XML文件中，此种做法也许更容易。接下来看看此场景。
 
+`@Configuration`类本身在容器内就是一个bean。下面的样例中，创建了一个`@Configuration`类，类名是`AppConfig`，引入一个配置文件`system-test-config.xml`。由于`<context:annotation-config/>`打开，容器会识别`@Configuration`注解，并处理`AppConfig`类内声明的`@Bean`注解的方法。
+```java
+@Configuration
+public class AppConfig {
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(dataSource);
+    }
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferService(accountRepository());
+    }
+
+}
+```
+```xml
+system-test-config.xml
+<beans>
+    <!-- enable processing of annotations such as @Autowired and @Configuration -->
+    <context:annotation-config/>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+
+    <bean class="com.acme.AppConfig"/>
+
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+</beans>
+```
+
+jdbc.properties
+jdbc.url=jdbc:hsqldb:hsql://localhost/xdb
+jdbc.username=sa
+jdbc.password=
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:/com/acme/system-test-config.xml");
+    TransferService transferService = ctx.getBean(TransferService.class);
+    // ...
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 在`system.test-config.xml`中，`AppConfig<bean/>`没有`id`属性，因为没有其他bean引用，也不会根据name从容器获取，所以id不是必须指定的，同样，`DataSource`bean，它只会根据类型自动装配，所以明确的id也不是必须的。
+
+因为`@Configuration`是`@Component`的元数据注解,`@Configuration`注解类也会自动作为扫描组件的候选者。还是上面的场景，我们能重新定义`system-test-config.xml`，使之能启用高级扫描组件。注意，在此场景中，我们不需要明确的声明`<context:annotation-config/>`，因为`<context:component-scan/>`会开启所有相同的功能。
+```xml
+system-test-config.xml
+<beans>
+    <!-- picks up and registers AppConfig as a bean definition -->
+    <context:component-scan base-package="com.acme"/>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+</beans>
+```
+TOADD
