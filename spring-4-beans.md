@@ -4080,3 +4080,9 @@ public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata)
 }
 ```
 See the @Conditional [javadocs](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/context/annotation/Conditional.html) for more detail.
+
+
+<h5 id='beans-java-combining'>混合java和xml配置</h5>
+Spring的`@Configuration`类并非是为了完全替换Spring XML。有些工具，比如XML命名空间就是一种理想的配置方式。如果XML更方便或是必须的，你就得选择:或者选择基于XML的配置方式实例化容器，比如使用`ClassPathXmlApplicationContext`，或者选择基于Java配置风格使用`AnnotationConfigApplcationContext`加上`@ImportResource`注解导入必须的XML。
+
+
