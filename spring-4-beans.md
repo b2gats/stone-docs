@@ -4156,3 +4156,47 @@ system-test-config.xml
 </beans>
 ```
 TOADD
+
+<h6 id='beans-java-combining-java-centric'>基于@Configuration混合使用xml配置</h6>
+在应用中，`@Configuration`类是主要的容器配置机制，但是仍然可能会需要一些XML。在这些场景中，使用`@ImportResource`，即可引用XML配置。这样配置可是实现此效果，基于java配置，尽可能少的使用XML。
+```java
+@Configuration
+@ImportResource("classpath:/com/acme/properties-config.xml")
+public class AppConfig {
+
+    @Value("${jdbc.url}")
+    private String url;
+
+    @Value("${jdbc.username}")
+    private String username;
+
+    @Value("${jdbc.password}")
+    private String password;
+
+    @Bean
+    public DataSource dataSource() {
+        return new DriverManagerDataSource(url, username, password);
+    }
+
+}
+```
+
+```xml
+properties-config.xml
+<beans>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+</beans>
+```
+
+jdbc.properties
+jdbc.url=jdbc:hsqldb:hsql://localhost/xdb
+jdbc.username=sa
+jdbc.password=
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+    TransferService transferService = ctx.getBean(TransferService.class);
+    // ...
+}
+```
