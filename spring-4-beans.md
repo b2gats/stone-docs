@@ -4155,7 +4155,6 @@ system-test-config.xml
     </bean>
 </beans>
 ```
-TOADD
 
 <h6 id='beans-java-combining-java-centric'>基于@Configuration混合使用xml配置</h6>
 在应用中，`@Configuration`类是主要的容器配置机制，但是仍然可能会需要一些XML。在这些场景中，使用`@ImportResource`，即可引用XML配置。这样配置可是实现此效果，基于java配置，尽可能少的使用XML。
@@ -4199,4 +4198,182 @@ public static void main(String[] args) {
     TransferService transferService = ctx.getBean(TransferService.class);
     // ...
 }
+```
+
+<h3 id='beans-environment'>环境抽象</h3>
+`Environment`环境在容器中是一个抽象的集合，是指应用环境的2个方面: [profiles](#beans-definition-profiles) 和 [properties](#beans-property-source-abstraction).
+
+`profile`配置是一个被命名的，bean定义的逻辑组，这些bean只有在给定的profile配置激活时才会注册到容器。不管是XML还是注解，Beans都有可能指派给profile配置。`Environment`环境对象的作用，对于profiles配置来说，它能决定当前激活的是哪个profile配置，和哪个profile是默认。
+
+在所有的应用中，Properties属性扮演一个非常重要的角色,可能来源于一下源码变量:properties文件，JVM properties,system环境变量，JNDI,servlet servlet context parameters上下文参数,专门的Properties对象，Maps等等。`Environment`对象的作用，对于properties来说，是提供给用户方便的服务接口，方便撰写配置、方便解析配置。
+
+<h4 id='beans-definition-profiles'>bean定义profiles</h4>
+bean定义profiles是核心容器内的一种机制，该机制能在不同环境中注册不同的bean。环境的意思是，为不同的用户做不同的事儿，该功能在很多场景中都非常有用，包括：
+* 开发期使用内存数据源，在QA或者产品上则使用来自JNDI的相同的数据源
+* 开发期使用监控组件，当部署以后则关闭监控组件，是应用更高效
+* 为用户各自注册自定义bean实现
+
+考虑一个实际应用中的场景，现在需要一个`DataSource`。开测试环境中，这样配置:
+```java
+@Bean
+public DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder()
+        .setType(EmbeddedDatabaseType.HSQL)
+        .addScript("my-schema.sql")
+        .addScript("my-test-data.sql")
+        .build();
+}
+```
+现在想一想，如何将应用部署到QA或者生产环境，假设生产环境中使用的JNDI。我们的dataSource bean看起来像这样:
+```java
+@Bean(destroyMethod="")
+public DataSource dataSource() throws Exception {
+    Context ctx = new InitialContext();
+    return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+}
+```
+问题是，在当前环境中如何切换这两个配置。随着时间推移，Spring用户设计了很多种方式完成此切换，通常使用系统环境变量和XML`<import/>`绑定，`<import/>`元素包含一个`${placeholder}`符号，使用环境变量来设置`${placeholder}`符号所代表的值，从而达到切换正确配置文件的目的。bean定义profiles是核心容器功能，提供针对子问题的解决方案。
+
+概括一下上面的场景：环境决定bean定义，最后发现，我们需要在某些上下文环境中使用某些bean，在其他环境中则不用这些bean。你也许会说，你需要在场景A中注册一组bean定义，在场景B中注册另外一组。先看看我们如何修改配置来完成此需求。
+
+<h5 id='beans-definition-profiles-java'>@Profile</h5>
+`@Profile`注解的作用，是在一个或者多个指定profiles激活的情况下，注册某个组件。使用上面的样例，重写dataSource配置:
+```java
+@Configuration
+@Profile("dev")
+public class StandaloneDataConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("classpath:com/bank/config/sql/schema.sql")
+            .addScript("classpath:com/bank/config/sql/test-data.sql")
+            .build();
+    }
+}
+```
+
+```java
+@Configuration
+@Profile("production")
+public class JndiDataConfig {
+
+    @Bean(destroyMethod="")
+    public DataSource dataSource() throws Exception {
+        Context ctx = new InitialContext();
+        return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+    }
+}
+```
+
+`@Profile`可以用于元数据注解，为了组合自定义代码层注解。下面的的样例中定义了`@Production`自定义注解，该注解用于替换`@Profile("production")`:
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Profile("production")
+public @interface Production {
+}
+```
+
+`@Profile`也能注解方法，用于配置一个配置类中的指定bean
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    @Profile("dev")
+    public DataSource devDataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("classpath:com/bank/config/sql/schema.sql")
+            .addScript("classpath:com/bank/config/sql/test-data.sql")
+            .build();
+    }
+
+    @Bean
+    @Profile("production")
+    public DataSource productionDataSource() throws Exception {
+        Context ctx = new InitialContext();
+        return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+    }
+}
+```
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 如果一个`@Configuration`类注解了`@Profile`，类中所有`@Bean`和`@Import`注解相关的类都将被忽略，除非该profile被激活。如果`@Component`或者`@Configuration`注解了`@Profile({"p1","p2"})`，该类将不会注册/处理，除非profiles'p1 and/or 'p2'被激活。如果给定的profile，使用了NOT操作(!)前缀，若当前profile未被激活则注解元素将会注册，等等。对于`@Profile({"p1", "!p2"})`，在profile 'p1'被激活或者'p2'未激活时，发生注册。
+
+
+<h4 id='beans-definition-profiles-xml'>XML bean定义profile</h4>
+The XML counterpart is an update of the beans element that accepts a profile attribute. Our sample configuration above can be rewritten in two XML files as follows:
+XML中的`beans`元素有一个`profile`属性。上面的栗子重写到2个XML中
+```xml
+<beans profile="dev"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xsi:schemaLocation="...">
+
+    <jdbc:embedded-database id="dataSource">
+        <jdbc:script location="classpath:com/bank/config/sql/schema.sql"/>
+        <jdbc:script location="classpath:com/bank/config/sql/test-data.sql"/>
+    </jdbc:embedded-database>
+</beans>
+```
+
+```xml
+<beans profile="production"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="...">
+
+    <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+</beans>
+```
+
+也可以不用分开2个文件，在同一个XML中配置2个`<bean/>`，`<bean/>`元素也有`profile`属性：
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="...">
+
+    <!-- other bean definitions -->
+
+    <beans profile="dev">
+        <jdbc:embedded-database id="dataSource">
+            <jdbc:script location="classpath:com/bank/config/sql/schema.sql"/>
+            <jdbc:script location="classpath:com/bank/config/sql/test-data.sql"/>
+        </jdbc:embedded-database>
+    </beans>
+
+    <beans profile="production">
+        <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+    </beans>
+</beans>
+```
+
+TODO。The `spring-bean.xsd` has been constrained to allow such elements only as the last ones in the file.它是配置更加灵活，而又不造成XML文件混乱。
+
+<h5 id='beans-definition-profiles-enable'>开启profile</h5>
+要修改配置，我们仍然需要指定要激活哪个文件。如果现在运行上面的样例应用，它会抛异常`NoSuchBeanDefinitionException`,因为容器找不到`dataSource`bean。
+
+有多种方式激活配置，但是最直接的方式是编程式的方式使用`ApplicationContext API`:
+```java
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+ctx.getEnvironment().setActiveProfiles("dev");
+ctx.register(SomeConfig.class, StandaloneDataConfig.class, JndiDataConfig.class);
+ctx.refresh();
+```
+
+此外，还可以使用`spring.profiles.active`激活配置，该属性可以配置在系统环境变量、JVM系统属性、`web.xml`中JNDI中的servlet context上下文参数([see Section 5.13.3, “PropertySource Abstraction”](#beans-property-source-abstraction))
+
+注意配置文件不是单选；可能会同时激活多个配置文件，编程式的使用方法`setActiveProfiles()`，该方法接收`String...`参数,也就是多个配置文件名:
+```java
+ctx.getEnvironment().setActiveProfiles("profile1", "profile2");
+```
+声明式的使用`spring.profiles.active `，值可以为逗号分隔的配置文件名列表,
+```
+-Dspring.profiles.active="profile1,profile2"
 ```
