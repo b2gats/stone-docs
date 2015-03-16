@@ -4236,7 +4236,7 @@ public DataSource dataSource() throws Exception {
 
 概括一下上面的场景：环境决定bean定义，最后发现，我们需要在某些上下文环境中使用某些bean，在其他环境中则不用这些bean。你也许会说，你需要在场景A中注册一组bean定义，在场景B中注册另外一组。先看看我们如何修改配置来完成此需求。
 
-TOADD
+
 <h5 id='beans-definition-profiles-java'>@Profile</h5>
 `@Profile`注解的作用，是在一个或者多个指定profiles激活的情况下，注册某个组件。使用上面的样例，重写dataSource配置:
 ```java
@@ -4303,7 +4303,6 @@ public class AppConfig {
 ![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
 > 如果一个`@Configuration`类注解了`@Profile`，类中所有`@Bean`和`@Import`注解相关的类都将被忽略，除非该profile被激活。如果`@Component`或者`@Configuration`注解了`@Profile({"p1","p2"})`，该类将不会注册/处理，除非profiles'p1 and/or 'p2'被激活。如果给定的profile，使用了NOT操作(!)前缀，若当前profile未被激活则注解元素将会注册，等等。对于`@Profile({"p1", "!p2"})`，在profile 'p1'被激活或者'p2'未激活时，发生注册。
 
-
 <h4 id='beans-definition-profiles-xml'>XML bean定义profile</h4>
 XML中的`beans`元素有一个`profile`属性。上面的栗子重写到2个XML中
 ```xml
@@ -4356,6 +4355,7 @@ XML中的`beans`元素有一个`profile`属性。上面的栗子重写到2个XML
 
 TODO。The `spring-bean.xsd` has been constrained to allow such elements only as the last ones in the file.它是配置更加灵活，而又不造成XML文件混乱。
 
+TOADD
 <h5 id='beans-definition-profiles-enable'>开启profile</h5>
 要修改配置，我们仍然需要指定要激活哪个文件。如果现在运行上面的样例应用，它会抛异常`NoSuchBeanDefinitionException`,因为容器找不到`dataSource`bean。
 
@@ -4462,3 +4462,7 @@ public class AppConfig {
 ```
 
 假设"my.placeholder"代表一个已经注册的的property属性，比如，系统属性或者环境变量，占位符将会被解析为相应的值。如果没有，那么`default/path`将会作为默认值。若没有默认值指定，那么property将不能解析，`IllegalArgumentException`将会抛出
+
+<h4 id='_placeholder_resolution_in_statements'>Placeholder resolution in statements</h4>
+Historically, the value of placeholders in elements could be resolved only against JVM system properties or environment variables. No longer is this the case. Because the Environment abstraction is integrated throughout the container, it’s easy to route resolution of placeholders through it. This means that you may configure the resolution process in any way you like: change the precedence of searching through system properties and environment variables, or remove them entirely; add your own property sources to the mix as appropriate.
+以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。
