@@ -4377,7 +4377,7 @@ ctx.getEnvironment().setActiveProfiles("profile1", "profile2");
 ```
 -Dspring.profiles.active="profile1,profile2"
 ```
-TOADD
+
 <h5 id='beans-definition-profiles-default'>默认profile配置</h5>
 默认的profile配置就是默认开启的profile配置:
 ```java
@@ -4397,99 +4397,3 @@ public class DefaultDataConfig {
 如果profile激活了，上面的`dataSource`数据源就被创建了；这就像是提供了默认的bean定义，如果有任何profile配置被激活，默认的的就不在应用了。
 
 默认profile配置文件可以更改，通过环境变量的`setDefaultProfiles`方法，或者是声明的`spring.profiles.default`属性值
-
-<h4 id='beans-property-source-abstraction'>PropertySource Abstraction</h4>
-Spring的环境抽象提供了用于检索一系列的property sources属性配置文件。详细阐述，参看:
-```java
-ApplicationContext ctx = new GenericApplicationContext();
-Environment env = ctx.getEnvironment();
-boolean containsFoo = env.containsProperty("foo");
-System.out.println("Does my environment contain the ''foo'' property? " + containsFoo);
-```
-
-在上面的片段中，通过较高层次方式检索SPring是否在当前环境中定义了`foo`property属性。为了检索该属性，环境对象在一组`PropertySource`对象中执行检索。`PropertySource`是key-value键值对配置文件的抽象，Spring的`StandardEnvironment`配置了2个`PropertySource`对象-其一是JVM系统properties(System.getProperties())，另一个是一组系统环境变量(System.getenv())。
-
-![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> 这些默认的property源代表`StandardEnvironment`，在独立的应用中使用。`StandardEnvironment`用默认的property配置源填充，默认配置源包括servlet配置和servlet上下文参数。`StandardPortletEnvironment`也可以访问portlet配置和portlet上下文参数。也可以可选的开启`JndiPropertySource`，详情参看Javadoc。
-
-若在系统property中存在`foo`或者在环境变量中存在`foo`，当使用`StandardEnvironment`调用`env.containsProperty("foo")`，将会返回`true`。
-
-![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
-> 检索是分层级的。默认情况，系统properties属性优先于环境变量，索引如果`foo`property这两两处都配置了，此时调用`env.getProperty("foo")`，系统property值将会返回。
-
-最重要的，完整的机制是可配置的。也许你需要一个自定义的properties源，并将该源整合到这个检索层级中。没有问题-只需实现和实例化你自定义的`PropertySource`，并在当前环境中把其加入到`PropertySources`中：
-```java
-ConfigurableApplicationContext ctx = new GenericApplicationContext();
-MutablePropertySources sources = ctx.getEnvironment().getPropertySources();
-sources.addFirst(new MyPropertySource());
-```
-
-在上面的代码中，`MyPropertySource`已经增加到了最高优先级的检索层级中。如果它有`foo`property属性，它将会被探测并返回，优先于其他`PropertySource`中的`foo`property属性。`MutablePropertySources`API暴露了很多方法，允许你精准的操作property属性源。
-
-<h4 id='__propertysource'>@PropertySource</h4>
-`@PropertySource`注解提供了一个方便的方式，用于增加一个`PropertySource`到Spring的环境中：
-给定一个文件"app.properties"包含了key/value键值对testbean.name=myTestBean,下面的`@Configuration`类使用了`@PropertySource`，使用这种方式调用`testBean.getName()`将会返回`myTestBean`。
-```java
-@Configuration
-@PropertySource("classpath:/com/myco/app.properties")
-public class AppConfig {
-    @Autowired
-    Environment env;
-
-    @Bean
-    public TestBean testBean() {
-        TestBean testBean = new TestBean();
-        testBean.setName(env.getProperty("testbean.name"));
-        return testBean;
-    }
-}
-```
-任何的存在于`@PropertySource`中的`${...}`占位符，将会被解析为定义在环境中的属性配置文件中的属性值:
-```java
-@Configuration
-@PropertySource("classpath:/com/${my.placeholder:default/path}/app.properties")
-public class AppConfig {
-    @Autowired
-    Environment env;
-
-    @Bean
-    public TestBean testBean() {
-        TestBean testBean = new TestBean();
-        testBean.setName(env.getProperty("testbean.name"));
-        return testBean;
-    }
-}
-```
-
-假设"my.placeholder"代表一个已经注册的的property属性，比如，系统属性或者环境变量，占位符将会被解析为相应的值。如果没有，那么`default/path`将会作为默认值。若没有默认值指定，那么property将不能解析，`IllegalArgumentException`将会抛出
-
-<h4 id='_placeholder_resolution_in_statements'>Placeholder resolution in statements</h4>
-以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。这意味着，你可以你喜欢的方式配置如何解析：可以改变是优先查找系统properties或者是有限查找环境变量，或者删除它们；增加自定义property源，使之成为更合适的。
-
-下面的自定义property定义，会像`Enviroment`一样可用:
-```xml
-<beans>
-    <import resource="com/bank/service/${customer}-config.xml"/>
-</beans>
-```
-
-<h3 id='context-load-time-weaver'>注册LoadTimeWeaver</h3>
-`LoadTimeWeaver`用于在JVM加载类时动态转换。
-若要开启加载时织入，得在`@Configuration`类中增加`@EnableLoadTimeWeaving`:
-```java
-@Configuration
-@EnableLoadTimeWeaving
-public class AppConfig {
-
-}
-```
-或者在XML中配置，使用`context:load-time-weaver`元素:
-```xml
-<beans>
-    <context:load-time-weaver/>
-</beans>
-```
-一旦为`ApplicationContext`做了配置。`ApplicationContext`内的任何bean都会实现`LoadTimeWeaverAware`，因此可以接收load-time weaver实例。这种用法和JPA联合使用非常赞，load-time weaving加载织入对JPA类转换非常必要。详情请参看`LocalContainerEntityManagerFactoryBean`。关于AspectJ load-time weaving更多的详情，请参看[see Section 9.8.4, “Load-time weaving with AspectJ in the Spring Framework”](#aop-aj-ltw)
-
-
-
