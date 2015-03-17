@@ -4355,7 +4355,7 @@ XML中的`beans`元素有一个`profile`属性。上面的栗子重写到2个XML
 
 TODO。The `spring-bean.xsd` has been constrained to allow such elements only as the last ones in the file.它是配置更加灵活，而又不造成XML文件混乱。
 
-TOADD
+
 <h5 id='beans-definition-profiles-enable'>开启profile</h5>
 要修改配置，我们仍然需要指定要激活哪个文件。如果现在运行上面的样例应用，它会抛异常`NoSuchBeanDefinitionException`,因为容器找不到`dataSource`bean。
 
@@ -4377,7 +4377,7 @@ ctx.getEnvironment().setActiveProfiles("profile1", "profile2");
 ```
 -Dspring.profiles.active="profile1,profile2"
 ```
-
+TOADD
 <h5 id='beans-definition-profiles-default'>默认profile配置</h5>
 默认的profile配置就是默认开启的profile配置:
 ```java
@@ -4464,5 +4464,32 @@ public class AppConfig {
 假设"my.placeholder"代表一个已经注册的的property属性，比如，系统属性或者环境变量，占位符将会被解析为相应的值。如果没有，那么`default/path`将会作为默认值。若没有默认值指定，那么property将不能解析，`IllegalArgumentException`将会抛出
 
 <h4 id='_placeholder_resolution_in_statements'>Placeholder resolution in statements</h4>
-Historically, the value of placeholders in elements could be resolved only against JVM system properties or environment variables. No longer is this the case. Because the Environment abstraction is integrated throughout the container, it’s easy to route resolution of placeholders through it. This means that you may configure the resolution process in any way you like: change the precedence of searching through system properties and environment variables, or remove them entirely; add your own property sources to the mix as appropriate.
-以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。
+以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。这意味着，你可以你喜欢的方式配置如何解析：可以改变是优先查找系统properties或者是有限查找环境变量，或者删除它们；增加自定义property源，使之成为更合适的。
+
+下面的自定义property定义，会像`Enviroment`一样可用:
+```xml
+<beans>
+    <import resource="com/bank/service/${customer}-config.xml"/>
+</beans>
+```
+
+<h3 id='context-load-time-weaver'>注册LoadTimeWeaver</h3>
+`LoadTimeWeaver`用于在JVM加载类时动态转换。
+若要开启加载时织入，得在`@Configuration`类中增加`@EnableLoadTimeWeaving`:
+```java
+@Configuration
+@EnableLoadTimeWeaving
+public class AppConfig {
+
+}
+```
+或者在XML中配置，使用`context:load-time-weaver`元素:
+```xml
+<beans>
+    <context:load-time-weaver/>
+</beans>
+```
+一旦为`ApplicationContext`做了配置。`ApplicationContext`内的任何bean都会实现`LoadTimeWeaverAware`，因此可以接收load-time weaver实例。这种用法和JPA联合使用非常赞，load-time weaving加载织入对JPA类转换非常必要。详情请参看`LocalContainerEntityManagerFactoryBean`。关于AspectJ load-time weaving更多的详情，请参看[see Section 9.8.4, “Load-time weaving with AspectJ in the Spring Framework”](#aop-aj-ltw)
+
+
+
