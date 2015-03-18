@@ -4397,3 +4397,32 @@ public class DefaultDataConfig {
 如果profile激活了，上面的`dataSource`数据源就被创建了；这就像是提供了默认的bean定义，如果有任何profile配置被激活，默认的的就不在应用了。
 
 默认profile配置文件可以更改，通过环境变量的`setDefaultProfiles`方法，或者是声明的`spring.profiles.default`属性值
+
+
+<h4 id='beans-property-source-abstraction'>PropertySource Abstraction</h4>
+Spring的环境抽象提供了用于检索一系列的property sources属性配置文件。详细阐述，参看:
+```java
+ApplicationContext ctx = new GenericApplicationContext();
+Environment env = ctx.getEnvironment();
+boolean containsFoo = env.containsProperty("foo");
+System.out.println("Does my environment contain the ''foo'' property? " + containsFoo);
+```
+
+在上面的片段中，通过较高层次方式检索SPring是否在当前环境中定义了`foo`property属性。为了检索该属性，环境对象在一组`PropertySource`对象中执行检索。`PropertySource`是key-value键值对配置文件的抽象，Spring的`StandardEnvironment`配置了2个`PropertySource`对象-其一是JVM系统properties(System.getProperties())，另一个是一组系统环境变量(System.getenv())。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 这些默认的property源代表`StandardEnvironment`，在独立的应用中使用。`StandardEnvironment`用默认的property配置源填充，默认配置源包括servlet配置和servlet上下文参数。`StandardPortletEnvironment`也可以访问portlet配置和portlet上下文参数。也可以可选的开启`JndiPropertySource`，详情参看Javadoc。
+
+若在系统property中存在`foo`或者在环境变量中存在`foo`，当使用`StandardEnvironment`调用`env.containsProperty("foo")`，将会返回`true`。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> 检索是分层级的。默认情况，系统properties属性优先于环境变量，索引如果`foo`property这两两处都配置了，此时调用`env.getProperty("foo")`，系统property值将会返回。
+
+最重要的，完整的机制是可配置的。也许你需要一个自定义的properties源，并将该源整合到这个检索层级中。没有问题-只需实现和实例化你自定义的`PropertySource`，并在当前环境中把其加入到`PropertySources`中：
+```java
+ConfigurableApplicationContext ctx = new GenericApplicationContext();
+MutablePropertySources sources = ctx.getEnvironment().getPropertySources();
+sources.addFirst(new MyPropertySource());
+```
+
+在上面的代码中，`MyPropertySource`已经增加到了最高优先级的检索层级中。如果它有`foo`property属性，它将会被探测并返回，优先于其他`PropertySource`中的`foo`property属性。`MutablePropertySources`API暴露了很多方法，允许你精准的操作property属性源。
