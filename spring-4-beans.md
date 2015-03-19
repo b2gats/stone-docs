@@ -4426,3 +4426,189 @@ sources.addFirst(new MyPropertySource());
 ```
 
 在上面的代码中，`MyPropertySource`已经增加到了最高优先级的检索层级中。如果它有`foo`property属性，它将会被探测并返回，优先于其他`PropertySource`中的`foo`property属性。`MutablePropertySources`API暴露了很多方法，允许你精准的操作property属性源。
+
+<h4 id='__propertysource'>@PropertySource</h4>
+`@PropertySource`注解提供了一个方便的方式，用于增加一个`PropertySource`到Spring的环境中：
+给定一个文件"app.properties"包含了key/value键值对testbean.name=myTestBean,下面的`@Configuration`类使用了`@PropertySource`，使用这种方式调用`testBean.getName()`将会返回`myTestBean`。
+```java
+@Configuration
+@PropertySource("classpath:/com/myco/app.properties")
+public class AppConfig {
+    @Autowired
+    Environment env;
+
+    @Bean
+    public TestBean testBean() {
+        TestBean testBean = new TestBean();
+        testBean.setName(env.getProperty("testbean.name"));
+        return testBean;
+    }
+}
+```
+任何的存在于`@PropertySource`中的`${...}`占位符，将会被解析为定义在环境中的属性配置文件中的属性值:
+```java
+@Configuration
+@PropertySource("classpath:/com/${my.placeholder:default/path}/app.properties")
+public class AppConfig {
+    @Autowired
+    Environment env;
+
+    @Bean
+    public TestBean testBean() {
+        TestBean testBean = new TestBean();
+        testBean.setName(env.getProperty("testbean.name"));
+        return testBean;
+    }
+}
+```
+
+假设"my.placeholder"代表一个已经注册的的property属性，比如，系统属性或者环境变量，占位符将会被解析为相应的值。如果没有，那么`default/path`将会作为默认值。若没有默认值指定，那么property将不能解析，`IllegalArgumentException`将会抛出
+
+TOADD
+<h4 id='_placeholder_resolution_in_statements'>Placeholder resolution in statements</h4>
+以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。这意味着，你可以你喜欢的方式配置如何解析：可以改变是优先查找系统properties或者是有限查找环境变量，或者删除它们；增加自定义property源，使之成为更合适的。
+
+下面的自定义property定义，会像`Enviroment`一样可用:
+```xml
+<beans>
+    <import resource="com/bank/service/${customer}-config.xml"/>
+</beans>
+```
+
+<h3 id='context-load-time-weaver'>注册LoadTimeWeaver</h3>
+`LoadTimeWeaver`用于在JVM加载类时动态转换。
+若要开启加载时织入，得在`@Configuration`类中增加`@EnableLoadTimeWeaving`:
+```java
+@Configuration
+@EnableLoadTimeWeaving
+public class AppConfig {
+
+}
+```
+或者在XML中配置，使用`context:load-time-weaver`元素:
+```xml
+<beans>
+    <context:load-time-weaver/>
+</beans>
+```
+一旦为`ApplicationContext`做了配置。`ApplicationContext`内的任何bean都会实现`LoadTimeWeaverAware`，因此可以接收load-time weaver实例。这种用法和JPA联合使用非常赞，load-time weaving加载织入对JPA类转换非常必要。详情请参看`LocalContainerEntityManagerFactoryBean`。关于AspectJ load-time weaving更多的详情，请参看[see Section 9.8.4, “Load-time weaving with AspectJ in the Spring Framework”](#aop-aj-ltw)
+
+<h3 id='context-introduction'>补充说明ApplicationContext的能力</h3>
+就像简介章节讨论的,`org.springframework.beans.factory`包提供了管理和操作bean的基本功能，包含一种编程式的方式。`org.springframework.context`包增加了`ApplicationContext`接口，继承于`BeanFactory`接口,这也是为了继承其他的接口，并且提供*应用框架风格*。很多人使用`ApplicationContext`完全是声明式，甚至不用编程式去创建，依靠像`ContextLoader`这样的支持类自动实例化`ApplicationContext`，并把此作为Java EE web应用的启动步骤。
+
+为了增强`BeanFactory`功能，context 包也支持下列功能:
+* 通过`MessageSource`接口，i18n-style方式访问messages。*译注国际化*
+* 通过`ResourceLoader`接口，访问资源，比如URLS网络资源定位符和Files文件系统
+* 通过`ApplicationEventPublisher`,给实现了`ApplicationListener`接口的bean发布事件，
+* 通过`HierarchicalBeanFactory`接口,加载多级contexts，允许关注某一层级context，比如应用的web层。
+
+<h4 id='context-functionality-resources'>TODO使用MessageSource国际化</h4>
+`ApplicationContext`接口继承`MessageSource`接口,因此提供国际化
+对这一章暂时不感兴趣，不翻了先。
+
+<h4 id='context-functionality-events'>标注事件和自定义事件</h4>
+`ApplicationContext`通过`ApplicationEvent`类和`ApplicationContext`类提供了事件处理。如果某个bean实现了`ApplicationListener`接口，并注册在了context中，每当`ApplicationEvent`向`ApplicationContext`发布时间，该bean就会收到通知。其实，这是一个标准的的*观察者模式*。Spring提供了下列标准事件:
+
+**Table 5.7. Built-in Events**
+事件  | 解释
+----  | ---
+`ContextRefreshedEvent` |  当`ApplicationContext`初始化或者刷新时发布,比如，使用`ConfigurableApplicationContext`接口的`refresh()`方法。这里"初始化"的意思是指，所有的bean已经被加载、post-processor后处理bean已经被探测到并激活，单例bean已经pre-instantiated预先初始化，并且`ApplicationContext`对象已经可用。只要context上下文未关闭，可以多次触发刷新动作，	某些`ApplicationContext`支持"热"刷新。比如，`XmlWebApplicationContext`支持热刷新，`GenericApplicationContext`就不支持。
+`ContextStartedEvent` | 当`ApplicationContext`启动时候发布，使用`ConfiruableApplicationContext`接口的`start()`方法。这里的“启动”意思是指，所有的Lifecycle生命周期bean接收到了明确的启动信号。通常，这个信号用来在明确的“停止”指令之后重启beans，不过也可能是使用了启动组件，该组件并未配置自动启动，比如：组件在初始化的时候并未启动。
+`ContextStoppedEvent` | 当`ApplicationContext`停止时发布，使用`ConfigurableApplicationContext`接口的`stop()`方法。这里的“停止”的意思是指所有的Lifecycle生命周期bean接收到了明确的停止信号。一个停止了的context上下文可以通过`start()`调用来重启。
+`ContextClosedEvent` | 当`ApplicationContext`关闭时候发布，使用`ConfigurableApplicationContext`接口的`close()`方法。这里“关闭”的意思是所有的单例bean已经销毁。一个关闭的context上下文达到的生命周期的重点。不能刷新，不能重启。
+`RequestHandledEvent` | 是一个web专用事件，告诉所有的beans：一个HTTP request正在处理。这个时间在reqeust处理完成之后发布。该事件仅适用于使用Spring的`DispatcherServlet`的web应用。
+
+你也可以创建并发布自定义事件。下面样例展示了这一点，一个简单的类继承了Spring的`ApplicationEvent`类:
+```java
+public class BlackListEvent extends ApplicationEvent {
+
+    private final String address;
+    private final String test;
+
+    public BlackListEvent(Object source, String address, String test) {
+        super(source);
+        this.address = address;
+        this.test = test;
+    }
+
+    // accessor and other methods...
+
+}
+```
+
+为了发布自定义`ApplicationEvent`，得调用`ApplicationEventPublisher`接口上的`publishEvent()`方法。通常是使用一个已经注册为Spring bean的`ApplicationEventPublisherAware`接口的实现类来完成的。看样例:
+```java
+public class EmailService implements ApplicationEventPublisherAware {
+
+    private List<String> blackList;
+    private ApplicationEventPublisher publisher;
+
+    public void setBlackList(List<String> blackList) {
+        this.blackList = blackList;
+    }
+
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public void sendEmail(String address, String text) {
+        if (blackList.contains(address)) {
+            BlackListEvent event = new BlackListEvent(this, address, text);
+            publisher.publishEvent(event);
+            return;
+        }
+        // send email...
+    }
+
+}
+```
+
+在配置期间，spring容器发现`EmailService`实现了`ApplicationEventPublisherAware`并自动调用`setApplicationEventPublisher()`方法。实际上，参数就是Spring容器本身;可以通过`ApplicationEventPublisher`接口和应用上下文简单的交互。
+
+为了接受自定义`ApplicationEvent`，得创建一个`ApplicationListener`的实现类并注册为spring Bean。看样例:
+```java
+public class BlackListNotifier implements ApplicationListener<BlackListEvent> {
+
+    private String notificationAddress;
+
+    public void setNotificationAddress(String notificationAddress) {
+        this.notificationAddress = notificationAddress;
+    }
+
+    public void onApplicationEvent(BlackListEvent event) {
+        // notify appropriate parties via notificationAddress...
+    }
+
+}
+```
+
+注意，`ApplicationListener`以自定义事件类`BlackListEvent`作为范型类。也就是说`onApplicationEvent()`方法是类型安全的，无需向下转型。event listener事件监听想注册多少就注册多少,但是注意默认情况下，所有的监听会同步接收到事件。也就是说`publishEvent()`方法会阻塞所有监听完成对事件的处理。同步的、单线程的处理的一个优势是当一个监听接收到一个事件，若该事件发布者存在可用的事务时，监听会在发布者事务内操作。如果需要其他的事件发布策略，参看Spring的`ApplicationEventMulticastor`接口的JavaDoc
+
+下面的样例展示了之前提到过的类如何定义bean并注册、配置:
+```xml
+<bean id="emailService" class="example.EmailService">
+    <property name="blackList">
+        <list>
+            <value>known.spammer@example.org</value>
+            <value>known.hacker@example.org</value>
+            <value>john.doe@example.org</value>
+        </list>
+    </property>
+</bean>
+
+<bean id="blackListNotifier" class="example.BlackListNotifier">
+    <property name="notificationAddress" value="blacklist@example.org"/>
+</bean>
+```
+
+将他们组装到一起，当`emailService`bean的`sendEmail()`方法调用时，如果有email是黑名单中的的，自定义事件`BlackListEvent`就发布了。`balckListNotifier`bean注册成为`ApplicationListener`，因此可以接收到`BlackListEvent`,并能通知相关的观察者。
+
+![注意](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/note.png)  
+> Spring的事件机制是为了Spirng beans和所在的应用context上下文之间做简单的交流。然而，为了满足复杂的企业级集成需求，有个单独维护的项目[Spring Integration project](http://projects.spring.io/spring-integration/)，提供了完整的支持,可用于轻量构建、[pattern-oriented](http://www.enterpriseintegrationpatterns.com/)，依赖Spring编程模型的事件驱动架构。
+
+<h4 id='context-functionality-resources'>便利的访问底层资源</h4>
+为了获得最佳用法和理解应用上下文，推荐大家通过Spring的Resource abstraction资源抽象熟悉他们，详情请参看[Chapter 6, Resources](#resources)
+
+An application context is a ResourceLoader, which can be used to load Resources. A Resource is essentially a more feature rich version of the JDK class java.net.URL, in fact, the implementations of the Resource wrap an instance of java.net.URL where appropriate. A Resource can obtain low-level resources from almost any location in a transparent fashion, including from the classpath, a filesystem location, anywhere describable with a standard URL, and some other variations. If the resource location string is a simple path without any special prefixes, where those resources come from is specific and appropriate to the actual application context type.
+
+
