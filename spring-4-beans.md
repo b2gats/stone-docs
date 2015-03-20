@@ -4464,6 +4464,7 @@ public class AppConfig {
 
 假设"my.placeholder"代表一个已经注册的的property属性，比如，系统属性或者环境变量，占位符将会被解析为相应的值。如果没有，那么`default/path`将会作为默认值。若没有默认值指定，那么property将不能解析，`IllegalArgumentException`将会抛出
 
+
 TOADD
 <h4 id='_placeholder_resolution_in_statements'>Placeholder resolution in statements</h4>
 以前，元素中的占位符的值只能解析JVM系统properties或者环境变量。No longer is this the case。因为`Environment`抽象通过容器集成，通过`Environment`可以非常容器的解析占位符。这意味着，你可以你喜欢的方式配置如何解析：可以改变是优先查找系统properties或者是有限查找环境变量，或者删除它们；增加自定义property源，使之成为更合适的。
@@ -4609,6 +4610,78 @@ public class BlackListNotifier implements ApplicationListener<BlackListEvent> {
 <h4 id='context-functionality-resources'>便利的访问底层资源</h4>
 为了获得最佳用法和理解应用上下文，推荐大家通过Spring的Resource abstraction资源抽象熟悉他们，详情请参看[Chapter 6, Resources](#resources)
 
-An application context is a ResourceLoader, which can be used to load Resources. A Resource is essentially a more feature rich version of the JDK class java.net.URL, in fact, the implementations of the Resource wrap an instance of java.net.URL where appropriate. A Resource can obtain low-level resources from almost any location in a transparent fashion, including from the classpath, a filesystem location, anywhere describable with a standard URL, and some other variations. If the resource location string is a simple path without any special prefixes, where those resources come from is specific and appropriate to the actual application context type.
+一个应用上下文是一个`ResourceLoader`，它能加载资源。`Resource`本质上是JDK的`java.net.URL`类的扩展，实际上，`Resource`的实现类中大多含有`java.net.URL`的实例。`Resource`几乎能从任何地方透明的获取底层资源，可以是classpath类路径、文件系统、标准的URL资源及变种URL资源。如果资源定位字串是简单的路径，没有任何特殊前缀，就适合于实际应用上下文类型。
 
+可以配置一个bean部署到应用上下文中，用以实现特殊的回调接口，`ResouceLoaderAware`，它会在初始化期间自动回调。可以暴露`Resource`的type属性,这样就可以访问静态资源;静态资源可以像其他properties那样被注入`Resource`。可以使用简单的字串路径指定资源,这要依赖于特殊的JavaBean `PropertyEditor`,该类是通过context自动注册，当bean部署时候它将转换资源中的字串为实际的资源对象
+
+The location path or paths supplied to an ApplicationContext constructor are actually resource strings, and in simple form are treated appropriately to the specific context implementation. ClassPathXmlApplicationContext treats a simple location path as a classpath location. You can also use location paths (resource strings) with special prefixes to force loading of definitions from the classpath or a URL, regardless of the actual context type.
+定位符是实际的资源字串路径，作为`ApplicationContext`构造函数的参数，简单的形式就能得到特殊的context实现类恰当的处理。`ClassPathXamlApplicationContext`能解析简单的定位路径作为classpath定位，可以使用带有特殊前缀的定位路径，这样就可以强制从classpath或者URL定义加载路径,无需关注实际的context类型。
+
+*译注，啥玩意，翻的狗屁不通*
+
+<h4 id='context-create'>易用的web应用的`ApplicationContext`实例化</h4>
+可以通过声明式方式创建`ApplicationContext`实例，比如，一个`ContextLoader`。当然也可以使用编程时的方式创建`ApplicationContext`实例，得使用`ApplicationContext`实现。
+使用`ContexgtLoaderListener`注册一个`ApplicationContext`，看样例:
+```xml
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml</param-value>
+</context-param>
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+```
+
+监听检查`contextConfigLocation`参数。如果参数不存在，监听默认使用`/WEB-INF/applicationContext.xml`。如果参数存在，监听会使用分隔符(逗号，分号，空格)分割参数，应用context会查找这些分割后的定位路径。Ant风格的路径支持的非常好。比如，`WEB-INF/*Context.xml`，将会匹配"WEB-INF"目录下所有以"Context.xml"结尾的file文件，`/WEB-INF/**/*Context.xml`，将会匹配"WEB-INF"下所有层级子目录的`Context.xml` 结尾的文件。
+
+<h4 id='context-deploy-rar'>将Spring ApplicationContext作为JAVA EE RAR文件部署</h4>
+这章不翻了，没意思。
+
+<h3 id='beans-beanfactory'>BeanFactory</h3>
+`BeanFactory`为Spring的IoC功能提供了基础支撑，但是在集成第三方框架他只能直接使用，现在已经成为历史。`BeanFactory`和相关接口，比如`BeanFactorAware,InitializingBean,DisposableBean`，依然存在，是为了大量的集成了spirng的第三方框架向后兼容。常常有第三方组件不能使用现代风格的SPring，比如`@PostConstruct`或者`@PreDestroy`，是为了保留JDK1.4的兼容性，或者是为了避免依赖`JSR-250`。
+本部分主要讲解有关`BeanFactory`和`ApplicationContext`之间的不同的背景，通过一个经典的检索单例类阐述他们如何直接的访问IoC容器。
+
+<h4 id='context-introduction-ctx-vs-beanfactory'>BeanFactory or ApplicationContext</h4>
+优先使用`ApplicationContext`，除非你有非常好的理由不用它。
+因为`ApplicationContext `包含了`BeanFactory`所有的方法，和`BeanFactory`相比更值得推荐，除了一些特定的场景，比如，在资源受限的设备上运行的内嵌的应用，这些设备非常关注内存消耗。无论如何，对于大多数的企业级应用和系统，`ApplicationContext`都是首选。Spring使用了的大量的`BeanPostProcess`[扩展点](#beans-factory-extension-bpp)，如果使用简单的`BeanFactory`，大量的功能将失效，比如:transactions 和AOP ，至少得多一些额外的处理。它会造成困扰，因为配置中所有的都不错。
+
+下面的表格中列举了`BeanFactory`和`ApplicationContext`提供的功能:
+Table 5.8. Feature Matrix
+
+功能 | BeanFactory | ApplicationContext
+---- | ---------- | -------------------
+bean实例化和组装 | YES | YES
+自动注册`BeanPostProcessor ` | NO | YES
+自动注册`BeanFactoryPostProcessor ` | NO | YES
+便利的消息资源访问(用于i18n) | NO | YES
+`ApplicationEvent `发布 | NO | YES
+
+为了注册一个bean post-processor 给`BeanFactory`，得这么干:
+```java
+ConfigurableBeanFactory factory = new XmlBeanFactory(...);
+
+// now register any needed BeanPostProcessor instances
+MyBeanPostProcessor postProcessor = new MyBeanPostProcessor();
+factory.addBeanPostProcessor(postProcessor);
+
+// now start using the factory
+```
+
+在使用`Beanfactory`时，注册`BeanFactoryPostProcessor`，得这样:
+```java
+XmlBeanFactory factory = new XmlBeanFactory(new FileSystemResource("beans.xml"));
+
+// bring in some property values from a Properties file
+PropertyPlaceholderConfigurer cfg = new PropertyPlaceholderConfigurer();
+cfg.setLocation(new FileSystemResource("jdbc.properties"));
+
+// now actually do the replacement
+cfg.postProcessBeanFactory(factory);
+```
+上面2个栗子，显示注册步骤非常不便，这就是为什么推荐使用`ApplicationContext`的原因之一,就是为了方便的使用`BeanFactoryPostProcessors`和`BeanPostProcessors`。这些机制实现了一些非常重要的功能，比如property placeholder replacement and AOP
+
+<h4 id='beans-servicelocator'>耦合代码和邪恶的单例</h4>
+在应用中，推荐使用依赖注入的方式编写，使用Spring IoC容器管理的代码，当需要创建实例时，从容器获取他的依赖关系，并且对象对容器将对其一无所知，对于一些小的借合层的代码，也许会需要与其他层、组件、bean互相协作，可以以单例（准单例）方式使用Spring IoC容器。比如，第三方组件会使用构造器创建新对象（`Class.forName()`风格）,而不能使用IoC容器获取这些对象。 如果第三方组件创建的对象是stub或者proxy代理，然后这些对象以单例风格从Ioc容器获取真正的对象加以委派，此时控制反转完成主要工作（对象将脱离于容器管理）。此时，大部分代码不需知道容器、也不需知道如何访问容器，好处就是代码解耦。EJBs也可以使用这种方式，代理的方式委派给简单的java实现对象，java对象从Ioc容器检出。然而，spring Ioc容器必须得设计为单例，。。。。。。。//TODO
+*未翻译完，翻了完了不通顺，第五章总算是搞定了*
 
