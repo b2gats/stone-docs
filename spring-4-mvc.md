@@ -392,3 +392,153 @@ public class RelativePathUriTemplateController {
 }
 ```
 
+`@PathVariable`参数可以是任何简单类型，`int, long, Date`等等,Spring 自动转换合适的类型，转换不成功时，抛异常`TypeMismatchException `。不过，可以注册自定义转换器。详情参看[the section called “Method Parameters And Type Conversion”](#mvc-ann-typeconversion) and [the section called “Customizing WebDataBinder initialization”](#mvc-ann-webdatabinder).
+
+<h5 id='mvc-ann-requestmapping-uri-templates-regex'>URI 模板模式与正则表达式</h5>
+有时需要对URI模板变量进行精准的控制，比如`"/spring-web/spring-web-3.0.5.jar"`如何定义各个部分变量
+` @RequestMapping`支持URI模板变量中正则表达式，`{varName:regex}`语法，前面是变量名字，后面是正则表达式。
+```java
+@RequestMapping("/spring-web/{symbolicName:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{extension:\\.[a-z]+}")
+    public void handle(@PathVariable String version, @PathVariable String extension) {
+        // ...
+    }
+}
+```
+
+<h5 id='mvc-ann-requestmapping-patterns'>路径模式</h5>
+`@RequestMapping`也支持ant风格路径，比如`/myPath/*.do`。URI模板变量和ant风格路径也可以组合使用，`/owners/*/pets/{petId}`。
+
+<h5 id='mvc-ann-requestmapping-pattern-comparison'>路径模式比较</h5>
+当URL匹配了多种模式，各种模式会有一个匹配度的排序，也就是说哪些模式更精准的匹配，就会选用哪些模式。
+
+具有较低计数量的模板变量和通配符更特殊、更具体。比如，`/hotels/{hotel}/*`比`/hotels/{hotel}/**`更具体、更优先。
+
+如果两个模式具有相同的计数量，俺么更短的胜出。比如，`/foo/bar*`比`/foo/*`更长，因此更具体
+
+当两个模式具有相同的计数和长度，具有更少的通配符的胜出。`/hotels/{hotel}`比`/hotels/*`更优先。
+
+还有一些其他的规则
+* **默认的映射模式**`/**`比任何其他模式都具有更低的优先级，比如，`/api/{a)}/{b}/{c}`与之相比更具体更优先
+* **前缀模式**`/public/**`比其他任何没有双通配符的模式具有更低的优先级，比如，`/public/path3/{a}/{b}/{c}`比它更具体更优先
+
+更多详情参看`AntPathMatcher`中的`AntPatternComparator`。注意PathMatcher 可以自定义，参看[ Section 20.16.9, “Path Matching”](#mvc-config-path-matching)
+
+<h5 id='mvc-ann-requestmapping-placeholders'>路径模式和占位符</h5>
+`@RequestMapping`注解支持${...}占位符，占位符读取的是本地properties、系统properties、环境变量。若是需要根据配置文件来改变controller映射路径，此办法就可以大显身手了。占位符的更多细节，请参看`PropertyPlaceholderConfigurer`类的javadocs。
+
+<h5 id='mvc-ann-requestmapping-suffix-pattern-match'>前缀匹配路径模式</h5>
+Spring MVC默认执行`".*"`前缀模式匹配，因此`/person`也会匹配`/persion.*`。这样就可以通过文件扩展名指明内容类型，比如`/pserson.pdf`,`/person.xml`等等。
+由此产生一个让人困惑的地方，就是当路径最后的部分是一个URI变量，比如`/persion/{id}`。当request请求`/psersion/1.json`，既能匹配路径变量 id=1 ，也能匹配扩展名".json"，当id包含一个点的时候，比如`/person/joe@email.com`，spring将不会认为`joe@email.com`是id，但是，`com`不是文件扩展名。
+
+要解决此问题，得配置Spring MVC 的前缀模式匹配和注册的文件扩展名协商处理 。For more on this, first see [Section 20.16.4, “Content Negotiation” ](#mvc-config-content-negotiation)and then [Section 20.16.9, “Path Matching” ](#mvc-config-path-matching)展示了如何开启前缀匹配和如何只用注册的前缀匹配。
+
+<h5 id='mvc-ann-matrix-variables'>Matrix Variables矩阵变量</h5>
+URI规范，是在路径中可能含有键值对。在规范中并未包含特殊项。SpringMVC就能搞这些特殊项。
+矩阵变量可以出现在任意路径中，每一个矩阵变量有";"分号分隔。比如:
+`"/cars;color=red;year=2012"`，多个值的话使用","逗号分隔，`"color=red,green,blue"`，或者使用重复的变量名`"color=red;color=green;color=blue"`。 
+
+If a URL is expected to contain matrix variables, the request mapping pattern must represent them with a URI template. This ensures the request can be matched correctly regardless of whether matrix variables are present or not and in what order they are provided.
+
+下例演示解析矩阵变量"q":
+```java
+// GET /pets/42;q=11;r=22
+
+@RequestMapping(value = "/pets/{petId}", method = RequestMethod.GET)
+public void findPet(@PathVariable String petId, @MatrixVariable int q) {
+
+    // petId == 42
+    // q == 11
+
+}
+```
+
+因为路径中的任意段都可能会包含矩阵变量，有些场景下你需要更特殊的用法去识别变量:
+```java
+// GET /owners/42;q=11/pets/21;q=22
+
+@RequestMapping(value = "/owners/{ownerId}/pets/{petId}", method = RequestMethod.GET)
+public void findPet(
+        @MatrixVariable(value="q", pathVar="ownerId") int q1,
+        @MatrixVariable(value="q", pathVar="petId") int q2) {
+
+    // q1 == 11
+    // q2 == 22
+
+}
+```
+矩阵变量也可以定义为可选，并设置默认值
+```java
+// GET /pets/42
+
+@RequestMapping(value = "/pets/{petId}", method = RequestMethod.GET)
+public void findPet(@MatrixVariable(required=false, defaultValue="1") int q) {
+
+    // q == 1
+
+}
+```
+
+矩阵变量可以置入一个Map:
+```java
+// GET /owners/42;q=11;r=12/pets/21;q=22;s=23
+
+@RequestMapping(value = "/owners/{ownerId}/pets/{petId}", method = RequestMethod.GET)
+public void findPet(
+        @MatrixVariable Map<String, String> matrixVars,
+        @MatrixVariable(pathVar="petId"") Map<String, String> petMatrixVars) {
+
+    // matrixVars: ["q" : [11,22], "r" : 12, "s" : 23]
+    // petMatrixVars: ["q" : 11, "s" : 23]
+
+}
+```
+
+注意，若要开启矩阵变量功能，必须设置`RequestMappingHandlerMapping`的属性`removeSemicolonContent `为`false`。该值默认为`true`。
+
+MVC Java config and the MVC namespace都提供了开启矩阵变量的选项。
+
+若是Java config，[Advanced Customizations with MVC Java Config](#mvc-config-advanced-java)章节讲解了如何设置`RequestMappingHandlerMapping `.
+
+若是MVC namespace命名空间，`<mvc:annotation-driven>`元素的`enable-matrix-variables`属性则应该设置为`true`。默认他是`false`。
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven enable-matrix-variables="true"/>
+
+</beans>
+```
+
+<h5 id='mvc-ann-requestmapping-consumes'>消费媒体类型</h5>
+可以设置映射的消费媒体类型，类型可以指定多个。那么，只有reqeust的*Content-Type*请求头匹配映射中设置的消费类型，才会由mapping映射处理该request。
+```
+@Controller
+@RequestMapping(value = "/pets", method = RequestMethod.POST, consumes="application/json")
+public void addPet(@RequestBody Pet pet, Model model) {
+    // implementation omitted
+}
+```
+
+消费类型可以使用非!运算表达式，*!text/plain*，意思是除了text/plain类型，其他所有的类型都可以匹配。
+
+消费类型条件支持方法映射中配置，也支持类映射中配置。一般情况下，在类注解和方法注解中配置了条件，方法注解中的条件将会覆盖类注解中的条件，但是，消费类型条件是继承、扩展。
+
+<h5 id='mvc-ann-requestmapping-produces'>生产媒体类型</h5>
+和消费媒体类型差不多。如果*Accept *reqeust header匹配了配置的生产媒体类型，则@RequestMapping处理request。
+```java
+@Controller
+@RequestMapping(value = "/pets/{petId}", method = RequestMethod.GET, produces="application/json")
+@ResponseBody
+public Pet getPet(@PathVariable String petId, Model model) {
+    // implementation omitted
+}
+```
+非运算符也支持。
+方法注解中的生产媒体类型配置也是I扩展类注解中生产媒体配置。 
