@@ -542,3 +542,132 @@ public Pet getPet(@PathVariable String petId, Model model) {
 ```
 非运算符也支持。
 方法注解中的生产媒体类型配置也是I扩展类注解中生产媒体配置。 
+
+<h5 id='mvc-ann-requestmapping-params-and-headers'>Reqeust参数和Header Value</h5>
+使用参数条件，可reqeust参数匹配更精准，比如`"myParam","!myParam",或者"myParam=myValue`,第一二个是检查存在/不存在，第三个是为了检查是否为指定值。参看样例：
+```java
+@Controller
+@RequestMapping("/owners/{ownerId}")
+public class RelativePathUriTemplateController {
+
+    @RequestMapping(value = "/pets/{petId}", method = RequestMethod.GET, params="myParam=myValue")
+    public void findPet(@PathVariable String ownerId, @PathVariable String petId, Model model) {
+        // implementation omitted
+    }
+
+}
+```
+
+对于request header的存在/不存在，或者匹配是否为指定的值也可使用类似的方法:
+```java
+@Controller
+@RequestMapping("/owners/{ownerId}")
+public class RelativePathUriTemplateController {
+
+    @RequestMapping(value = "/pets", method = RequestMethod.GET, headers="myHeader=myValue")
+    public void findPet(@PathVariable String ownerId, @PathVariable String petId, Model model) {
+        // implementation omitted
+    }
+
+}
+```
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+> 虽然可以用request header检查*Content-Type*和*Accept header*的值（比如，"content-type=text/*"匹配"text/plain"和"text/html"），但是推荐使用*consumes*和*produces*条件检查媒体类型相关header value，媒体类型条件检查就是为了干这个用的。
+
+<h4 id='mvc-ann-methods'>定义@RequestMapping 处理方法</h4>
+`@RequestMapping`方法非常灵活，几乎不受任何限制。支持的方法参数和返回值类型，在下面详述。除`BindingResult `类型参数外，大多数参数次序随意。
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+> Spring 3.1引入了一组`@RequestMapping`方法的支持类，分别是`RequestMappingHandlerMapping`和`RequestMappingHandlerAdapter`。
+
+<h5 id='mvc-ann-arguments'>支持的方法参数类型</h5>
+系列是支持的方法参数
+* ServletAPI中的Rquest或者Response对象。比如`ServletRequest`或者`HttpServletReqeust`。
+* Session 对象：比如`HttpSession`。此类型的参数将会注入响应的session，因此，此参数永远不为null。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+> Session访问也许不是线程安全的，尤其是在Servlet花逆境中。加入允许多个Request可并发的访问session,可考虑使用`RequestMappingHandlerAdapter`的"synchronizeOnSession"属性为"true"
+
+* `org.springframework.web.context.request.WebRequest`或者`org.springframework.web.context.request.NativeWebRequest`
+* org.springframework.web.context.request.WebRequest or org.springframework.web.context.request.NativeWebRequest. Allows for generic request parameter access as well as request/session attribute access, without ties to the native Servlet/Portlet API.
+* java.util.Locale for the current request locale, determined by the most specific locale resolver available, in effect, the configured LocaleResolver / LocaleContextResolver in an MVC environment.
+* java.util.TimeZone (Java 6+) / java.time.ZoneId (on Java 8) for the time zone associated with the current request, as determined by a LocaleContextResolver.
+* java.io.InputStream / java.io.Reader for access to the request’s content. This value is the raw InputStream/Reader as exposed by the Servlet API.
+* java.io.OutputStream / java.io.Writer for generating the response’s content. This value is the raw OutputStream/Writer as exposed by the Servlet API.
+* org.springframework.http.HttpMethod for the HTTP request method.
+* java.security.Principal containing the currently authenticated user.
+* @PathVariable annotated parameters for access to URI template variables. See the section called “URI Template Patterns”.
+* @MatrixVariable annotated parameters for access to name-value pairs located in URI path segments. See the section called “Matrix Variables”.
+* @RequestParam annotated parameters for access to specific Servlet request parameters. Parameter values are converted to the declared method argument type. See the section called “Binding request parameters to method parameters with @RequestParam”.
+* @RequestHeader annotated parameters for access to specific Servlet request HTTP headers. Parameter values are converted to the declared method argument type. See the section called “Mapping request header attributes with the @RequestHeader annotation”.
+* @RequestBody annotated parameters for access to the HTTP request body. Parameter values are converted to the declared method argument type using HttpMessageConverters. See the section called “Mapping the request body with the @RequestBody annotation”.
+* @RequestPart annotated parameters for access to the content of a "multipart/form-data" request part. See Section 17.10.5, “Handling a file upload request from programmatic clients” and Section 17.10, “Spring’s multipart (file upload) support”.
+* HttpEntity<?> parameters for access to the Servlet request HTTP headers and contents. The request stream will be converted to the entity body using HttpMessageConverters. See the section called “Using HttpEntity”.
+* java.util.Map / org.springframework.ui.Model / org.springframework.ui.ModelMap for enriching the implicit model that is exposed to the web view.
+* org.springframework.web.servlet.mvc.support.RedirectAttributes to specify the exact set of attributes to use in case of a redirect and also to add flash attributes (attributes stored temporarily on the server-side to make them available to the request after the redirect). RedirectAttributes is used instead of the implicit model if the method returns a "redirect:" prefixed view name or RedirectView.
+* Command or form objects to bind request parameters to bean properties (via setters) or directly to fields, with customizable type conversion, depending on @InitBinder methods and/or the HandlerAdapter configuration. See the webBindingInitializer property on RequestMappingHandlerAdapter. Such command objects along with their validation results will be exposed as model attributes by default, using the command class class name - e.g. model attribute "orderAddress" for a command object of type "some.package.OrderAddress". The ModelAttribute annotation can be used on a method argument to customize the model attribute name used.
+* org.springframework.validation.Errors / org.springframework.validation.BindingResult validation results for a preceding command or form object (the immediately preceding method argument).
+* org.springframework.web.bind.support.SessionStatus status handle for marking form processing as complete, which triggers the cleanup of session attributes that have been indicated by the @SessionAttributes annotation at the handler type level.
+* org.springframework.web.util.UriComponentsBuilder a builder for preparing a URL relative to the current request’s host, port, scheme, context path, and the literal part of the servlet mapping.
+
+
+The Errors or BindingResult parameters have to follow the model object that is being bound immediately as the method signature might have more that one model object and Spring will create a separate BindingResult instance for each of them so the following sample won’t work:
+
+**Invalid ordering of BindingResult and @ModelAttribute. **
+```java
+@RequestMapping(method = RequestMethod.POST)
+public String processSubmit(@ModelAttribute("pet") Pet pet, Model model, BindingResult result) { ... }
+```
+
+Note, that there is a Model parameter in between Pet and BindingResult. To get this working you have to reorder the parameters as follows:
+```java
+@RequestMapping(method = RequestMethod.POST)
+public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result, Model model) { ... }
+```
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+>JDK 1.8’s java.util.Optional is supported as a method parameter type with annotations that have a required attribute (e.g. @RequestParam, @RequestHeader, etc. The use of java.util.Optional in those cases is equivalent to having required=false.
+
+<h5 id='mvc-ann-return-types'>支持的返回值类型</h5>
+支持下列返回值:
+* A ModelAndView object, with the model implicitly enriched with command objects and the results of @ModelAttribute annotated reference data accessor methods.
+* A Model object, with the view name implicitly determined through a RequestToViewNameTranslator and the model implicitly enriched with command objects and the results of @ModelAttribute annotated reference data accessor methods.
+* A Map object for exposing a model, with the view name implicitly determined through a RequestToViewNameTranslator and the model implicitly enriched with command objects and the results of @ModelAttribute annotated reference data accessor methods.
+* A View object, with the model implicitly determined through command objects and @ModelAttribute annotated reference data accessor methods. The handler method may also programmatically enrich the model by declaring a Model argument (see above).
+* A String value that is interpreted as the logical view name, with the model implicitly determined through command objects and @ModelAttribute annotated reference data accessor methods. The handler method may also programmatically enrich the model by declaring a Model argument (see above).
+* void if the method handles the response itself (by writing the response content directly, declaring an argument of type ServletResponse / HttpServletResponse for that purpose) or if the view name is supposed to be implicitly determined through a RequestToViewNameTranslator (not declaring a response argument in the handler method signature).
+* If the method is annotated with @ResponseBody, the return type is written to the response HTTP body. The return value will be converted to the declared method argument type using HttpMessageConverters. See the section called “Mapping the response body with the @ResponseBody annotation”.
+* An HttpEntity<?> or ResponseEntity<?> object to provide access to the Servlet response HTTP headers and contents. The entity body will be converted to the response stream using HttpMessageConverters. See the section called “Using HttpEntity”.
+* An HttpHeaders object to return a response with no body.
+* A Callable<?> can be returned when the application wants to produce the return value asynchronously in a thread managed by Spring MVC.
+* A DeferredResult<?> can be returned when the application wants to produce the return value from a thread of its own choosing.
+* A ListenableFuture<?> can be returned when the application wants to produce the return value from a thread of its own choosing.
+* Any other return type is considered to be a single model attribute to be exposed to the view, using the attribute name specified through @ModelAttribute at the method level (or the default attribute name based on the return type class name). The model is implicitly enriched with command objects and the results of @ModelAttribute annotated reference data accessor methods.
+
+<h5 id='mvc-ann-requestparam'>绑定request参数到方法参数上</h5>
+`@RequestParam`注解可以绑定request参数到方法参数上。
+看样例:
+```java
+@Controller
+@RequestMapping("/pets")
+@SessionAttributes("pet")
+public class EditPetForm {
+
+    // ...
+
+    @RequestMapping(method = RequestMethod.GET)
+    public String setupForm(@RequestParam("petId") int petId, ModelMap model) {
+        Pet pet = this.clinic.loadPet(petId);
+        model.addAttribute("pet", pet);
+        return "petForm";
+    }
+
+    // ...
+
+}
+```
+使用次注解的参数，默认是必须的，但是可以设置参数为可选，设置`@RequestParam`的`required`属性为`false`（比如：`@RequestParam(value="id",required=false)`）。
+
+如果方法参数类型不是`String`，那么Spring将会自动进行类型转换。详情参看[the section called “Method Parameters And Type Conversion”](#mvc-ann-typeconversion).
+
+当`@RequestParam`注解用在`Map<String,String>`或者`MultiValueMap<String,Strng`参数上，那么所有的reqeust 参数都将会绑定到map中。
