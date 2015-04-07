@@ -671,3 +671,75 @@ public class EditPetForm {
 如果方法参数类型不是`String`，那么Spring将会自动进行类型转换。详情参看[the section called “Method Parameters And Type Conversion”](#mvc-ann-typeconversion).
 
 当`@RequestParam`注解用在`Map<String,String>`或者`MultiValueMap<String,Strng`参数上，那么所有的reqeust 参数都将会绑定到map中。
+
+<h5 id='mvc-ann-requestbody'>使用注解@RequestBody映射request body</h5>
+`@RequestBody`方法参数注解表名，HTTP request body绑定到方法参数值上，看样例:
+```java
+@RequestMapping(value = "/something", method = RequestMethod.PUT)
+public void handle(@RequestBody String body, Writer writer) throws IOException {
+    writer.write(body);
+}
+```
+
+可以使用`HttpMessageConverter`转换request body到方法参数上，`HttpMessageConverter `负责将HTTP reqeust消息转换成为对象，也负责将对象转换成HTTP response body。`RequestMappingHandlerAdapter `支持`@RequestBody`注解和下列默认的`HttpMessageConverters`
+
+* `ByteArrayHttpMessageConverter `转换字节数组
+* `StringHttpMessageConverter `转换字串
+* `FormHttpMessageConverter`负责form表单数据与MultiValueMap<String,String>之间的转换
+* `SourceHttpMessageConverter`负责XML与Source之间的互相转换
+
+详情请参看[Message Converters](#rest-message-conversion)。同事也得注意，如果使用了MVC命名空间或者MVC Java config，默认会注册很多message converter。详情参看[Section 20.16.1, “Enabling the MVC Java Config or the MVC XML Namespace”](#mvc-config-enable) 
+
+若需要读写XML，得使用`MarshallingHttpMessageConverter `配置指定的`Marshaller `和`Unmarshaller`实现，详情参看`org.springframework.oxm`包。 看样例代码
+```xml
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+    <property name="messageConverters">
+        <util:list id="beanList">
+            <ref bean="stringHttpMessageConverter"/>
+            <ref bean="marshallingHttpMessageConverter"/>
+        </util:list>
+    </property
+</bean>
+
+<bean id="stringHttpMessageConverter"
+        class="org.springframework.http.converter.StringHttpMessageConverter"/>
+
+<bean id="marshallingHttpMessageConverter"
+        class="org.springframework.http.converter.xml.MarshallingHttpMessageConverter">
+    <property name="marshaller" ref="castorMarshaller" />
+    <property name="unmarshaller" ref="castorMarshaller" />
+</bean>
+
+<bean id="castorMarshaller" class="org.springframework.oxm.castor.CastorMarshaller"/>
+```
+
+`@RequestBody`方法参数也能被注解为`@Valid`，这样，他就会被配置的`Validator `实例校验。Spring MVC会自动配置一个JSR-303 validator。
+
+就像`@ModielAttribute`参数，`Errors`参数可用于校验errors。如果未声明该参数，则会抛出`MethodArgumentNotValidException `异常。异常有`DefaultHandlerExceptionResolver`处理，它会发送`400`error给客户端。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 通过MVC命名空间或者MVC java config配置message转换和配置validator，详情请参看[Section 17.16.1, “Enabling the MVC Java Config or the MVC XML Namespace”](#mvc-config-enable) 
+
+<h5 id='mvc-ann-responsebody'>通过@ResponseBody注解映射response body</h5>
+`@ResponseBody`注解与`@RequestBody`相似。该注解是一个方法注解，作用是将返回值直接写入HTTP response流。(既不是Model,也不是视图),比如:
+```java
+@RequestMapping(value = "/something", method = RequestMethod.PUT)
+@ResponseBody
+public String helloWorld() {
+    return "Hello World";
+}
+```
+
+上例中，将`Hello World`字串直接写入到response stream响应流中。
+
+使用`@RequestBody`时，Spring使用`HttpMessageConverter`转换对象为response body响应体。详情参看[Message Converters](#rest-message-conversion)
+
+<h5 id='#mvc-ann-restcontroller'>使用@RestController注解创建REST Controller</h5>
+Controller实现REST API非常常用，REST 风格Ctroller仅能提供JSON、XML、自定义MediaType content媒体类型。使用`RESTController`类注解，可以非常方便的实现RESTful风格API，用来替代`@RequestMapping`和`@Responsebody`的配合。
+
+`@RestController`是`@ResponseBody`和`@Controller`注解的组合，该注解具有扩展性，也许在将来的发布版中会增加额外的功能。
+
+作为常规`@Controller`，`@RestController`通常配合`@ControllerAdvice`使用。详情请参看 [the section called “Advising controllers with the @ControllerAdvice annotation”](#mvc-ann-controller-advice)
+
+<h5 id='#mvc-ann-httpentity'>使用HttpEntity</h5>
+The HttpEntity is similar to @RequestBody and @ResponseBody. Besides getting access to the request and response body, HttpEntity (and the response-specific subclass ResponseEntity) also allows access to the request and response headers, like so:
