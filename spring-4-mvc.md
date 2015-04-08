@@ -742,4 +742,66 @@ Controller实现REST API非常常用，REST 风格Ctroller仅能提供JSON、XML
 作为常规`@Controller`，`@RestController`通常配合`@ControllerAdvice`使用。详情请参看 [the section called “Advising controllers with the @ControllerAdvice annotation”](#mvc-ann-controller-advice)
 
 <h5 id='#mvc-ann-httpentity'>使用HttpEntity</h5>
-The HttpEntity is similar to @RequestBody and @ResponseBody. Besides getting access to the request and response body, HttpEntity (and the response-specific subclass ResponseEntity) also allows access to the request and response headers, like so:
+`HttpEntity`与`@RequestBody`、`@Resonsebody`非常像。除了访问request和response body，`HttpEntity`（和response专用子类`ResponseEntity`）也可以访问request和response的headers,像这样:
+```java
+@RequestMapping("/something")
+public ResponseEntity<String> handle(HttpEntity<byte[]> requestEntity) throws UnsupportedEncodingException {
+    String requestHeader = requestEntity.getHeaders().getFirst("MyRequestHeader"));
+    byte[] requestBody = requestEntity.getBody();
+
+    // 用request header和 body干一些事儿
+
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set("MyResponseHeader", "MyValue");
+    return new ResponseEntity<String>("Hello World", responseHeaders, HttpStatus.CREATED);
+}
+```
+
+上面的样例中获取了request header中`MyRequestHeader`的值，读取body置入一个byte array数组。将`MyResponseHeader `设置如了response，将字串`Hello World`写入的response流中，并设置了response的status code为201(Created)
+
+如同`@RequestBody`和`@ResponseBody`，Spring使用`HttpMessageConverter `进行request和response流之间转换。详情请参看[Message Converters.](#rest-message-conversion)
+
+<h5 id='mvc-ann-modelattrib-methods'>在方法上使用@ModelAttribute</h5>
+`@ModelAttribute`注解可以用在方法上或者在方法参数上。本章将方法上注解的用法，下章讲解方法参数上注解的用法。
+方法上注解`@ModelAttribute`则表示方法的目的是增加一个或者多个model attributes。所有`@RequestMapping`注解方法支持的参数类型，`@ModelAttribute`注解的方法都支持，但是`@ModelAttribute`方法不能直接从request映射。在同一controller中`ModelAttribute`方法会在`@RequestMapping`方法之前调用。看看它的用法
+```java
+// 增加单个 attribute
+//方法的返回值将添加到 model中，key键是"account"
+//也可以自定义key键，如此@ModelAttribute("myAccount")
+
+@ModelAttribute
+public Account addAccount(@RequestParam String number) {
+    return accountManager.findAccount(number);
+}
+
+// 添加多个 attributes
+
+@ModelAttribute
+public void populateModel(@RequestParam String number, Model model) {
+    model.addAttribute(accountManager.findAccount(number));
+    // add more ...
+}
+```
+
+`@ModelAttribute`方法主要的应用场景，将常用的attribute属性填充到model模型中，比如填充下拉菜单项、宠物类型、或者检索常用对象（像Account）用于在HTML表单中描述数据。后面的用法在下章中讨论。
+
+`@ModelAttribute`注解方法有2中写法，第一种，方法通过返回值给model增加了一个attribute，,第二种，方法接收一个`Model`并且增加了多个model attribute。根据实际情况选择使用。
+
+单个Controller可以有多个`@ModelAttribute`方法。在同一controller中的`@RequestMapping`方法调用之前，会执行所有的`@ModelAtrribute`方法。
+
+`@ModelAttribute`方法也可以定义在`@ControllerAdvice`注解的类中，这样的方法则会应用于多个controller。详情才看 [the section called “Advising controllers with the `@ControllerAdvice` annotation”](#mvc-ann-controller-advice) 
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+> 若未明确指定model attribute name时候，Spring会怎么干？这种情况下，默认会基于其类型指定其name。比如，如果方法返回的对象类型为`Account`，默认名字是`account`。可以通过指定`@ModelAttribute`注解的value来为其指定name。如果直接给`Model`添加attributes，得使用合适的重载方法`addAttribute(..)`，也就是有或者没有指定attribute name。
+
+`@ModelAtribute`注解也可以在`@RequestMapping`方法上使用。这种情况下，`@RequestMapping`方法返回值将会作为model attribute，而不是作为视图name。视图name来自于视图name命名惯例，就像是void方法。详情参看[Section 17.13.3, “The View - RequestToViewNameTranslator”.](#mvc-coc-r2vnt)
+
+<h5 id='mvc-ann-modelattrib-method-args'>在方法参数上使用@ModelAttribute</h5>
+前面提到`@ModelAttribute`可用于方法，也可用于方法参数上。本章讲解在方法参数上的用法。
+
+在方法参数上注解`@ModelAttribute`则表明参数应该从model中检索出。 若model中不存在，参数将会被实例化并增加到model中。若存在于model中，Spring将会给参数的field域赋值，值来自于从request中解析出相匹配的值。这就是Spring MVC 中的数据绑定，它是非常有用的机制，将使你免于手动从form field表单域中逐一的取值。
+```java
+@RequestMapping(value="/owners/{ownerId}/pets/{petId}/edit", method = RequestMethod.POST)
+public String processSubmit(@ModelAttribute Pet pet) { }
+```
+Given the above example where can the Pet instance come from? There are several options:
