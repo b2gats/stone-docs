@@ -804,4 +804,110 @@ public void populateModel(@RequestParam String number, Model model) {
 @RequestMapping(value="/owners/{ownerId}/pets/{petId}/edit", method = RequestMethod.POST)
 public String processSubmit(@ModelAttribute Pet pet) { }
 ```
-Given the above example where can the Pet instance come from? There are several options:
+上例中Pet的实例从哪儿来?有以下来源:
+* 或许使用了`@SessionAttributes`，则Pet实例已经在model中了。详情参看[the section called “Using @SessionAttributes to store model attributes in the HTTP session between requests”](#mvc-ann-sessionattrib)
+* 或许在同一个controller中使用了`@ModelAttribute`注解的方法，所以Pet实例已经存在于model中了，详情参看上一章
+* 来自于Spring数据绑定，使用URI模板变量配合转换器方式获取，下面详细讲述。
+* 通过Pet空构造获取实例
+
+`@ModelAttribute`注解方法是从数据库检索attribute的常用手段，也可以使用`@SessionAttribute`将数据存储于session中。在某些场景中，可以非常方便的通过URI template variable模板变量配合类型转换器的方式来检索attribute。看样例:
+```java
+@RequestMapping(value="/accounts/{account}", method = RequestMethod.PUT)
+public String save(@ModelAttribute("account") Account account) {
+
+}
+```
+model attribute的name(也就是"account")匹配URI template variable模板变量。如果你注册了`Converter<String, Account>`，该转换器的实现能把`String字串`accout变成`Account`实例（*译注，比如接收一个主键，从数据库中根据主键查出数据置入Account类实例*），那么上例中的方法将不需要`@ModelAttribute`注解也可以工作。
+
+接下来是数据绑定。`WebDataBinder`类解析request中参数的名字(包括query字串参数和form field表单域)，并通过name匹配model attribute的field域。经过必要的类型转换之后(将String转换成目标域类型)，匹配的域将会赋值。数据绑定和验证在[Chapter 7, Validation, Data Binding, and Type Conversion](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/validation.html)讲解。controller级别的自定义数据绑定处理在[the section called “Customizing WebDataBinder initialization”.](#mvc-ann-webdatabinder)讲解。
+
+数据绑定处理时候，也许会报错，比如必须的field域未找到、类型转换错误等。若要检查这些错误，可在`@ModelAttribute`参数后紧接着增加一个`BindingResult`参数。
+```java
+@RequestMapping(value="/owners/{ownerId}/pets/{petId}/edit", method = RequestMethod.POST)
+public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result) {
+
+    if (result.hasErrors()) {
+        return "petForm";
+    }
+
+    // ...
+
+}
+```
+
+使用`BindingResult `时，可以探测到error，当发现error时，通常会跳转到统一的视图，即异常页，Spring的`<errors>`form 标签可以渲染此类信息。
+
+在数据绑定处理时，可以使用同一个`BindingResult`调用自定义的validator校验器,`BindingResult `用于记录数据绑定error。数据绑定和校验errors能够在同一个地方累计然后一并返回给user:
+```java
+@RequestMapping(value="/owners/{ownerId}/pets/{petId}/edit", method = RequestMethod.POST)
+public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result) {
+
+    new PetValidator().validate(pet, result);
+    if (result.hasErrors()) {
+        return "petForm";
+    }
+
+    // ...
+
+}
+```
+或者，还可以使用JSR-303`@Valid`注解自动校验:
+```java
+@RequestMapping(value="/owners/{ownerId}/pets/{petId}/edit", method = RequestMethod.POST)
+public String processSubmit(@Valid @ModelAttribute("pet") Pet pet, BindingResult result) {
+
+    if (result.hasErrors()) {
+        return "petForm";
+    }
+
+    // ...
+
+}
+```
+
+详情参看[See Section 7.8, “Spring Validation”](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/validation.html#validation-beanvalidation) and [Chapter 7, Validation, Data Binding, and Type Conversion](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/validation.html)
+
+<h5 id='mvc-ann-sessionattrib'>使用@SessionAttribute在HTTP会话中存储model attribute</h5>
+类注解`@SessionAttributes`声明用于指定handler的session attributes。一般情况下，声明用于存储在session中的model attribute的name或type，用于在接下来的request中传递数据。
+
+看样例，指定一个model attribute name:
+```java
+@Controller
+@RequestMapping("/editPet.do")
+@SessionAttributes("pet")
+public class EditPetForm {
+    // ...
+}
+```
+
+<h5 id='mvc-ann-redirect-attributes'>指定redirect和flash属性</h5>
+默认情况下，在redirect URL中，所有的model attribute都应该作为URI template variable模板变量暴露。上下的属性，包括原始类型、原始类型的集合/数组自动拼接到query 参数中。 
+
+在controller中，也许会包含额外的attribute，主要是用于渲染的目的（比如下拉菜单）。在redirect重定向场景中，为了精准控制，可通过在`@RequestMapping`方法中声明一个`RedirectAttribute`类型的参数，使用该参数在`RedirectView`中增加attribute。此时，若controller方法发生redirect重定向，`RedirectAttributes`的内容就会被使用，否则，将使用`Model`的内容。
+
+`RequestMappingHandlerAdapter `提供一个标志位`"ignoreDefaultModelOnRedirect"`，表示默认的`Model`内容在controller 方法redirect重定向时不会被使用。同时，controller方法应该声明一个`RedirectAttributes`类型的attribute，否则，将没有attribute传递给`RedirecView`。MVC xml配置和MVC Java config中，该值默认都是`false`，这是为了向后兼容。当然了，新的应用中还是推荐设置为`true`。
+
+`RedirectAttributes `接口也可用于flash attribute。不像其他redirect属性那样，拼接到redirect URL后，flash attribute会保存在HTTP session中（因此无需再URL中出现）。当flash attribute从session中移除时候，controller的model模型将为目标redirect URL自动接收这些flash attribute。详情参看 [Section 17.6, “Using flash attributes” ](#mvc-flash-attributes)
+
+<h5 id='mvc-ann-form-urlencoded-data'>使用"application/x-www-form-urlencoded"数据</h5>
+之前讲解了`@ModelAttribute`，用于支持从浏览器客户端发出表单提交request请求。它也支持非浏览器提交的request。当使用HTTP PUT request请求，情况则大不相同。浏览器可通过HTTP GET或者HTTP POST提交表单数据。非浏览器客户端则可通过HTTP PUT提交表单数据。因为Servlet规范要求`ServletRequest.getParameter*()`系列方法只能通过HTTP POST访问表单数据，而不是HTTP PUT，呃，处理起来有点困难。
+
+为了支持HTTP PUT和PATCH request请求，`spring-web`模块提供了`HttpPutFormContentFilter`过滤器，在`web.xml`中配置
+```xml
+<filter>
+    <filter-name>httpPutFormFilter</filter-name>
+    <filter-class>org.springframework.web.filter.HttpPutFormContentFilter</filter-class>
+</filter>
+
+<filter-mapping>
+    <filter-name>httpPutFormFilter</filter-name>
+    <servlet-name>dispatcherServlet</servlet-name>
+</filter-mapping>
+
+<servlet>
+    <servlet-name>dispatcherServlet</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+</servlet>
+```
+
+The above filter intercepts HTTP PUT and PATCH requests with content type application/x-www-form-urlencoded, reads the form data from the body of the request, and wraps the ServletRequest in order to make the form data available through the ServletRequest.getParameter*() family of methods.
