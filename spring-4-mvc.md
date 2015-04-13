@@ -910,4 +910,82 @@ public class EditPetForm {
 </servlet>
 ```
 
-The above filter intercepts HTTP PUT and PATCH requests with content type application/x-www-form-urlencoded, reads the form data from the body of the request, and wraps the ServletRequest in order to make the form data available through the ServletRequest.getParameter*() family of methods.
+上面的filter拦截了内容类型为`application/x-form-urlencoded`的HTTP/PUT/PATCH的request，从request body读取form数据，并且封装`ServletRequest`，这样可以通过`ServletRequest.getParameter*()`系列方法解析form数据。
+
+[http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 由于`HttpPutFormContentFilter `消费了request body，所以不应该在给PUT和PATCH的URL配置处理器，比如依赖消费媒体类型`application/x-www-form-urlencoded`配置的转换器。它包括了`@RequestBody MultiValueMap<String, String> and HttpEntity<MultiValueMap<String, String>>`
+
+<h5 id='mvc-ann-cookievalue'>使用@CookieValue注解映射cookie值</h5>
+`@CookieValue`注解作用是将HTTP cookie值绑定到方法参数上。
+假设，有一HTTP request携带了以下cookie
+JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84
+如何使用该注解绑定cookie值呢:
+```java
+@RequestMapping("/displayHeaderInfo.do")
+public void displayHeaderInfo(@CookieValue("JSESSIONID") String cookie) {
+    //...
+}
+```
+若方法参数类型不是`String`，则会自动进行类型转换。 See[ the section called “Method Parameters And Type Conversion”.
+](#mvc-ann-typeconversion)
+
+在Servlet和Portlet环境中的注解handler处理器方法上支持此注解
+
+<h5 id='mvc-ann-requestheader'>@RequestHeader注解绑定header属性</h5>
+`@RequestHeader`注解作用是将request header绑定到方法参数上。
+
+现在有一个request header:
+Host                    localhost:8080
+Accept                  text/html,application/xhtml+xml,application/xml;q=0.9
+Accept-Language         fr,en-gb;q=0.7,en;q=0.3
+Accept-Encoding         gzip,deflate
+Accept-Charset          ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Keep-Alive              300
+
+接下来看看如何获取`Accept-Encoding`和`Keep-Alive` headers:
+```java
+@RequestMapping("/displayHeaderInfo.do")
+public void displayHeaderInfo(@RequestHeader("Accept-Encoding") String encoding,
+        @RequestHeader("Keep-Alive") long keepAlive) {
+    //...
+}
+```
+若方法参数类型不是`String`，则会自动进行类型转换。 See[ the section called “Method Parameters And Type Conversion”.
+](#mvc-ann-typeconversion)
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+>Spring MVC 类型转换支持逗号分隔的字串转为array/List。 比如使用`@RequestHeader("Accept")`注解的方法参数不仅可以`String`类型，也可以是`String[]`或者`List<String`
+
+
+在Servlet和Portlet环境中的注解handler处理器方法上支持此注解
+
+<h5 id='mvc-ann-typeconversion'>方法参数和类型转换</h5>
+从request parameters参数,path variable路径变量，request header头，cookie value饼干值中解析出的字串值，也许需要类型转换，转换相对应的绑定的方法参数的类型、或者是域类型(比如，将request parameter构造为`@ModelAttribute`)。如果需要绑定的对象类型不是	`String`，Spring会自动进行类型转换。支持所有的简单类型的转换，比如int,long,Date等等。可以通过`WebDataBinder`更进一步的自定义转换过程(see the [section called “Customizing WebDataBinder initialization](#mvc-ann-webdatabinder)”)，或者是通过使用`FormattingConversionService `注册`Formatters`（详情参看"[Spring Field Formatting](#format)"）
+
+<h5 id='mvc-ann-webdatabinder'>自定义WebDataBinder 初始化</h5>
+使用Spring的`WebDataBinder`自定义request parameter参数绑定到PropertyEditors,可以在controller内方法上使用`@InitBinder`注解，或者是在`@ControllerAdvice`注解的类上使用`@InitBinder`注解方法,或者是提供自定义`WebBindingInitializer`。详情参看 [“Advising controllers with the `@ControllerAdvice` annotation”](#mvc-ann-controller-advice) section for more details.
+
+<h5 id='mvc-ann-initbinder'>使用@InitBinder自定义数据绑定</h5>
+使用`@InitBinder`注解controller的方法是一种在controller类内直接配置数据绑定的方式。`@InitBinder`注解的方法会初始化`WebDataBinder`，该`WebDataBinder`用于数据绑定，将从request解析出来的值填充到相应的绑定对象上。这种init-binder方法不支持command/form 命令/表单对象和相应的验证结果对象，其他的`@Requestmapping`方法的所有的参数都支持。init-binder方法一定不能有返回值，即void方法。通常，参数包括`WebDataBinder`，该参数可以组合`WebRequest`或者`Java.util.Locale`，允许注册context-specific editors上下文编辑器。
+
+下例中使用`@InitBinder`为所有的`Java.util.Date`表单属性配置了`CustomeDateEditor`:
+```java
+@Controller
+public class MyFormController {
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
+
+    // ...
+
+}
+```
+
+<h5 id='mvc-ann-webbindinginitializer'>配置自定义WebBindingInitializer</h5>
+为了更具体的控制数据绑定初始化，可以提供一个自定义的`WebBindingInitializer`接口实现，该实现设置给一个自定义bean`AnnotationMethodHandlerAdapter`，覆盖其默认配置。
+
+下面的样例摘子PetClinic 应用，讲解如何使用自定义的`WebBindingInitializer`接口实现做配置，
+The following example from the PetClinic application shows a configuration using a custom implementation of the WebBindingInitializer interface, org.springframework.samples.petclinic.web.ClinicBindingInitializer, which configures PropertyEditors required by several of the PetClinic controllers.
