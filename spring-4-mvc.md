@@ -987,5 +987,60 @@ public class MyFormController {
 <h5 id='mvc-ann-webbindinginitializer'>配置自定义WebBindingInitializer</h5>
 为了更具体的控制数据绑定初始化，可以提供一个自定义的`WebBindingInitializer`接口实现，该实现设置给一个自定义bean`AnnotationMethodHandlerAdapter`，覆盖其默认配置。
 
-下面的样例摘子PetClinic 应用，讲解如何使用自定义的`WebBindingInitializer`接口实现做配置，
-The following example from the PetClinic application shows a configuration using a custom implementation of the WebBindingInitializer interface, org.springframework.samples.petclinic.web.ClinicBindingInitializer, which configures PropertyEditors required by several of the PetClinic controllers.
+下面的样例摘子PetClinic 应用，讲解如何使用自定义的`WebBindingInitializer`接口实现做配置，`org.springframework.samples.petclinic.web.ClinicBindingInitializer`类配置了一些PetClinic controller需要使用的PropertyEditors
+
+```xml
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+    <property name="cacheSeconds" value="0" />
+    <property name="webBindingInitializer">
+        <bean class="org.springframework.samples.petclinic.web.ClinicBindingInitializer" />
+    </property>
+</bean>
+```
+
+`@InitBinder`方法也可以在`@ControllerAdvice`注解的类中定义，在这种情况下，`@InitBinder`会应用于所有匹配上的controller。这是`WebBindingInitializer`的另一个应用场景。详情参看 [the section called “Advising controllers with the @ControllerAdvice annotation” section for more details](#mvc-ann-controller-advice).
+
+<h5 id='mvc-ann-lastmodified'>支持Response Header Last-Modified以实现缓存</h5>
+`@RequestMapping`也许是想要支持HTTP Request的头`Last-Modified`，因为在Servlet API中定义了`getLastModified`方法，以便缓存内容。它会计算request的latModified最后编辑的`long`值，与Request Header属性`If-Modified-Since`做对比，如果为发生变化，则会返回304。参看代码:
+```java
+@RequestMapping
+public String myHandleMethod(WebRequest webRequest, Model model) {
+
+    long lastModified = // 1. 应用指定的最后编辑时间
+
+    if (request.checkNotModified(lastModified)) {
+        // 2. 如果在request在有效期内，则直接返回，无需处理
+        return null;
+    }
+
+    // 3. 显然已经过期了，此时执行真正的业务逻辑，为视图准备数据
+    model.addAttribute(...);
+    return "myViewName";
+}
+
+```
+
+有两点要注意:`request.checkNotModified(lastModified)`和返回`null`。`request.checkNotModified(lastModified)`在返回`true`之前将response状态设置为304。后者，返回`null`值，配合前者，会使Spring MVC不对request做进一步处理。
+
+<h5 id='mvc-ann-controller-advice'>使用`@ControllerAdvice`注解增强controllers</h5>
+`@ControllerAdvice`注解允许实现类通过classpath扫描方式自动探测。当使用MVC命名空间（即XML配置）或者MVC Java config时候，它会自动开启。
+`@ControllerAdvice`注解的类，能包含`@ExceptionHandler, @InitBinder, and @ModelAttribute`注解的方法，这些方法将会应用于所有匹配上的controller.
+
+`@ControllerAdvic`也可以指定声明应用范围
+```java
+// 应用于所有使用了 @RestController注解的controller
+@ControllerAdvice(annotations = RestController.class)
+public class AnnotationAdvice {}
+
+//应用于指定包内的所有controller
+@ControllerAdvice("org.example.controllers")
+public class BasePackageAdvice {}
+
+// 应用于指定的类
+@ControllerAdvice(assignableTypes = {ControllerInterface.class, AbstractController.class})
+public class AssignableTypesAdvice {}
+```
+更多详情请参看[java doc文档](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/ControllerAdvice.html)
+
+<h5 id='mvc-ann-jsonview'>Jackson 序列化视图的支持</h5>
+It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.
