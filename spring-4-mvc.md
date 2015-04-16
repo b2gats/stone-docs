@@ -1043,4 +1043,78 @@ public class AssignableTypesAdvice {}
 更多详情请参看[java doc文档](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/web/bind/annotation/ControllerAdvice.html)
 
 <h5 id='mvc-ann-jsonview'>Jackson 序列化视图的支持</h5>
-It can sometimes be useful to filter contextually the object that will be serialized to the HTTP response body. In order to provide such capability, Spring MVC has built-in support for rendering with Jackson’s Serialization Views.
+有时需要将对象序列化成HTTP response body。Spring支持此功能，内置了JSON视图[Jackson's Serialization Views](http://wiki.fasterxml.com/JacksonJsonViews)就是干这个用的。
+
+JSON视图需要在controler的方法上增加`@ResponseBody`注解或者令该方法返回`ResponseEntity`类型值，`@JsonView`用法非常简单，只需设置该注解的一个参数用于指定view class或者view 接口即可。
+```java
+@RestController
+public class UserController {
+
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    @JsonView(User.WithoutPasswordView.class)
+    public User getUser() {
+        return new User("eric", "7!jd#h23");
+    }
+}
+
+public class User {
+
+    public interface WithoutPasswordView {};
+    public interface WithPasswordView extends WithoutPasswordView {};
+
+    private String username;
+    private String password;
+
+    public User() {
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    @JsonView(WithoutPasswordView.class)
+    public String getUsername() {
+        return this.username;
+    }
+
+    @JsonView(WithPasswordView.class)
+    public String getPassword() {
+        return this.password;
+    }
+}
+```
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 虽然`@JsonView`可以指定多个类，但是在controller方法上的`@JsonView`只支持指定一个类。要是非得指定多个类，可通过组合接口实现。
+
+若方法只能返回视图解决方案？？，则只需在model中的指定视图序列化类:
+```java
+@Controller
+public class UserController extends AbstractController {
+
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    public String getUser(Model model) {
+        model.addAttribute("user", new User("eric", "7!jd#h23"));
+        model.addAttribute(JsonView.class.getName(), User.WithoutPasswordView.class);
+        return "userView";
+    }
+}
+```
+
+<h5 id='mvc-ann-jsonp'>Jackson JSONP的支持</h5>
+为了让`ResponseBody`和`ResponseEntity`方法支持[JSONP](http://en.wikipedia.org/wiki/JSONP)，需要声明一个`@ControllerAdvice`bean，该bean继承自`AbstractJsonpResponseBodyAdvice`，需要在构造参数中指明JSONP query 参数名:
+```java
+@ControllerAdvice
+public class JsonpAdvice extends AbstractJsonpResponseBodyAdvice {
+
+    public JsonpAdvice() {
+        super("callback");
+    }
+}
+```
+
+若是依赖视图解决方案，当request query参数名中含有`jsonp`或者`callback`参数时，JSONP将自动开启， query参数名也可以通过`jsonpParameterNames`属性自定义。
+
+<h4 id='mvc-ann-async'>异步请求处理</h4>
+Spring MVC 3.2 introduced Servlet 3 based asynchronous request processing. Instead of returning a value, as usual, a controller method can now return a java.util.concurrent.Callable and produce the return value from a separate thread. Meanwhile the main Servlet container thread is released and allowed to process other requests. Spring MVC invokes the Callable in a separate thread with the help of a TaskExecutor and when the Callable returns, the request is dispatched back to the Servlet container to resume processing with the value returned by the Callable. Here is an example controller method:
