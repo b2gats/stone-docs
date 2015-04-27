@@ -1117,4 +1117,138 @@ public class JsonpAdvice extends AbstractJsonpResponseBodyAdvice {
 若是依赖视图解决方案，当request query参数名中含有`jsonp`或者`callback`参数时，JSONP将自动开启， query参数名也可以通过`jsonpParameterNames`属性自定义。
 
 <h4 id='mvc-ann-async'>异步请求处理</h4>
-Spring MVC 3.2 introduced Servlet 3 based asynchronous request processing. Instead of returning a value, as usual, a controller method can now return a java.util.concurrent.Callable and produce the return value from a separate thread. Meanwhile the main Servlet container thread is released and allowed to process other requests. Spring MVC invokes the Callable in a separate thread with the help of a TaskExecutor and when the Callable returns, the request is dispatched back to the Servlet container to resume processing with the value returned by the Callable. Here is an example controller method:
+Spring MVC 3.2增加了基于Servlet 3的异步请求处理。可启动单独线程，并返回`java.util.concurrent.Callable`类型值，此时，Servlet容器主线程可以处理其他request。Spring MVC在单独的线程内使用`TaskExecutor`调用`Callable`，当`Callable`返回时，Servlet容器将该值返回给相应的request并恢复该request进行处理。看样例:
+```java
+@RequestMapping(method=RequestMethod.POST)
+public Callable<String> processUpload(final MultipartFile file) {
+
+    return new Callable<String>() {
+        public String call() throws Exception {
+            // ...
+            return "someView";
+        }
+    };
+
+}
+```
+//TODO，查看Spring MVC主Servlet容器的线程处理方式
+
+还有一个选择，使方法返回`DeferredResult`实例。在这种情况下，return的值将会产生一个单独的线程。当然了，线程并不能被Spring MVC感知。比如，返回值将会产生一个
+外部事件，像JMS message，scheduled task等等。看样例代码:
+```java
+@RequestMapping("/quotes")
+@ResponseBody
+public DeferredResult<String> quotes() {
+    DeferredResult<String> deferredResult = new DeferredResult<String>();
+    // Save the deferredResult in in-memory queue ...
+    return deferredResult;
+}
+
+// In some other thread...
+deferredResult.setResult(data);
+```
+
+当然了，如果没有Servlet 3 异步处理相关支持，理解这些有些困难。看下面的知识点，有助于立即以上功能:
+* `ServletRequest`通过`request.startAsync()`方法切换为异步模式。如此做的主要影响，就是Servlet和Filters，退出的情况下保持response open，允许其他线程完成处理。
+* 调用`request.startAsync() `返回一个`AsyncContext`，该实例可以进一步控制异步处理。比如，他能为方法提供`dispatch`方法，应用线程中调用该方法则会将request dispatch分发回Servlet容器。异步dispatch 和 forward差不多，区别就是异步是应用线程分发给一个Servlet容器线程，forward是同一个容器线程中同步分发。
+* `ServletRequest`提供了当前`DispatcherType`的访问，`DispatcherType`能用来区别在request处理线程初始化时和处理异步dispatch时候，正在处理request的`Servlet`还是`Filter`
+
+下面讲解使用`Callable`异步request处理的事件次序：（1）Controller返回一个Callabel，(2)Spring MVC启动启动异步处理线程，并给`TaskExecutor`提交一个`Callable` (3)`DispatcherServlet`和所有的Filter退出request处理线程，但是response保持打开，(4)`Callable`产生一个result，Spring MVC分发request返回给Servlet容器，(5)`DispatcherServlet`再次调用并处理由`Callable`产生的异步结果。(2), (3), and (4)的执行速度依赖于当前的线程。
+
+使用`DeferredResult `进行异步request处理的事件的次序上上面的次序差不多。不过有以下不同之处：(1)Controller返回`DeferredResult `并将其保存在可访问的内存队列中。（2）Spring MVC开始异步处理。（3）`DispatcherServlet `和所有配置的Filter完成request处理线程但是response保持打开，（4）应用从一些线程中设置`DiferredResult`，Spring MVC分派request回Servlet 容器(5)`DispatcherServlet`再次调用并处理异步产生的result。
+
+本章讲解了异步request处理的主要机制，如何使用和为何使用不在本章讲解范围。详情参看[这些博客](https://spring.io/blog/2012/05/07/spring-mvc-3-2-preview-introducing-servlet-3-async-support)
+
+<h5 id='mvc-ann-async-exceptions'>异步处理的异常处理</h5>
+如果controller方法中返回`Callable`时抛出异常，将会发生什么？效果与任意controller方法抛异常差不多。交由同controller中`@ExceptionHandler`注解方法处理，或者是配置的`HandlerExceptionResolver`实例处理
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 在服务器端，`Callable`抛异常时，SPring MVC依旧会将异常分派给Servlet 容器处理。唯一不同的地方就是执行`Callable `的结果是一个`Exception`，该异常必须使用配置好的`HandlerExceptionResolver`实例处理。
+
+当使用`DeferredResult`时，还有一个选择，通过调用`setErrorResult(Object)`并且提供`Exception`或者其他任意对象作为返回结果。如果返回结果是一个`Exception`，他将会使用同controller中注解`@ExceptionHandler`的方法处理，或者是配置的`HandlerExceptionResolver`实例处理。
+
+<h5 id='mvc-ann-async-interception'>异步request 拦截</h5>
+一个已存在的`HandlerInterceptor `能实现`AsyncHandlerInterceptor`，该接口提供了额外的方法`afterConcurrentHandlingStarted`。在异步处理开始之后和request处理线程初始化完毕之前调用。详细信息参看`AsyncHandlerInterceptor `javadoc文档
+
+Further options for async request lifecycle callbacks are provided directly on DeferredResult, which has the methods onTimeout(Runnable) and onCompletion(Runnable). Those are called when the async request is about to time out or has completed respectively. The timeout event can be handled by setting the DeferredResult to some value. The completion callback however is final and the result can no longer be set.
+
+Similar callbacks are also available with a Callable. However, you will need to wrap the Callable in an instance of WebAsyncTask and then use that to register the timeout and completion callbacks. Just like with DeferredResult, the timeout event can be handled and a value can be returned while the completion event is final.
+
+You can also register a CallableProcessingInterceptor or a DeferredResultProcessingInterceptor globally through the MVC Java config or the MVC namespace. Those interceptors provide a full set of callbacks and apply every time a Callable or a DeferredResult is used.
+
+<h5 id='mvc-ann-async-configuration'>Configuration for Async Request Processing</h5>
+
+<h5 id='mvc-ann-async-configuration-servlet3'>Servlet 3 Async Config</h5>
+
+To use Servlet 3 async request processing, you need to update web.xml to version 3.0:
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+
+    ...
+
+</web-app>
+The DispatcherServlet and any Filter configuration need to have the <async-supported>true</async-supported> sub-element. Additionally, any Filter that also needs to get involved in async dispatches should also be configured to support the ASYNC dispatcher type. Note that it is safe to enable the ASYNC dispatcher type for all filters provided with the Spring Framework since they will not get involved in async dispatches unless needed.
+
+[Warning]
+Note that for some Filters it is absolutely critical to ensure they are mapped to be invoked during asynchronous dispatches. For example if a filter such as the OpenEntityManagerInViewFilter is responsible for releasing database connection resources and must be invoked at the end of an async request.
+Below is an example of a propertly configured filter:
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+            http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+
+    <filter>
+        <filter-name>Spring OpenEntityManagerInViewFilter</filter-name>
+        <filter-class>org.springframework.~.OpenEntityManagerInViewFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>Spring OpenEntityManagerInViewFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ASYNC</dispatcher>
+    </filter-mapping>
+
+</web-app>
+
+If using Servlet 3, Java based configuration, e.g. via WebApplicationInitializer, you’ll also need to set the "asyncSupported" flag as well as the ASYNC dispatcher type just like with web.xml. To simplify all this configuration, consider extending AbstractDispatcherServletInitializer or AbstractAnnotationConfigDispatcherServletInitializer, which automatically set those options and make it very easy to register Filter instances.
+
+<h5 id='mvc-ann-async-configuration-spring-mvc'>Spring MVC Async Config</h5>
+
+The MVC Java config and the MVC namespace both provide options for configuring async request processing. WebMvcConfigurer has the method configureAsyncSupport while <mvc:annotation-driven> has an <async-support> sub-element.
+
+Those allow you to configure the default timeout value to use for async requests, which if not set depends on the underlying Servlet container (e.g. 10 seconds on Tomcat). You can also configure an AsyncTaskExecutor to use for executing Callable instances returned from controller methods. It is highly recommended to configure this property since by default Spring MVC uses SimpleAsyncTaskExecutor. The MVC Java config and the MVC namespace also allow you to register CallableProcessingInterceptor and DeferredResultProcessingInterceptor instances.
+
+If you need to override the default timeout value for a specific DeferredResult, you can do so by using the appropriate class constructor. Similarly, for a Callable, you can wrap it in a WebAsyncTask and use the appropriate class constructor to customize the timeout value. The class constructor of WebAsyncTask also allows providing an AsyncTaskExecutor.
+
+<h4 id='mvc-ann-tests'>测试Controllers</h5>
+`Spring-test`模块为注解Controller提供了一流的支持，[详情参看section 11.3.6,"Spring MVC Test Framework"](#spring-mvc-test-framework)
+
+<h3 id='mvc-handlermapping'>Handler mappings处理映射</h3>
+Spring老版本中，用户需要配置一个或者多个`HandlerMapping`beans，配置在应用上下文中用于分派request到合适的处理器中。使用注解controller以后，基本不用如此麻烦了，因为`RequestMappingHandlerMapping`自动查找在`@Controller`注解的bean 中的`@RequestMapping`注解。当然了，要记得，所有的`Handlermapping`类继承自`AbstractHandlerMapping`具有以下属性，可以自定义其行为：
+* `interceptors` 拦截器列表。拦截器在以下章节中讨论[Section 17.4.1, “Intercepting requests with a HandlerInterceptor”](#mvc-handlermapping-interceptor)
+* `defaultHandler`默认处理器。若没有匹配的处理器，则使用默认处理器处理
+* `order`order属性值（详情参看`org.springframework.core.Ordered`接口），Spring将上下文中可用的处理器handler mapping排序，使用排序次序第一的处理器
+* `alwaysUseFullPath`。若是`true`，Spring 在当前Servlet上下文中使用全路径查找合适的handler处理器。如果`false`（默认），则使用当前的Servlet mapping的相对路径。比如，如果Servlet做了映射`/testing/*`和设置了`alwaysUseFullPath`属性为`true`，将会使用`/test/viewPage.html`，如果该属性设置为`false`，则会使用`/viewPage.html`
+* `urlDecode`默认是`true`，Spring 2.5以后。如果你需要比较编码后的路径，则设置其为`false`。然而，`HttpServletRequest`总是会暴露解码后的Servlet 路径。注意，编码后的路径将不能匹配Servlet路径
+
+下面样例展示了如何配置拦截器:
+```xml
+<beans>
+    <bean id="handlerMapping" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <bean class="example.MyInterceptor"/>
+        </property>
+    </bean>
+<beans>
+```
+
+<h5 id='mvc-handlermapping-interceptor'>使用HandlerInterceptor拦截request</h5>
+Spring’s handler mapping mechanism includes handler interceptors, which are useful when you want to apply specific functionality to certain requests, for example, checking for a principal.
