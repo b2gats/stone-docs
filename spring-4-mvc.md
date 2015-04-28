@@ -1228,7 +1228,7 @@ Those allow you to configure the default timeout value to use for async requests
 
 If you need to override the default timeout value for a specific DeferredResult, you can do so by using the appropriate class constructor. Similarly, for a Callable, you can wrap it in a WebAsyncTask and use the appropriate class constructor to customize the timeout value. The class constructor of WebAsyncTask also allows providing an AsyncTaskExecutor.
 
-<h4 id='mvc-ann-tests'>测试Controllers</h5>
+<h3 id='mvc-ann-tests'>测试Controllers</h3>
 `Spring-test`模块为注解Controller提供了一流的支持，[详情参看section 11.3.6,"Spring MVC Test Framework"](#spring-mvc-test-framework)
 
 <h3 id='mvc-handlermapping'>Handler mappings处理映射</h3>
@@ -1240,6 +1240,7 @@ Spring老版本中，用户需要配置一个或者多个`HandlerMapping`beans�
 * `urlDecode`默认是`true`，Spring 2.5以后。如果你需要比较编码后的路径，则设置其为`false`。然而，`HttpServletRequest`总是会暴露解码后的Servlet 路径。注意，编码后的路径将不能匹配Servlet路径
 
 下面样例展示了如何配置拦截器:
+
 ```xml
 <beans>
     <bean id="handlerMapping" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
@@ -1251,7 +1252,7 @@ Spring老版本中，用户需要配置一个或者多个`HandlerMapping`beans�
 ```
 
 <h5 id='mvc-handlermapping-interceptor'>使用HandlerInterceptor拦截request</h5>
-Spring’s handler mapping mechanism includes handler interceptors, which are useful when you want to apply specific functionality to certain requests, for example, checking for a principal.
+
 Spring的处理器映射机制包含拦截器处理,拦截器可以针对某些request做特殊处理，比如校验。
 
 映射处理器中的拦截器得实现`org.springframework.web.servlet`包中的`HandlerIntercepter`接口。该接口定义了3个方法：`preHandle(...)`方法在相应的处理器执行之前调用。`postHandler(..)`在handler执行之后调用。`afterCompletion(..)`方法在request完成之后执行。这三个方法应该为所有类型的预处理和后处理提供了足够的弹性。
@@ -1259,6 +1260,7 @@ Spring的处理器映射机制包含拦截器处理,拦截器可以针对某些r
 `preHandle(..)`方法返回一个boolean值。该值将决定中断或者继续request处理。·`true`时，handler执行链继续；`false`时，`DispatcherServlet`将认为拦截器本身已经处理好了request(比如，渲染合适的视图),不会继续执行其他拦截器和handler。
 
 使用`intercepters`属性配置拦截器，将会应用于所有继承于`AbstractHandlerMapping`的`HandlerMapping`。看样例:
+
 ```xml
 <beans>
     <bean id="handlerMapping"
@@ -1277,6 +1279,7 @@ Spring的处理器映射机制包含拦截器处理,拦截器可以针对某些r
     </bean>
 <beans>
 ```
+
 ```java
 package samples;
 
