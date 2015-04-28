@@ -1252,3 +1252,90 @@ Spring老版本中，用户需要配置一个或者多个`HandlerMapping`beans�
 
 <h5 id='mvc-handlermapping-interceptor'>使用HandlerInterceptor拦截request</h5>
 Spring’s handler mapping mechanism includes handler interceptors, which are useful when you want to apply specific functionality to certain requests, for example, checking for a principal.
+Spring的处理器映射机制包含拦截器处理,拦截器可以针对某些request做特殊处理，比如校验。
+
+映射处理器中的拦截器得实现`org.springframework.web.servlet`包中的`HandlerIntercepter`接口。该接口定义了3个方法：`preHandle(...)`方法在相应的处理器执行之前调用。`postHandler(..)`在handler执行之后调用。`afterCompletion(..)`方法在request完成之后执行。这三个方法应该为所有类型的预处理和后处理提供了足够的弹性。
+
+`preHandle(..)`方法返回一个boolean值。该值将决定中断或者继续request处理。·`true`时，handler执行链继续；`false`时，`DispatcherServlet`将认为拦截器本身已经处理好了request(比如，渲染合适的视图),不会继续执行其他拦截器和handler。
+
+使用`intercepters`属性配置拦截器，将会应用于所有继承于`AbstractHandlerMapping`的`HandlerMapping`。看样例:
+```xml
+<beans>
+    <bean id="handlerMapping"
+            class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="officeHoursInterceptor"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="officeHoursInterceptor"
+            class="samples.TimeBasedAccessInterceptor">
+        <property name="openingTime" value="9"/>
+        <property name="closingTime" value="18"/>
+    </bean>
+<beans>
+```
+```java
+package samples;
+
+public class TimeBasedAccessInterceptor extends HandlerInterceptorAdapter {
+
+    private int openingTime;
+    private int closingTime;
+
+    public void setOpeningTime(int openingTime) {
+        this.openingTime = openingTime;
+    }
+
+    public void setClosingTime(int closingTime) {
+        this.closingTime = closingTime;
+    }
+
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
+            Object handler) throws Exception {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(HOUR_OF_DAY);
+        if (openingTime <= hour && hour < closingTime) {
+            return true;
+        }
+        response.sendRedirect("http://host.com/outsideOfficeHours.html");
+        return false;
+    }
+}
+```
+所有经由此映射处理的request都将被`TimeBaseAccessInterceptor`拦截。如果当前时间不是工作时间，用户奖杯重定向到一个静态页面。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+>当使用`RequestMappingHandlerMapping`时，实际的handler是一个`HandlerMethod`实例，`HandlerMethod`定义了指定的controller方法用于处理request。
+
+如你所见，Spring适配器类`HandlerIntercepttorAdapter`可以更容易的集成`HandlerInterceptor`接口
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+>上例中，配置的拦截器将会引用于所有的request，这些request使用注解的controller方法处理。如果你要使用拦截器精准拦截URL路径，可以使用MVC命名空间(xml)或者MVC Java config,或者生命`MappedInterceptor `类型的Spring bean。详情参看[Section 17.16.1, “Enabling the MVC Java Config or the MVC XML Namespace”](#mvc-config-enable).
+
+注意，`postHandle`方法并不适用于`@ResponseBody`和`ResponseEntity`方法。这种情况下`HttpMessageConverter`将会在`postHandle`方法之前对response进行写操作并提交response，这令拦截器将不能再改变response，比如，增加一个header。此时应该使用`ResponseBodyAdvice`接口实现类，或者将其声明为`@ControllerAdvice`bean，或者将其配置在`RequestMappingHandlerAdapter`上。
+
+<h3 id='#mvc-viewresolver'>解析视图</h3>
+所有的MVC框架都有视图处理,Spring 也不例外，Spring视图技术可以在浏览器中渲染一个模型而不捆绑任何指定的视图技术。开箱即用，Spring支持JSPs,Velocity和XSLT，详情参看[Cahpter18,View technologies](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/view.html)，该章讨论了如何继承和使用大量不同的视图技术。 
+
+Spring处理视图，有两个核心接口`ViewResolver`和`View`。`ViewResolver `提供了视图逻辑名和物理名之间的映射。`View`接口主要用于request的准备工作和使用多种视图技术处理request。
+
+<h4 id='mvc-viewresolver-resolver'>使用ViewResolver接口解析视图</h4>
+上一章[Section 17.3, “Implementing Controllers”](#mvc-controller)讨论的，所有的controller中handler方法必须解析一个逻辑试图名,要么指定(返回`String`,`View`或者`ModelAndView`)，或者使用约定俗成。Spring中的Views通过一个逻辑视图名定位，通过视图解析器解析.Spring 提供了大量的视图解析器。看清单:
+
+**Table 17.3. View resolvers**
+
+解析器 | 描述
+-----  | -----
+`AbstractCachingViewResolver` | 缓存views。通常，views在使用之前需要提前准备；继承此解析器将获得缓存
+`XmlViewResolver` | `ViewResolver`的实现，接受一个xml配置，xml的DTD和Spring的bean的相同。默认配置文件是`/WEB-INF/views.xml`
+`ResourceBundleViewResolver` | `ViewResolver`的实现，在`ResourceBundle`中使用bean定义，通过绑定base name指定。通常在properties文件中定义bundle，位于classpath中。默认的文件是`views.properties`。
+`UrlBasedViewResolver` |  直接将逻辑名转换为URL，无需明确映射定义。如果逻辑视图名与视图资源相同，则无需mapping映射。
+`InternalResourceViewResolver` | `UrlBasedViewResolver `的子类，支持`InternalResourceView`（说白了，就是Servlets和JSPs）和`JstlView`的子类和`TilesView`的子类。通过该解析器的`setViewClass(..)`方法为所有的视图指定试图类。详情参看`UrlBasedViewResolver`的javadocs
+`VelocityViewResolver / FreeMarkerViewResolver` | `UrlBasedViewResolver `的子类，支持`VelocityView `（就是Velocity templates）或者`FreemarkerView`，也分别支持他们的子类
+`ContentNegotiatingViewResolver` | 基于request额文件名或者`Accept`header解析视图。[详情参看See Section 17.5.4, “ContentNegotiatingViewResolver”.](#mvc-multiple-representations)
+
+
+As an example, with JSP as a view technology, you can use the UrlBasedViewResolver. This view resolver translates a view name to a URL and hands the request over to the RequestDispatcher to render the view.
