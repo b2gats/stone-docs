@@ -1342,3 +1342,84 @@ Spring处理视图，有两个核心接口`ViewResolver`和`View`。`ViewResolve
 
 
 As an example, with JSP as a view technology, you can use the UrlBasedViewResolver. This view resolver translates a view name to a URL and hands the request over to the RequestDispatcher to render the view.
+
+比如，使用JSP这种视图技术时，可以使用`UrlBasedViewResolver`，视图解析器将视图名转换为一个URL并将request传给RequestDispatcher 用来渲染视图。
+```xml
+<bean id="viewResolver"
+        class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+</bean>
+```
+
+如果返回字串`test`作为逻辑视图名，那么视图解析器会将request携带跳转到`/WEB-INF/jsp/test.jsp`，跳转过程中经过`RequestDispatcher`
+
+如果组合了不同的视图技术，则可以使用`ResourceBundleViewResolver`:
+```xml
+<bean id="viewResolver"
+        class="org.springframework.web.servlet.view.ResourceBundleViewResolver">
+    <property name="basename" value="views"/>
+    <property name="defaultParentView" value="parentView"/>
+</bean>
+```
+
+`ResourceBundleViewResolver `通过basename 检查`ResouceBundle`，会尝试解析每一个视图，使用propertiy值`[viewname].(class)`作为视图类，property值`[viewname].url`作为视图url。下一张中将会讲解覆盖视图技术，那一张有讲,定衣服父视图，properties中定义的所有视图都会“继承”它。这种方式则可以指定默认视图类。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+>`AbstractCachingViewResolver `的子类缓存他们解析过的视图实例。在某些视图技术中，缓存能提高性能。可通过设置`cache`属性值为`false`关闭缓存。此外，有时必须得刷新缓存，比如Velocity模板编辑过了，使用方法`removeFromCache(String viewName,Local loc)`
+
+
+<h4 id='#mvc-viewresolver-chaining'>视图解析链</h4>
+Spring支持多视图解析器。因此可以链式使用解析器，比如，某些环境下覆盖某些视图。在应用上下文中增加一个或者多个视图解析器就构成了视图解析链,还可以设置`order`属性指定顺序,在解析链中，`order`值越大，则位置越靠后。
+
+下面栗子中，解析链由2个解析器组成，其一是`InternalResourceViewResolver`，该解析器默认是处于解析链末端，另一个是`XmlViewResolver`，用于Excel视图。`InternalResourceViewResolver`不支持Excel视图
+```xml
+<bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+</bean>
+
+<bean id="excelViewResolver" class="org.springframework.web.servlet.view.XmlViewResolver">
+    <property name="order" value="1"/>
+    <property name="location" value="/WEB-INF/views.xml"/>
+</bean>
+
+<!-- in views.xml -->
+
+<beans>
+    <bean name="report" class="org.springframework.example.ReportExcelView"/>
+</beans>
+```
+
+如果指定的视图解析器不能产生视图，Spring将会尝试上下文中其他的解析器，知道解析出一个视图位置。如果所有的计息期都不能返回视图，Spring抛出异常`ServletException`。
+
+视图解析器规范：视图解析器返回null则表明视图未找到。也有一些特殊情，解析器不会这么做，因为在某些情况下，视图解析器不能明确视图是否存在。比如，`InternalResourceViewResolver `内部使用`RequestDispatcher `，分发完才能确定JSP是否存在，但是视图解析去在分发完成之后不能再次执行。`VelocityViewResolver `也有同样的问题。预知哪些视图解析器会报告视图不存在请参看javadocs。因此，将`InternalResourceViewResolver `不放置到解析链末尾的话会造成检测不完全，因为`InternalResourceViewResolver `总是会返回一个视图。
+
+<h4 id='mvc-redirecting'>重定向</h4>
+之前提到的，Controller大多数会返回一个逻辑视图名， 由解析器使用相应的视图技术解析该逻辑视图名。比如，JSP是通过Servlet或者JSP引擎处理，这个工作是由`InternalResourceViewResolver`和`InternalResourceView`共同完成，他们通过Servlet API的`RequestDispatcher.forward(..)`方法或者`RequestDispatcher.include()`方法完成内部跳转或者包含。其他的视图技术，比如Velocity、XSLT等都是将视图直接写入到response流中。
+
+有时需要在视图渲染之前，向客户端发个HTTP重定向。比如，向cotroller发出`POST`请求数据，将response委派给了另一个controller（比如成功提交数据），此时，内部跳转forward意味着`POST`来的数据也一并发给了另一个controller,这些数据可能会与其本身所期望接收的数据相冲突。在展示数据之前执行一个重定向，还有一个原因，就是消除用户多次提交的数据。这种情况下，浏览器贤惠发起一个初始`POST`;然后，接到一个response，重定向到另一个URL；最后，浏览器在重定向中发起`GET`请求。因此，对于浏览器而言，当前页面不是POST结果页，而是`GET`结果。最终的效果是，用户不能通过刷新，重新`POST`数据。刷新时，将会得到一个`GET`结果页，而不是重新发送初始`POST`数据。
+
+<h5 id='mvc-redirecting-redirect-view'>重定向视图RedirectView</h5>
+强制重定向的方式之一，是返回`RedirectView`实例。此时，`DispatcherServlet`不会使用常规视图解析机制。因为已经指定了(重定向）视图。
+
+`RedirectView `导致`HttpServletResponse.sendRedirect()`的调用，返回客户端一个重定向。默认情况下，推荐将模型属性增加到重定向的URI模板变量中，其余的属性，比如原始类型或者是原始类型集合/数组并自动添加到query parameter中 。
+
+将原始类型数据作为query parameter，也许对于重定向的URL来说，非常有用。当然了，模型也可以包含额外的属性用于渲染视图，比如下拉菜单项，若要在重定向时不将这些额外的属性添加到URL中，可以声明`RedirectAttributes`类型的controller方法参数，`RedirectAttributes`中指定需要的属性，当Controller重定向时，会使用该参数中的指定属性，若没有该参数则会使用model中的属性。
+
+注意，request中的URI模板变量，在重定向时，可以直接使用，不需要通过`Model`或者`RedirectAttributes`明确的增加的URL中，比如:
+```java
+@RequestMapping(value = "/files/{path}", method = RequestMethod.POST)
+public String upload(...) {
+    // ...
+    return "redirect:files/{path}";
+}
+```
+
+如果你使用`RedirectView `重定向到本conroller中，推荐将重定向URL注入到controller中，这样让重定向和视图名在一起，而不是硬编码到controller中，下一章详细讨论。 
+
+<h4 id='mvc-redirecting-redirect-prefix'>重定向前缀redirect:</h5>
+While the use of RedirectView works fine, if the controller itself creates the RedirectView, there is no avoiding the fact that the controller is aware that a redirection is happening. This is really suboptimal and couples things too tightly. The controller should not really care about how the response gets handled. In general it should operate only in terms of view names that have been injected int
+
