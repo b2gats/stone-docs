@@ -1420,6 +1420,105 @@ public String upload(...) {
 
 如果你使用`RedirectView `重定向到本conroller中，推荐将重定向URL注入到controller中，这样让重定向和视图名在一起，而不是硬编码到controller中，下一章详细讨论。 
 
-<h4 id='mvc-redirecting-redirect-prefix'>重定向前缀redirect:</h5>
-While the use of RedirectView works fine, if the controller itself creates the RedirectView, there is no avoiding the fact that the controller is aware that a redirection is happening. This is really suboptimal and couples things too tightly. The controller should not really care about how the response gets handled. In general it should operate only in terms of view names that have been injected int
+<h5 id='mvc-redirecting-redirect-prefix'>重定向前缀redirect:</h5>
+While the use of RedirectView works fine, if the controller itself creates the RedirectView, there is no avoiding the fact that the controller is aware that a redirection is happening. This is really suboptimal and couples things too tightly. The controller should not really care about how the response gets handled. In general it should operate only in terms of view names that have been injected it。
 
+使用`RedidrectView`造成紧耦合，controller最好是不知道响应如何处理。总之，controller应该进处理注入的逻辑视图名。 
+
+`redirect:`前缀就可以完成解耦工作。若返回的视图名包含前缀`redirect:`，`UrlBasedViewResolver`会解析出，此处需要重定向。前缀冒号后面的部分将会作为重定向URL。
+
+前缀重定向和使用`RedirectView`效果是一样的，但是controller只需关注逻辑视图名。`redirect:/maapp/some/resource`返回的是当前Servlet context 的相对路径，`redirect:http://myhost.com/some/arbitray/path`将会重定向到一个绝对路径。
+
+<h5 id='mvc-redirecting-forward-prefix'>forward:前缀</h5>
+Spring MVC也支持`forward:`前缀视图名,它最终由`UrlBaseViewResolver`及其子类解析。它会根据冒号后面的部分的URL创建`InternalResourceView `（最终会运行`RequestDispatcher.forward()`）视图。因此，对于`InternalResourceViewResolver`和`InternalResourceView`(比如JSP)来说，他没什么用处。若是使用其他视图技术时，但是需要强制跳转到Servlet/JSP引擎处理的情况下，就是有用的了。（注意，可以用视图链替代此种方案）
+
+如果视图名含有`forward:`前缀，Spring MVC将不会再处理response的过程中做任何特殊处理。*译注，大概意思就是spring 默认就是使用forward解析视图的，由此可见forward前缀基本就是没啥用了*
+
+
+<h4 id='mvc-multiple-representations'>ContentNegotiatingViewResolver</h4>
+`ContentNegotiatingViewResolver`本身不会解析视图，但是可以委托给其他解析器，就像是客户端指定响应那样选择该视图。2种途径:
+* 使用不同的URI指定资源类型，通常是将文件扩展名附加到URI中，比如，`http://www.example.com/users/fred.pdf`将会请求PDF的响应，`http://www.example.com/users/fred.xml`请求XML的响应
+* 使用相同的URI和`Accept`HTTP request头请求不同的资源类型，支持的媒体类型参看[media types](http://en.wikipedia.org/wiki/Internet_media_type)。比如，现有HTTP request，`http://www.example.com/users/fred`加`application/pdf`请求头，将会请求pdf响应，`http://www.example.com/users/fred`加`text/xml `请求头将会请求XML响应。这个策略也被称为[content negotiation](http://en.wikipedia.org/wiki/Content_negotiation)
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 使用相同的URI和`Accept` 这个策略有个问题，在浏览器内是否可使用HTML设置该头.比如，在Firefox zhong ,它被固定位为`Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8`。因此，通常使用`不同的URI指定资源类型`策略。
+
+Spring 提供了`ContentNegotiatingViewResolver `用于解析基于文件扩展名、`Accept`header的rquest。`ContentNegotiatingViewResolver `本身不会解析视图，但是可以通过设置bean的`ViewResolvers`指定于视图解析链中。
+
+`ContentNegotiatingViewResolver`通过比较request media type(又叫`content-type`)去选择一个合适的视图去处理request，request media type是该视图所关联的所有的`ViewResolvers`能处理的media type。视图列表中第一个与响应类型相容的视图将会返回给客户端。如果`ViewResolver`视图解析链不能提供想用的视图，视图将会通过`DefaultViews`中查找。后者将会忽略逻辑视图名。`Accept `header可以包含通配符，比如`text/*`,这种情况下，具有`text/xml`的Content-Type的`View`视图是相容的。
+
+接下来看看，如何配置`ContentNegotiatingViewResolver `
+```xml
+<bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+    <property name="mediaTypes">
+        <map>
+            <entry key="atom" value="application/atom+xml"/>
+            <entry key="html" value="text/html"/>
+            <entry key="json" value="application/json"/>
+        </map>
+    </property>
+    <property name="viewResolvers">
+        <list>
+            <bean class="org.springframework.web.servlet.view.BeanNameViewResolver"/>
+            <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                <property name="prefix" value="/WEB-INF/jsp/"/>
+                <property name="suffix" value=".jsp"/>
+            </bean>
+        </list>
+    </property>
+    <property name="defaultViews">
+        <list>
+            <bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+        </list>
+    </property>
+</bean>
+
+<bean id="content" class="com.foo.samples.rest.SampleContentAtomView"/>
+```
+
+`BeanNameViewResolver `基于bean的name返回视图，`InternalResourceViewResolver `处理视图到jsp page的转换（spring 如何查找并实例化一个视图详情参看"[Resolving views with the ViewResolver interface](#mvc-viewresolver-resolver)"）。`content `是一个`AbstractAtomFeedView`类型bean,返回Atom RSS种子。有关 Atom Feed representation更多信息，参看Atom Views章节。
+
+上面的配置中，如果请求以`.html`结尾，视图解析器将会查抄一个带有`text/html`媒体类型media type的视图。`InternalResourceViewResolver `提供支持`text/html`类型的视图。如果请求以`.atom`结尾，视图解析器将会查找带有`application/atom+xml`media type媒体类型的视图。如果视图名是`content`，`BeanNameViewResolver `将会返回`SampleContentAtomView`。如果request以`.json`结尾，`DefaultViews `将会返回`MappingJackson2JsonView `实例而忽略视图名。除此之外，客户端request可以不用扩展名，而是使用`Accept`header设置media-type,也会产生同样的结果。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
+> 如果ViewResolvers list没有明确配置`ContentNegotiatingViewResolver`，那么Spring MVC将会使用应用上下文中配置的ViewResolvers 
+
+下面展示，使用URI `http://localhost/content.atom`或者`http://localhost/content`加application/atom+xml的`Accept`header，来返回Atom RSS feed种子的controller 代码
+```java
+@Controller
+public class ContentController {
+
+    private List<SampleContent> contentList = new ArrayList<SampleContent>();
+
+    @RequestMapping(value="/content", method=RequestMethod.GET)
+    public ModelAndView getContent() {
+        ModelAndView mav = new ModelAndView();
+        mav.setViewName("content");
+        mav.addObject("sampleContentList", contentList);
+        return mav;
+    }
+
+}
+```
+
+<h3 id='mvc-flash-attributes'>使用flash attributes</h3>
+为了在另一个controller中使用本controller中的attributes ，得使用Flash attributes存储`attributes `。常用于redirecting 重定向，比如，* Post/Redirect/Get *模式。 Flash attributes在重定向之前临时保存（通常是在session中），在重定向之后可用，然后直接删掉。
+
+Spring MVC 的flash attributes有两个核心类`FlashMap `用于持有 flash attributes，`FlashMapManager `用于存储、检索、管理`FlashMap`实例。
+
+Flash attribute 默认是开启的，无需明确开启，它不会引起session 创建。每一个request都会有一个从上个 request传来的"input"`FlashMap`，同时作为"output"`FlashMap`传给下一个request。在Spring MVC中任何地方，通过`RequestContextUtils`类中的静态方法，`FlashMap`实例都是可以访问的。
+
+注解controller通常不直接使用`FlashMap`*译注，擦，你在不早说，早说我就不翻这一段了*，而是在`@RequestMapping`方法接受一个`RedirectAttributes `类型参数，使用该参数解决重定向场景中的falsh attribute。Flash attributes added via RedirectAttributes are automatically propagated to the "output" FlashMap. Similarly after the redirect attributes from the "input" FlashMap are automatically added to the Model of the controller serving the target URL.
+
+```text
+**Matching requests to flash attributes**
+
+The concept of flash attributes exists in many other Web frameworks and has proven to be exposed sometimes to concurrency issues. This is because by definition flash attributes are to be stored until the next request. However the very "next" request may not be the intended recipient but another asynchronous request (e.g. polling or resource requests) in which case the flash attributes are removed too early.
+
+To reduce the possibility of such issues, RedirectView automatically "stamps" FlashMap instances with the path and query parameters of the target redirect URL. In turn the default FlashMapManager matches that information to incoming requests when looking up the "input" FlashMap.
+
+This does not eliminate the possibility of a concurrency issue entirely but nevertheless reduces it greatly with information that is already available in the redirect URL. Therefore the use of flash attributes is recommended mainly for redirect scenarios .
+```
+
+<h3 id='mvc-uri-building'>构建URIs</h3>
+Spring MVC provides a mechanism for building and encoding a URI using UriComponentsBuilder and UriComponents.
