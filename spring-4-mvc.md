@@ -1522,3 +1522,333 @@ This does not eliminate the possibility of a concurrency issue entirely but neve
 
 <h3 id='mvc-uri-building'>构建URIs</h3>
 Spring MVC provides a mechanism for building and encoding a URI using UriComponentsBuilder and UriComponents.
+Spring MVC提供了两个类,`UriComponentsBuilder`和`UriComponents`，用于构建和编码。
+
+看样例如何构建URI template String
+```java
+UriComponents uriComponents = UriComponentsBuilder.fromUriString(
+        "http://example.com/hotels/{hotel}/bookings/{booking}").build();
+
+URI uri = uriComponents.expand("42", "21").encode().toUri();
+```
+注意`UriComponents `是不可变类，如果需要,`expand()` 和`encode()`会返回新的实例。
+也可以使用URI 组件完成展开和编码的工作
+```java
+UriComponents uriComponents = UriComponentsBuilder.newInstance()
+        .scheme("http").host("example.com").path("/hotels/{hotel}/bookings/{booking}").build()
+        .expand("42", "21")
+        .encode();
+```
+
+在Servlet环境中，`ServletUriComponentsBuilder `子类提供静态工厂方法用于从Servlet request中拷贝出可用的URL信息。
+
+```java
+HttpServletRequest request = ...
+
+// 重用 host, scheme, port, path and query string
+// 替换 the "accountId" query param
+
+ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request)
+        .replaceQueryParam("accountId", "{id}").build()
+        .expand("123")
+        .encode();
+```
+
+或者，也可以从RUL中拷贝一组可用信息，包括上下文路径
+```java
+// 重用 host, port and context path
+// 附加 "/accounts" 到path中
+
+ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromContextPath(request)
+        .path("/accounts").build()
+```
+
+如果`DispatcherServlet `是通过name映射（比如，`/main/*`)，也可获取映射的字面值。
+```java
+// Re-use host, port, context path
+// Append the literal part of the servlet mapping to the path
+// Append "/accounts" to the path
+
+ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromServletMapping(request)
+        .path("/accounts").build()
+```
+
+<h4 id="mvc-links-to-controllers">为Controller和方法构建URI</h4>
+Spring MVC提供了另外一种机制用于构建和编码URI，在应用内定义用于链接到Controller 和方法。
+
+给定Controller
+```java
+@Controller
+@RequestMapping("/hotels/{hotel}")
+public class BookingController {
+
+    @RequestMapping("/bookings/{booking}")
+    public String getBooking(@PathVariable Long booking) {
+
+    // ...
+
+}
+```
+使用`MvcUriComponentsBuilder`，前面的样例就变成了现在这个样子
+```java
+UriComponents uriComponents = MvcUriComponentsBuilder
+    .fromMethodName(BookingController.class, "getBooking",21).buildAndExpand(42);
+
+URI uri = uriComponents.encode().toUri();
+```
+`MvcUriComponentsBuilder `也可以创建 "mock Controllers"模拟controller，因此相对于实际的ControllerAPI来说，可以通过编码来创建URI
+```java
+UriComponents uriComponents = MvcUriComponentsBuilder
+    .fromMethodCall(on(BookingController.class).getBooking(21)).buildAndExpand(42);
+
+URI uri = uriComponents.encode().toUri()
+```
+
+<h4 id='mvc-links-to-controllers-from-views'>根据视图构建URI访问 controller和方法</h4>
+It is also useful to build links to annotated controllers from views (e.g. JSP). This can be done through a method on MvcUriComponentsBuilder which refers to mappings by name called fromMappingName.
+
+As of 4.1 every @RequestMapping is assigned a default name based on the capital letters of the class and the full method name. For example, the method getFoo in class FooController is assigned the name "FC#getFoo". This naming strategy is pluggable by implementing HandlerMethodMappingNamingStrategy and configuring it on your RequestMappingHandlerMapping. Furthermore the @RequestMapping annotation includes a name attribute that can be used to override the default strategy.
+
+[Note]
+The assigned request mapping names are logged at TRACE level on startup.
+The Spring JSP tag library provides a function called mvcUrl that can be used to prepare links to controller methods based on this mechanism.
+
+For example given:
+
+@RequestMapping("/people/{id}/addresses")
+public class MyController {
+
+    @RequestMapping("/{country}")
+    public HttpEntity getAddress(@PathVariable String country) { ... }
+}
+The following JSP code can prepare a link:
+
+<%@ taglib uri="http://www.springframework.org/tags" prefix="s" %>
+...
+<a href="${s:mvcUrl('PC#getPerson').arg(0,'US')
+
+<h3 id='mvc-localeresolver'>Using locales</h3>
+Most parts of Spring’s architecture support internationalization, just as the Spring web MVC framework does. DispatcherServlet enables you to automatically resolve messages using the client’s locale. This is done with LocaleResolver objects.
+
+When a request comes in, the DispatcherServlet looks for a locale resolver, and if it finds one it tries to use it to set the locale. Using the RequestContext.getLocale() method, you can always retrieve the locale that was resolved by the locale resolver.
+
+In addition to automatic locale resolution, you can also attach an interceptor to the handler mapping (see Section 17.4.1, “Intercepting requests with a HandlerInterceptor” for more information on handler mapping interceptors) to change the locale under specific circumstances, for example, based on a parameter in the request.
+
+Locale resolvers and interceptors are defined in the org.springframework.web.servlet.i18n package and are configured in your application context in the normal way. Here is a selection of the locale resolvers included in Spring.
+
+
+<h4 id='mvc-timezone>Obtaining Time Zone Information</h4>
+In addition to obtaining the client’s locale, it is often useful to know their time zone. The LocaleContextResolver interface offers an extension to LocaleResolver that allows resolvers to provide a richer LocaleContext, which may include time zone information.
+
+When available, the user’s TimeZone can be obtained using the RequestContext.getTimeZone() method. Time zone information will automatically be used by Date/Time Converter and Formatter objects registered with Spring’s ConversionService.
+
+<h4 id='mvc-localeresolver-acceptheader'>AcceptHeaderLocaleResolver</h4>
+This locale resolver inspects the accept-language header in the request that was sent by the client (e.g., a web browser). Usually this header field contains the locale of the client’s operating system. Note that this resolver does not support time zone information.
+
+<h4 id='mvc-localeresolver-cookie'>CookieLocaleResolver</h4>
+This locale resolver inspects a Cookie that might exist on the client to see if a Locale or TimeZone is specified. If so, it uses the specified details. Using the properties of this locale resolver, you can specify the name of the cookie as well as the maximum age. Find below an example of defining a CookieLocaleResolver.
+
+Table 17.4. CookieLocaleResolver properties
+
+Property | Default | Description
+-------- | ------- | -------------
+cookieName | classname + LOCALE | The name of the cookie
+cookieMaxAge | Integer.MAX_INT | The maximum time a cookie will stay persistent on the client. If -1 is specified, the cookie will not be persisted; it will only be available until the client shuts down their browser.
+cookiePath | / | Limits the visibility of the cookie to a certain part of your site. When cookiePath is specified, the cookie will only be visible to that path and the paths below it.
+
+<h4 id='mvc-localeresolver-session'>SessionLocaleResolver</h4>
+The SessionLocaleResolver allows you to retrieve Locale and TimeZone from the session that might be associated with the user’s request.
+
+<h4 id='mvc-localeresolver-interceptor'>LocaleChangeInterceptor</h4>
+You can enable changing of locales by adding the LocaleChangeInterceptor to one of the handler mappings (see Section 17.4, “Handler mappings”). It will detect a parameter in the request and change the locale. It calls setLocale() on the LocaleResolver that also exists in the context. The following example shows that calls to all *.view resources containing a parameter named siteLanguage will now change the locale. So, for example, a request for the following URL, http://www.sf.net/home.view?siteLanguage=nl will change the site language to Dutch.
+```xml
+<bean id="localeChangeInterceptor"
+        class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+    <property name="paramName" value="siteLanguage"/>
+</bean>
+
+<bean id="localeResolver"
+        class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/>
+
+<bean id="urlMapping"
+        class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="interceptors">
+        <list>
+            <ref bean="localeChangeInterceptor"/>
+        </list>
+    </property>
+    <property name="mappings">
+        <value>/**/*.view=someController</value>
+    </property>
+</bean>
+```
+
+<h3 id='mvc-themeresolver'>Using themes</h3>
+
+<h4 id='mvc-themeresolver-introduction'>主题概述</h4>
+spring MVC可以设置主题，因此增强用户体验。主题是一组静态资源，是css和image，他们会影响应用的视觉效果。
+
+<h4 id='mvc-themeresolver-defining'>定义themes</h4>
+To use themes in your web application, you must set up an implementation of the org.springframework.ui.context.ThemeSource interface. The WebApplicationContext interface extends ThemeSource but delegates its responsibilities to a dedicated implementation. By default the delegate will be an org.springframework.ui.context.support.ResourceBundleThemeSource implementation that loads properties files from the root of the classpath. To use a custom ThemeSource implementation or to configure the base name prefix of the ResourceBundleThemeSource, you can register a bean in the application context with the reserved name themeSource. The web application context automatically detects a bean with that name and uses it.
+
+When using the ResourceBundleThemeSource, a theme is defined in a simple properties file. The properties file lists the resources that make up the theme. Here is an example:
+
+styleSheet=/themes/cool/style.css
+background=/themes/cool/img/coolBg.jpg
+The keys of the properties are the names that refer to the themed elements from view code. For a JSP, you typically do this using the spring:theme custom tag, which is very similar to the spring:message tag. The following JSP fragment uses the theme defined in the previous example to customize the look and feel:
+```xml
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<html>
+    <head>
+        <link rel="stylesheet" href="<spring:theme code='styleSheet'/>" type="text/css"/>
+    </head>
+    <body style="background=<spring:theme code='background'/>">
+        ...
+    </body>
+</html>
+```
+By default, the ResourceBundleThemeSource uses an empty base name prefix. As a result, the properties files are loaded from the root of the classpath. Thus you would put the cool.properties theme definition in a directory at the root of the classpath, for example, in /WEB-INF/classes. The ResourceBundleThemeSource uses the standard Java resource bundle loading mechanism, allowing for full internationalization of themes. For example, we could have a /WEB-INF/classes/cool_nl.properties that references a special background image with Dutch text on it.
+
+<h4 id='mvc-themeresolver-resolving'>Theme resolvers</h4>
+After you define themes, as in the preceding section, you decide which theme to use. The DispatcherServlet will look for a bean named themeResolver to find out which ThemeResolver implementation to use. A theme resolver works in much the same way as a LocaleResolver. It detects the theme to use for a particular request and can also alter the request’s theme. The following theme resolvers are provided by Spring:
+
+Table 17.5. ThemeResolver implementations
+Class | 描述
+------ | ------
+`FixedThemeResolver` | Selects a fixed theme, set using the defaultThemeName property.
+`SessionThemeResolver` | The theme is maintained in the user’s HTTP session. It only needs to be set once for each session, but is not persisted between sessions.
+`CookieThemeResolver` |  The selected theme is stored in a cookie on the client.
+
+Spring also provides a ThemeChangeInterceptor that allows theme changes on every request with a simple request parameter.
+
+<h3 id='mvc-multipart'>Spring对multipart支持(文件上传)</h3>
+
+<h4 id='mvc-multipart-introduction'>简介</h4>
+spring内置支持multipart，在应用中支持处理文件上传。使用插件`MultipartResolver`对象开启对multipart支持，他们定义在`org.springframework.web.multipart`包。Spring 提供了一个基于`Commons FileUpload`的`MultipartResolver `实现，也提供了一个基于Sevlet3.0multipart request 解析。
+
+默认情况下，Spring 没有multipart 处理，因为一些开发者要自己处理multiparts。若要在Spring中开启multipart处理，得在应用上下文中增加一个multipart resolver解析器。每个request都会被检查是否包含multipart。如果为发现 multipart，request继续。如果发现了multipart,在应用上下文中声明的`MultipartResolver `就会工作。然后，request中multipart的属性处理和其他的request的属性处理就相同了。
+
+<h4 id='mvc-multipart-resolver-commons'>
+下面展示如何使用`CommonsMultipartResolver`:
+```java
+
+<bean id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+
+    <!-- one of the properties available; the maximum file size in bytes -->
+    <property name="maxUploadSize" value="100000"/>
+
+</bean>
+```
+CommonsMultipartResolver, you need to use commons-fileupload.jar.
+当然了，这是需要第三方jar包的，上例中的`CommonsMultipartResolver`，依赖`commons-fileupload.jar`。
+
+When the Spring DispatcherServlet detects a multi-part request, it activates the resolver that has been declared in your context and hands over the request. The resolver then wraps the current HttpServletRequest into a MultipartHttpServletRequest that supports multipart file uploads. Using the MultipartHttpServletRequest, you can get information about the multiparts contained by this request and actually get access to the multipart files themselves in your controllers.  
+Spring `DispatcherServlet`解析出有一个`multi-part`request, Spring会激活已经在上下文中声明的resolver解析器，并处理request。resolver则会包裹当前`HttpServletRequest`为`MultipartHttpServletRequest`，`MultipartHttpServletRequest`支持multipart 文件上传。使用`MultipartHttpServletRequest`，可以在controller中获取关于multiparts的源信息和访问multipart文件本身。
+
+<h4 id='mvc-multipart-resolver-standard'>在Servlet3.0中使用MultipartResolver </h4>
+为了基于multipart解析 使用Servlet3.0，得在`web.xml`中的`DispatcherServlet`中配置`multipart-config`部分，或者编程式的使用`javax.servlet.MultipartConfigElement`，或者在自定义Servlet类中使用`javax.servlet.annotation.MultipartConfig`注解。可以配置最大文件尺寸、存储位置，该配置是应用于Serlvet类级别，因为Servlet3.0不允许这些设置有MultipartResolver设置。
+
+一旦Servlet 3.0 multipart解析通过上述任一中方式开启，就可以使用`StandartServletMultipartResolver`。
+```xml
+<bean id="multipartResolver"
+        class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
+</bean>
+```
+
+<h4 id='mvc-multipart-forms'>在form中处理文件上传</h4>
+request处理就像其他的request一样，首先创建一个form，具有file input的form是允许用户上传文件的form。设置form属性`enctype="multipart/form-data"` ，让浏览器知道如何对multipart request进行编码处理：
+```html
+<html>
+    <head>
+        <title>Upload a file please</title>
+    </head>
+    <body>
+        <h1>Please upload a file</h1>
+        <form method="post" action="/form" enctype="multipart/form-data">
+            <input type="text" name="name"/>
+            <input type="file" name="file"/>
+            <input type="submit"/>
+        </form>
+    </body>
+</html>
+``` 
+
+接下来创建一个controller，它可以处理文件上传，该controller和常规注解`@Controller`非常像，区别就是在方法参数中使用`MultipartHttpServletRequest`或者`MultipartFile`:
+```java
+@Controller
+public class FileUploadController {
+
+    @RequestMapping(value = "/form", method = RequestMethod.POST)
+    public String handleFormUpload(@RequestParam("name") String name,
+            @RequestParam("file") MultipartFile file) {
+
+        if (!file.isEmpty()) {
+            byte[] bytes = file.getBytes();
+            // store the bytes somewhere
+            return "redirect:uploadSuccess";
+        }
+
+        return "redirect:uploadFailure";
+    }
+
+}
+``` 
+
+注意`@RequestParam`方法参数是如何与form表单中的input元素映射的。本例中，没有使用`byte[]`，但是在实际使用中可以将其存储于数据库、存储于文件系统等等。
+
+若是使用Servlet 3.0 multipart解析，则可以使用 `javax.servlet.http.Part`作为方法参数:
+```java
+@Controller
+public class FileUploadController {
+
+    @RequestMapping(value = "/form", method = RequestMethod.POST)
+    public String handleFormUpload(@RequestParam("name") String name,
+            @RequestParam("file") Part file) {
+
+        InputStream inputStream = file.getInputStream();
+        // store bytes from uploaded file somewhere
+
+        return "redirect:uploadSuccess";
+    }
+
+}
+```
+
+<h4 id='mvc-multipart-forms-non-browsers'>处理来自于脚本客户端的文件上传request</h4>
+也可以在非浏览器客户端提交Multipart request。上面样例中的配置页同样适用。当然了，不想浏览器那样提交files和简单的form域，脚本客户端也可以发送指定content type的更复杂的数据，比如multipart request中包含一个file和一部分JSON格式的数据:
+```text
+POST /someUrl
+Content-Type: multipart/mixed
+
+--edt7Tfrdusa7r3lNQc79vXuhIIMlatb7PQg7Vp
+Content-Disposition: form-data; name="meta-data"
+Content-Type: application/json; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+{
+	"name": "value"
+}
+--edt7Tfrdusa7r3lNQc79vXuhIIMlatb7PQg7Vp
+Content-Disposition: form-data; name="file-data"; filename="file.properties"
+Content-Type: text/xml
+Content-Transfer-Encoding: 8bit
+... File Data ...
+``` 
+在Controller方法中使用`@RequestParam("meta-data") String metadata`访问名为"meta-data"部分的数据。当然了，你可能更喜欢从request部分的中的JSON格式数据中解析出强类型对象，非常简单，使用`HttpMessageConverter` 将`@RequestBody`转换非multipart request为目标对象即可。
+
+为了达到此目的，得使用`@RequestPart`注解替代`@RequestParam`注解。它允许你通过`HttpMessageConverter`将指定的multipart解析为该multipart request的header中的`Content-type`类型数据。
+```java
+@RequestMapping(value="/someUrl", method = RequestMethod.POST)
+public String onSubmit(@RequestPart("meta-data") MetaData metadata,
+        @RequestPart("file-data") MultipartFile file) {
+
+    // ...
+
+}
+``` 
+注意`MultipartFile `方法参数可以通过`@requestParam`或者`@RequestPart`访问。然而，`@RequestPart("meta-data") MetaData`方法参数是根据`'Content-Type'`将会读取为JSON，并且通过`MappingJackson2HttpMessageConverter`完成转换。
+
+<h3 id='mvc-exceptionhandlers'>处理异常</h3>
+<h4 id='mvc-exceptionhandlers-resolver'>HandlerExceptionResolver</h4>
+Spring HandlerExceptionResolver implementations deal with unexpected exceptions that occur during controller execution. A HandlerExceptionResolver somewhat resembles the exception mappings you can define in the web application descriptor web.xml. However, they provide a more flexible way to do so. For example they provide information about which handler was executing when the exception was thrown. Furthermore, a programmatic way of handling exceptions gives you more options for responding appropriately before the request is forwarded to another URL (the same end result as when you use the Servlet specific exception mappings).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
