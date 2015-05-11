@@ -1728,7 +1728,7 @@ spring内置支持multipart，在应用中支持处理文件上传。使用插�
 
 默认情况下，Spring 没有multipart 处理，因为一些开发者要自己处理multiparts。若要在Spring中开启multipart处理，得在应用上下文中增加一个multipart resolver解析器。每个request都会被检查是否包含multipart。如果为发现 multipart，request继续。如果发现了multipart,在应用上下文中声明的`MultipartResolver `就会工作。然后，request中multipart的属性处理和其他的request的属性处理就相同了。
 
-<h4 id='mvc-multipart-resolver-commons'>
+<h4 id='mvc-multipart-resolver-commons'>使用基于 Commons FileUpload的MultipartResolver </h4>
 下面展示如何使用`CommonsMultipartResolver`:
 ```java
 
