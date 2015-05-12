@@ -1851,4 +1851,51 @@ public String onSubmit(@RequestPart("meta-data") MetaData metadata,
 
 <h3 id='mvc-exceptionhandlers'>处理异常</h3>
 <h4 id='mvc-exceptionhandlers-resolver'>HandlerExceptionResolver</h4>
-Spring HandlerExceptionResolver implementations deal with unexpected exceptions that occur during controller execution. A HandlerExceptionResolver somewhat resembles the exception mappings you can define in the web application descriptor web.xml. However, they provide a more flexible way to do so. For example they provide information about which handler was executing when the exception was thrown. Furthermore, a programmatic way of handling exceptions gives you more options for responding appropriately before the request is forwarded to another URL (the same end result as when you use the Servlet specific exception mappings).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+Spring 的`HandlerExceptionResolver `实现是处理controller执行期间发生的异常。`HandlerExceptionResolver `和exception mapping异常映射有些像，异常映射可以在`web.xml`中定义。当然了，spring也提供了更灵活的方式完成映射。比如，在抛出异常时提供执行handler的信息。因此，使用编程式的异常处理，在request forward跳转之前，会有更多的选项可供操作（与Servlet 设置异常映射相比，具有相同的执行结果）。`HandlerExceptionResolver`接口中只有一个方法,`ModelAndView resolveException( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)`，该方法返回一个`ModelAndView`，除了提供该接口以外，Spring还提供了`SimpleMappingExceptionResolver `，还有`@ExceptionHandler`注解，他们都可用于异常处理。`SimpleMappingExceptionResolver `可以将制定异常映射到一个view 视图名上，通过异常的class name映射。这个方式等价于Servlet API中的异常映射功能,但是Spring的异常映射可以实现更细粒度的来自不同的handler的异常映射。`@ExceptionHandler`注解可用于可能抛出异常的方法上。`@ExceptionHandler`方法，可能是在`@Controller`类内定义，应用于本类的方法，也可以在`@ControllerAdvice`类内定义，应用于多个`@Controller`类。下面详细讲述。
+
+<h4 id='mvc-ann-exceptionhandler'>@ExceptionHandler</h4>
+`HandlerExceptionResolver `接口和`SimpleMappingExceptionResolver `实现类允许request跳转之前根据异常跳转到指定视图，同时提供一些配置可选项来完成一些逻辑。有些情况下，特别是基于`@ResponseBody`注解的方法，这种异常映射机制，是非常方便的操作响应：设置response的status,将错误内容写到response中。 
+
+`@ExceptionHandler`若是声明在`Controller`类中，则会处理本类及子类`@RequestMapping`方法爆出的异常。也可以在`ControllerAdvice`类中声明`@ExceptionHandler`方法，该方法将会处理多个`Controller`类中的的`@RequestMapping`。下例展示 controller本地`@ExceptionHandler`方法
+```java
+@Controller
+public class SimpleController {
+
+    // 此处省略10k个@RequestMapping方法 ...
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<String> handleIOException(IOException ex) {
+        // 构造responseEntity
+        return responseEntity;
+    }
+
+}
+```
+
+`@ExceptionHandler`的value也可以设置为一个异常类型数组。如果抛出的异常，匹配数组元素之一，`@ExceptionHandler`注解的方法则被调用。如果注解为设置value，则会使用参数列表中的异常类型作为匹配源。
+和`@RequestMapping`方法很像，`@ExceptionHandler`的参数和返回值都是非常灵活的。比如，方法中可直接访问`HttpServletRequest `和`PortletRequest `，当然他们得在相应的环境中才行，`HttpServletRequest `要在Servlet 环境中，`PortletRequest `得在Portlet 环境中。返回值可以是`String`，被解析为视图名;可以是`ModelAndView`对象；可以是`ResponseEntity`，或者可以使用`@ResponseBody`注解，通过message converter消息转换器将返回值转换后写入到response流中。
+
+<h4 id='mvc-ann-rest-spring-mvc-exceptions'>处理标准的Spring MVC 异常</h4>
+Spring MVC可抛出非常丰富的异常。`SimpleMappingExceptionResolver `可以非常容易的将异常映射到默认错误视图。当然了，有些客户端需要的不是错误视图，而是解析response中的错误code编码。Spring异常可以被解析为客户端错误(4xx)或者服务器端错误(5xx)。
+`DefaultHandlerExceptionResolver `将Spring MVC 异常翻译成指定的错误编码。该类是默认注册的。下面列出有此类解析的异常与错误码对应关系
+
+Exception | HTTP Status Code
+---------- | -------------------
+`BindException` |  400 (错误请求)
+`ConversionNotSupportedException` | 500 (服务器内部错误)
+`HttpMediaTypeNotAcceptableException` | 406 (Not Acceptable)
+`HttpMediaTypeNotSupportedException` | 415 (Unsupported Media Type)
+`HttpMessageNotReadableException` | 400 (Bad Request)
+`HttpMessageNotWritableException` | 500 (Internal Server Error)
+`HttpRequestMethodNotSupportedException` | 405 (Method Not Allowed)
+`MethodArgumentNotValidException` | 400 (Bad Request)
+`MissingServletRequestParameterException` | 400 (Bad Request)
+`MissingServletRequestPartException` | 400 (Bad Request)
+`NoHandlerFoundException` | 404 (Not Found)
+`NoSuchRequestHandlingMethodException` | 404 (Not Found)
+`TypeMismatchException` | 400 (Bad Request)
+
+The DefaultHandlerExceptionResolver works transparently by setting the status of the response. However, it stops short of writing any error content to the body of the response while your application may need to add developer-friendly content to every error response for example when providing a REST API. You can prepare a ModelAndView and render error content through view resolution — i.e. by configuring a ContentNegotiatingViewResolver, MappingJackson2JsonView, and so on. However, you may prefer to use @ExceptionHandler methods instead.
+
+If you prefer to write error content via @ExceptionHandler methods you can extend ResponseEntityExceptionHandler instead. This is a convenient base for @ControllerAdvice classes providing an @ExceptionHandler method to handle standard Spring MVC exceptions and return ResponseEntity. That allows you to customize the response and write error content with message converters. See the ResponseEntityExceptionHandler javadocs for more details.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
