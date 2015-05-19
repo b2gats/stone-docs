@@ -1911,4 +1911,122 @@ Exception | HTTP Status Code
 ```
 
 新机器测试
-Note that the actual location for the error page can be a JSP page or some other URL within the container including one handled through an @Controller method:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+Note that the actual location for the error page can be a JSP page or some other URL within the container including one handled through an @Controller method: 
+注意，错误页可能是个JSP，也可能是其他URL路径，比如`@Controller`的方法: 在controller中，错误码和错误信息，通过request attribute在`HttpServletResponse`中读写。
+```java
+@Controller
+public class ErrorController {
+
+    @RequestMapping(value="/error", produces="application/json")
+    @ResponseBody
+    public Map<String, Object> handle(HttpServletRequest request) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("status", request.getAttribute("javax.servlet.error.status_code"));
+        map.put("reason", request.getAttribute("javax.servlet.error.message"));
+
+        return map;
+    }
+
+}
+```    
+或者是在JSP中
+```JSP
+<%@ page contentType="application/json" pageEncoding="UTF-8"%>
+{
+    status:<%=request.getAttribute("javax.servlet.error.status_code") %>,
+    reason:<%=request.getAttribute("javax.servlet.error.message") %>
+}
+```    
+
+<h3 id='mvc-web-security'>WEB Secuity</h3>
+The Spring Security project provides features to protect web applications from malicious exploits. Check out the reference documentation in the sections on "CSRF protection", "Security Response Headers", and also "Spring MVC Integration". Note that using Spring Security to secure the application is not necessarily required for all features. For example CSRF protection can be added simply by adding the CsrfFilter and CsrfRequestDataValueProcessor to your configuration. See the Spring MVC Showcase for an example.
+
+Another option is to use a framework dedicated to Web Security. HDIV is one such framework and integrates with Spring MVC.
+
+<h3 id='mvc-coc'>惯例优于配置</h3>
+开发过程中，有很多规范和惯例，他们都有各自的成因。Spring MVC支持“惯例优于配置”。“惯例优于配置”是指，如果你遵守命名规范，那么将省去大量的配置文件，比如：handler mapping,view resolvers,`ModelAndView`实例等等。 对于快速开发原型非常有利，也有利于编码规范。
+
+<h4 id='mvc-coc-ccnhm'>Controller命名规范ControllerClassNameHandlerMapping </h4>
+`ControllerClassNameHandlerMapping `类是一个`HandlerMapping`实现， 用于处理request url和`Controller`实例之间的映射处理。
+
+考虑下面的`Controller`类，注意类名
+```java
+public class ViewShoppingCartController implements Controller {
+
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        // 实现不重要
+    }
+
+}
+```
+Here is a snippet from the corresponding Spring Web MVC configuration file:
+下面是相应的配置文件
+```xml
+<bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
+
+<bean id="viewShoppingCart" class="x.y.z.ViewShoppingCartController">
+    <!-- 注入依赖... -->
+</bean>
+```
+
+`ControllerClassNameHandlerMapping`在应用上下文中发现`Controller`bean,将其类名中的 `Controller`解掉，剩余的部分作为其能处理的映射的路径配置，因此 `ViewShoppingCartController`将处理`/viewshoppingcart*`路径的请求。
+
+接下来看看更多的例子，然后总结一下主要内容和中心思想（主义，URL中都是小写的，`Controller`类是驼峰式的）
+
+* `WelcomController` 处理 `/welcome*` URL
+* `HomeController`处理 ·`/home*` URL
+* `IndexController`处理`/index*` URL
+* `RegisterController` 处理 `/register*` URL
+
+`MultiActionController`处理类的情况中，映射生成规则略复杂些。假设，下列`Controller`是`MultiActionController`。
+
+* `AdminController` 映射`/admin/*` URL
+* `CatalogController`映射`/catalog/*` URL
+
+由此看出，若是按照管理命名`Controller`实现为`xxxController`,` ControllerClassNameHandlerMapping`将使你省去大部分配置。
+
+`ControllerClassNameHandlerMapping`继承自`AbstractHandlermapping`，因此你可定义`HandlerIntercepter`实例等各种handlerMapping组件。
+
+<h4 id='mvc-coc-modelmap'>The Model ModelMap (ModelAndView)</h4>  
+`ModelMap`类是一个`Map`,可携带Objects,这些对象用于在`View`中展示。假如现在有一个`Controller`实现，注意附加到`ModelAndView`中的对象并为设置相关联的名字。
+
+```java
+public class DisplayShoppingCartController implements Controller {
+
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+
+        List cartItems = // get a List of CartItem objects
+        User user = // get the User doing the shopping
+
+        ModelAndView mav = new ModelAndView("displayShoppingCart"); <-- the logical view name
+
+        mav.addObject(cartItems); <-- look ma看么, no name没有name, just the object只有对象
+        mav.addObject(user); <-- and again ma又来啦啦!
+
+        return mav;
+    }
+}
+```   
+
+`ModelAndView `使用了一个`ModelMap`类，`ModelMap`类是一个自定义`Map`实现，该类在增加对象时会自动为对象生成一个key。生成的key由增加的对象决定，比如`User`类的对象，将使用短类名作为对象的key。参考以下生成规则：
+
+* `x.y.User`实例，`user`
+* `x.y.Registration`实例，`registration`
+* `x.y.Foo`实例，`foo`
+* `java.util.HashMap`,`hashMap`。`hashMap`不太直观，也许你需要明确指定其name
+* `null`将导致`IllegalArgumentException`。如果要增加的对象可能是`null`，那么应该为其指定一个name(也就是key)
+
+```text
+**没有自动复杂数据处理**
+
+Spring Web MVC的惯例优于配置不支持复杂数据处理。也就是说，当你给`ModelAndView`增加一个`Person`的`List`的时候，不会生成`people`的name
+
+这是根据“最少意外原则”决定的。
+```
+
+An x.y.User[] array with zero or more x.y.User elements added will have the name userList generated.
+An x.y.Foo[] array with zero or more x.y.User elements added will have the name fooList generated.
+A java.util.ArrayList with one or more x.y.User elements added will have the name userList generated.
+A java.util.HashSet with one or more x.y.Foo elements added will have the name fooList generated.
+An empty java.util.ArrayList will not be added at all (in effect, the addObject(..) call will essentially be a no-op).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
