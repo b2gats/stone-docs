@@ -1,3 +1,11 @@
+<h1>作者简介</h1>  
+翻译 铁柱  <wwwshiym@gmail.com>  
+顾问 张丙天  
+
+**铁柱** 曾任中科软科技股份有限公司应用系统事业群部技术副总监、首席架构师，2008年加入中科软。擅长SOA、企业信息化架构，精通Java、Spring，在多线程、io、虚拟机调优、网络通信及支撑大型网站的领域有较多经验，对技术有浓厚的兴趣。现致力于无线、数据、业务平台、组件化方面取得突破。
+
+**张丙天** 
+
 <h2 id='mvc'>Web MVC framework框架</h2>
 <h3 id='mvc-introduction'>Spring Web MVC框架简介</h3>
 Spring MVC的核心是`DispatcherServlet`，该类作用非常多，分发请求处理，配置处理器映射，处理视图view，本地化，时间区域和主题，也支持文件上传。默认的处理器依赖于`@Controller`和`RequestMapping`注解，提供了大量的灵活的处理方法。spring3.0中就介绍过了，`@Controller`机制，可通过SpringＭＶＣ提供的`@PathVariable`注解和其他功能,创建`RESTful`web网站和应用。
@@ -2025,8 +2033,82 @@ Spring Web MVC的惯例优于配置不支持复杂数据处理。也就是说，
 这是根据“最少意外原则”决定的。
 ```
 
-An x.y.User[] array with zero or more x.y.User elements added will have the name userList generated.
-An x.y.Foo[] array with zero or more x.y.User elements added will have the name fooList generated.
-A java.util.ArrayList with one or more x.y.User elements added will have the name userList generated.
-A java.util.HashSet with one or more x.y.Foo elements added will have the name fooList generated.
-An empty java.util.ArrayList will not be added at all (in effect, the addObject(..) call will essentially be a no-op).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+*  `x.y.User[]`数组，包含0个或者多个`x.y.User`元素，产生的key为`UserList`
+*  `x.y.Foo[]`数组，0个或者多个， `fooList`
+*  `java.util.ArrayList`类型List包含1个以上元素，产生`userList`
+*  `java.util.HashSet`,0个或者多个元素，产生`fooList`
+*  空`java.Util.Arraylist`(0个元素)，调用`addObject(...)`时候，将不会有任何操作，也就是说该空List不能增加到模型中。
+
+<h4 id='mvc-coc-r2vnt'>视图 - RequestToViewNameTranslator</h4> 
+`RequestToViewNameTranslator `接口的作用是，在没有逻辑视图名被明确指定时，它将提供一个逻辑视图名。它有一个实现，`DefaultRequestToViewNameTranslator`类。
+
+`DefaultRequestToViewNameTranslator` 使用方法如下
+
+```java
+public class RegistrationController implements Controller {
+
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        // 处理request...
+        ModelAndView mav = new ModelAndView();
+        // 如果需要将数据写入model...
+        return mav;
+        // 注意，没有设置View ，也没设置逻辑视图名
+    }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- this bean with the well known name generates view names for us -->
+    <bean id="viewNameTranslator"
+            class="org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator"/>
+
+    <bean class="x.y.RegistrationController">
+        <!-- inject dependencies as necessary -->
+    </bean>
+
+    <!-- maps request URLs to Controller names -->
+    <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
+
+    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+</beans>
+```
+`handleRequest(..)`方法未设置View以及逻辑视图名，然后就返回了`ModelAndView`。`DefaultRequestToViewNameTranslator ` 将会根据request的URL生成一个逻辑视图名。上例中，如果`RegistrationController`联结了`ControllerClassNameHandlerMapping`，那么`http://localhost/registration.html`的请求将会生成一个`registration`的逻辑视图名，该视图名将会通过`InternalResourceViewResolver`被解析到视图`/WEB-INF/jsp/registration.jsp`。
+
+![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+> 不需要明确定义`DefaultRequestToViewNameTranslator `，可通过Spring Web MVC `DispatcherServlet`去实例化`DefaultRequestToViewNameTranslator`。
+
+更多详情参看 javadocs
+
+<h3 id='mvc-etag'> ETag support</h3>
+An ETag (entity tag) is an HTTP response header returned by an HTTP/1.1 compliant web server used to determine change in content at a given URL. It can be considered to be the more sophisticated successor to the Last-Modified header. When a server returns a representation with an ETag header, the client can use this header in subsequent GETs, in an If-None-Match header. If the content has not changed, the server returns 304: Not Modified.
+
+Support for ETags is provided by the Servlet filter ShallowEtagHeaderFilter. It is a plain Servlet Filter, and thus can be used in combination with any web framework. The ShallowEtagHeaderFilter filter creates so-called shallow ETags (as opposed to deep ETags, more about that later).The filter caches the content of the rendered JSP (or other content), generates an MD5 hash over that, and returns that as an ETag header in the response. The next time a client sends a request for the same resource, it uses that hash as the If-None-Match value. The filter detects this, renders the view again, and compares the two hashes. If they are equal, a 304 is returned. This filter will not save processing power, as the view is still rendered. The only thing it saves is bandwidth, as the rendered response is not sent back over the wire.
+
+You configure the ShallowEtagHeaderFilter in web.xml:
+
+```xml
+<filter>
+    <filter-name>etagFilter</filter-name>
+    <filter-class>org.springframework.web.filter.ShallowEtagHeaderFilter</filter-class>
+</filter>
+
+<filter-mapping>
+    <filter-name>etagFilter</filter-name>
+    <servlet-name>petclinic</servlet-name>
+</filter-mapping>
+```
+
+<h3 id='mvc-container-config'>使用代码实例化容器</h3>
+In a Servlet 3.0+ environment, you have the option of configuring the Servlet container programmatically as an alternative or in combination with a web.xml file. Below is an example of registering a DispatcherServlet:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
