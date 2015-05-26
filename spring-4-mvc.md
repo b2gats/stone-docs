@@ -2111,4 +2111,125 @@ You configure the ShallowEtagHeaderFilter in web.xml:
 
 <h3 id='mvc-container-config'>使用代码实例化容器</h3>
 In a Servlet 3.0+ environment, you have the option of configuring the Servlet container programmatically as an alternative or in combination with a web.xml file. Below is an example of registering a DispatcherServlet:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+在Servlet3.0环境中，还可以编程式的配置Servlet容器，或者是与`web.xml`结合使用。下面看样例，如何注册`DispatcherServlet`。
+
+```java
+import org.springframework.web.WebApplicationInitializer;
+
+public class MyWebApplicationInitializer implements WebApplicationInitializer {
+
+    @Override
+    public void onStartup(ServletContext container) {
+        XmlWebApplicationContext appContext = new XmlWebApplicationContext();
+        appContext.setConfigLocation("/WEB-INF/spring/dispatcher-config.xml");
+
+        ServletRegistration.Dynamic registration = container.addServlet("dispatcher", new DispatcherServlet(appContext));
+        registration.setLoadOnStartup(1);
+        registration.addMapping("/");
+    }
+
+}
+```
+
+`WebApplicationInitializer `是Spring MVC提供的一个接口，用于确保你的实现探测并且自动初始化Servlet 3容器。`WebApplicationInitializer `有一个抽象基类实现`AbstractDispatcherServletInitializer `,实现该抽象类非常简单，继承它，实现servlet映射方法和`DispatcherServlet`配置的定位方法即可
+
+```java
+public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        return null;
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class[] { MyWebConfig.class };
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/" };
+    }
+
+}
+```
+
+上面的样例中使用了基于java的Spring配置。若是使用基于xml的spring配置， 则是继承`AbstractDispatcherServletInitializer`   
+
+```java
+public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
+
+    @Override
+    protected WebApplicationContext createRootApplicationContext() {
+        return null;
+    }
+
+    @Override
+    protected WebApplicationContext createServletApplicationContext() {
+        XmlWebApplicationContext cxt = new XmlWebApplicationContext();
+        cxt.setConfigLocation("/WEB-INF/spring/dispatcher-config.xml");
+        return cxt;
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[] { "/" };
+    }
+
+}
+```
+`AbstractDispatcherServletInitializer ` 也提供了非常方便的方法用于增加 `Filter`实例并将其自动映射到`DispatcherServlet`
+
+```java
+public class MyWebAppInitializer extends AbstractDispatcherServletInitializer {
+
+    // ...
+
+    @Override
+    protected Filter[] getServletFilters() {
+        return new Filter[] { new HiddenHttpMethodFilter(), new CharacterEncodingFilter() };
+    }
+
+}
+```
+`AbstractDispatcherServletInitializer `中的方法`isAsyncSupported `是唯一能开启`DispatcherServlet`支持的异步的地方。默认他是`true`。
+
+<h3 id='mvc-config'>配置Spring MVC</h3>
+Section 17.2.1, “Special Bean Types In the WebApplicationContext” and Section 17.2.2, “Default DispatcherServlet Configuration” explained about Spring MVC’s special beans and the default implementations used by the DispatcherServlet. In this section you’ll learn about two additional ways of configuring Spring MVC. Namely the MVC Java config and the MVC XML namespace.
+
+[Section 17.2.1, “Special Bean Types In the WebApplicationContext](#mvc-servlet-special-bean-types)” and [Section 17.2.2, “Default DispatcherServlet Configuration”](#mvc-servlet-config)   这两章解释了Spring MVC中的特殊beans 和用于`DispatcherServlet`的默认实现。本章讲解，另外两种方式配置Spring MVC。分别是基于MVC的Java配置和MVC XML配置
+
+基于Java配置和基于XML配置都提供了想死的默认配置，用于覆盖`DispatcherServlet`默认实现。 之所以这么做，是为了减少重复工作，因为多数应用都使用相同的配置，也是为了提供更高层级的抽象配置，降低学习曲线，使用户仅需要很少的关于配置的背景知识就可以使用Spring MVC了。
+
+MVC基于java的配置比基于XML的配置要更容易些，也有更细粒度的控制。
+
+<h4 id='mvc-config-enable'>开启MVC Java配置、开启MVC XML配置</h4>
+在`@Configuration` 注解的类上使用注解`@EnableWebMvc`即可开启MVC Java配置。
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig {
+
+}
+``` 
+
+若是使用XML达到同样的效果,得在DispatchServlet上下文中使用`mvc:annotation-driven`元素（如果没有DispatchServlet 环境则是在root context根环境中）
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven />
+
+</beans>
+```  
+
+The above registers a RequestMappingHandlerMapping, a RequestMappingHandlerAdapter, and an ExceptionHandlerExceptionResolver (among others) in support of processing requests with annotated controller methods using annotations such as @RequestMapping, @ExceptionHandler, and others.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
