@@ -105,9 +105,9 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
 
 上面只是配置Spring Web MVC的第一步。还需要通过使用Spring Web MVC framework配置各种beans。
 
-就像[Section 5.15, “Additional Capabilities of the ApplicationContext”](#context-introduction)所讲的,Spring中的`ApplicationContext `实例是有作用域的。在 Web MVC框架中，每一个`DispatcherServlet`都有自己的`WebApplicationContext`，该`WebApplicationContext`继承了根`WebApplicationContext`，因此，子`WebApplicationContext`可以访问父容器中定义的所有的bean。TODO。These inherited beans can be overridden in the servlet-specific scope, and you can define new scope-specific beans local to a given Servlet instance.这些集成来的bean可以在servlet-specific作用域内被覆盖，也可以为Servlet实例指定新的作用域bean。
+就像[Section 5.15, “Additional Capabilities of the ApplicationContext”](#context-introduction)所讲的,Spring中的`ApplicationContext `实例是有作用域的。在 Web MVC框架中，每一个`DispatcherServlet`都有自己的`WebApplicationContext`，该`WebApplicationContext`继承了根`WebApplicationContext`，因此，子`WebApplicationContext`可以访问父容器中定义的所有的bean.这些继承来的bean可以在具体的Servlet作用域内被覆盖，也可以为Servlet实例指定新的本地具体作用域bean。
 
-**Figure 20.1. Context hierarchy in Spring Web MVC**
+**图 20.1. SpringMVC的上下文继承树**
 ![](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/mvc-contexts.gif)
 
 `DispatcherServlet`初始化时，Spring MVC会查找并加载名为[servlet-name]-servlet.xml的文件，默认查找的目录是web应用的`WEB-INF`目录，加载完成后就创建xml中定义的beans，会覆盖容器中所有的重名bean。
@@ -158,22 +158,21 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
 </web-app>
 ```
 
-`WebApplicationContext`是简单的`ApplicationContext`的扩展，`WebApplicationContext`有一些web应用所必须的方法。它和`ApplicationContext `的不同之处就是对于主题处理的能力[(see Section 20.9, “Using themes”)](#mvc-themeresolver),和并且它知道它和哪一个Servlet项关联(有一个ServletContext的引用)。`WebApplicationContext`被`ServletContext`绑定，如果你需要访问它，使用`RequestContextUtils`类的静态方法可以检索到`WebApplicationContext`
+`WebApplicationContext`是简单的`ApplicationContext`的扩展，`WebApplicationContext`有一些web应用所必须的方法。它和`ApplicationContext `的不同之处就是对于主题处理的能力[(see Section 20.9, “Using themes”)](#mvc-themeresolver),和并且它知道它和哪一个Servlet项关联(有一个ServletContext的引用)。`WebApplicationContext`被`ServletContext`绑定，如果你需要访问它，使用`RequestContextUtils`类的静态方法可以检索到`WebApplicationContext`*(sound2gd:该方法已经在4.2,1废弃，官方推荐使用新的findWebApplicationContext);
 
 <h4 id='mvc-servlet-special-bean-types'>WebApplicationContext中的特殊bean</h4>
 `DispatcherServlet `使用特殊的bean处理request和相应的view。这些bean是Spring  MVC的一部分。可以通过简单的配置选择`WebApplicationContext`中的特殊bean。如果你啥都不配置，也没关系，Spring都为这些bean指定了默认的实现。接下来看看这些特殊bean。
 
 Bean type	| Explanation
 ----------- | -------------
-HandlerMapping | Maps incoming requests to handlers and a list of pre- and post-processors (handler interceptors) based on some criteria the details of which vary by HandlerMapping implementation. The most popular implementation supports annotated controllers but other implementations exists as well.
-HandlerAdapter | Helps the DispatcherServlet to invoke a handler mapped to a request regardless of the handler is actually invoked. For example, invoking an annotated controller requires resolving various annotations. Thus the main purpose of a HandlerAdapter is to shield the DispatcherServlet from such details.
-HandlerExceptionResolver | Maps exceptions to views also allowing for more complex exception handling code.
-ViewResolver | Resolves logical String-based view names to actual View types.
-LocaleResolver & LocaleContextResolver
-Resolves the locale a client is using and possibly their time zone, in order to be able to offer internationalized views
-ThemeResolver | Resolves themes your web application can use, for example, to offer personalized layouts
-MultipartResolver | Parses multi-part requests for example to support processing file uploads from HTML forms.
-FlashMapManager | Stores and retrieves the "input" and the "output" FlashMap that can be used to pass attributes from one request to another, usually across a redirect.
+处理器映射器(HandlerMapping) | 映射监听到的请求到具体的处理器和一系列的预处理和后处理的处理器拦截器，映射的规则要看具体处理器映射的实现是什么。最受欢迎的实现基于注解式控制器(就是你常用的@RequestMapping)，但是其他处理器的实现也有很多的。
+处理器适配器(HandlerAdapter) | 帮助DispatcherServlet加载处理器，该处理器被映射到一个请求上，无论这个处理器有没有被加载。例如，加载一个注解式控制器需要解析不同的注解。因此处理器适配器的主要目的就是帮助DispatcherServlet处理这些细节。
+处理器异常解析器(HandlerExceptionResolver) | 映射 异常<-->视图，以提供更复杂的异常处理机制。
+视图解析器(ViewResolver) | 根据逻辑视图名寻找物理视图并解析
+地区解析器(LocaleResolver) 与地区上下文解析器(LocaleContextResolver) | 解析客户端所在的地区以及可能的时区，目的是提供国际化的支持
+主题解析器(ThemeResolver) | 解析出你的web应用能够使用的主题，例如，私人化布局配置（为每个应用配置不同的布局）
+文件解析器(MultipartResolver) | 解析文件上传请求(multi-part requests)，以支持HTML表单提交的文件上传
+FlashMapManager(这个sound2gd真的不造咋翻译) | 储存并且获取输入输出的FlashMap,该FlashMap可以被用来从一个请求传递属性到另一个请求，通常被用来重定向
 
 <h4 id='mvc-servlet-config'>DispatcherServlet默认配置</h4>
 `DispatcherServlet `中使用的特殊bean的默认实现，其信息配置在`org.springframework.web.servlet`包中的`DispatcherServlet.properties`。
