@@ -59,14 +59,17 @@ Spring的 web模块包含很多特有的web 支持功能：
 如果不想使用Spring’s Web MVC，但是想使用Spring其他的东西，那么就可以使用Spring集成你选择的MVC框架，非常容易。通过`ContextLoaderListener`启动Spring root application Context （Spring上下文），在任意的action对象中通过`ServletContext`属性访问上下文环境。无插件，无集成。在web层的view中，像使用类库一样使用Spring,root application context应用上下文作为Spring的访问入口。
 反正就是一句话，不用Spring MVC，照样可以使用Spring管理bean ,注册Service
 
-<h3 id='mvc-servlet>DispatcherServlet</h3>
+<h3 id='mvc-servlet'>DispatcherServlet</h3>
+
 Spring’s web MVC framework像许多其他的web MVC框架一样，request驱动，以一个Servlet为中心，该Servlet分发请求给controller ，并提供web引用开发相关的工具。Spring的`DispatcherServlet`不仅仅是只干这些。它和Spring IoC容器完全无缝集成，因此可以使用spring所有的功能。 
 下图展示Spring Web MVC `DispatcherServlet`处理request的流程。细心的读者会看到，`DispatcherServlet`就是*表示层设计模式*(这个模式是Spring MVC共享给其他主流web框架的)
+
 ![DispatchServlet](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/mvc.png)
 
 Spring MVC中处理request的流程（架构示意图）
 
 `DispatcherServlet`是一个`Servlet`，它继承自`HttpServlet`，像下面这样的在`web.xml`中的声明。还得映射需要交由`DispatcherServlet`处理的requests,同样也是在`web.xml`中使用URL映射。这是一个标准的Java EE Servlet配置；下面的样例展示了`DispatcherServlet`声明和映射:
+
 ```xml
 <web-app>
     <servlet>
@@ -84,6 +87,7 @@ Spring MVC中处理request的流程（架构示意图）
 ```
 
 在上面的样例中，所有的以`/example`开头的request将会由一个叫`example`的`DispatcherServlet`实例处理。在Servlet3.0+的环境中，还可以通过编程式的方式配置DispatcherServlet。下面的代码好上面的xml配置是等效的:
+
 ```java
 public class MyWebApplicationInitializer implements WebApplicationInitializer {
 
@@ -108,8 +112,9 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
 
 `DispatcherServlet`初始化时，Spring MVC会查找并加载名为[servlet-name]-servlet.xml的文件，默认查找的目录是web应用的`WEB-INF`目录，加载完成后就创建xml中定义的beans，会覆盖容器中所有的重名bean。
 
-考虑下面`DispatcherServlet`Servlet配置（在web.xml文件中）
-```
+考虑下面`DispatcherServlet`Servlet配置（在web.xml文件中）:
+
+``` xml
 <web-app>
     <servlet>
         <servlet-name>golfing</servlet-name>
@@ -122,10 +127,12 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
     </servlet-mapping>
 </web-app>
 ```
+
 根据上面的配置，必须得在应用中存在`/WEB-INF/golfing-servlet.xml`文件。这个文件中包含了所有Spring Web MVC指定的组件（beans）。配置文件的位置也是可以修改的，通过Servlet初始化参数，下面详细讲解。
 
 若只有一个`DispatcherServlet`，且只有一个配置文件，那么就可以不用设置Servlet 初始化参数`contextConfigLocation`。
 像下面这样讲解如何通过Servlet参数设置来修改配置文件位置:
+
 ```xml
 <web-app>
     <context-param>
