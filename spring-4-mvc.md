@@ -47,12 +47,12 @@ Spring的 web模块包含很多特有的web 支持功能：
 * 重用业务代码，无需重复。使用已经存在的业务对象或者form 对象，无需复制或者继承指定的框架基类。
 * 自定义数据绑定和验证。类型不匹配作为应用级别验证错误并保持现其值，本地时间和数字绑定等等用来替代现有的转换机制，现有转换机制是指：仅有String的form对象和业务对象之间互相转换
 * 自定义handler mapping处理映射和视图解决方案。Handler mapping和视图解决方案策略，从简单的到复杂的，以及特定的解决策略，都行。Spring和其他mvc框架相比，更灵活。
-* Flexible model transfer. Model transfer with a name/value Map supports easy integration with any view technology.
-* Customizable locale, time zone and theme resolution, support for JSPs with or without Spring tag library, support for JSTL, support for * * * Velocity without the need for extra bridges, and so on.
-* A simple yet powerful JSP tag library known as the Spring tag library that provides support for features such as data binding and themes. The custom tags allow for maximum flexibility in terms of markup code. For information on the tag library descriptor, see the appendix entitled Chapter 39, spring.tld
-* A JSP form tag library, introduced in Spring 2.0, that makes writing forms in JSP pages much easier. For information on the tag library descriptor, see the appendix entitled Chapter 40, spring-form.tld
-* Beans whose lifecycle is scoped to the current HTTP request or HTTP Session. This is not a specific feature of Spring MVC itself, but rather of the WebApplicationContext container(s) that Spring MVC uses. These bean scopes are described in Section 5.5.4, “Request, session, and global session scopes”
-
+* 灵活的数据传输：使用键/值对来传输数据可以方便的整合所有的视图技术
+* 自定义地区，时区和主题解析，支持带或者不带Spring标签库的JSP，支持JSTL(Java Standard Tag Library)，支持无缝继承Velocity视图技术等等
+* 目前简单强大的Spring标签库，该标签库支持诸如数据绑定和主题等特性。自定义标签库可以最大限度的发挥标记语言的灵活性，向知道更多Spring标签库的描述的话，请看第39章：spring.tld
+* 自Spring2.0引入的JSP表单标签库(spring form tag library)让书写JSP页面更简单。更多Spring的表单标签库，请看第40章：spring-form.tld
+* 容器内的对象(bean，Spring管IOC容器内的一切对象都叫bean)生命周期在当前Http请求(HttpRequest)或者Http会话(HttpSession)作用域内。这不仅是SpringMVC本身的特性，而是SpringMVC使用的WebApplicationContext容器本身的特性（sound2gd注：用过Spring的都知道这是啥）。
+这些bean的作用域将会在**5.5.4节“请求，会话以及全局会话作用域”**中介绍
 
 <h3 id='mvc-introduction-pluggability'>其他MVC实现的可拔插集成</h3>
 在有些项目中，非SPring的 MVC实现是可取的。很多团队希望利用已经存在的技术和工具，比如JSF.
