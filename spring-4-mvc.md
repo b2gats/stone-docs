@@ -27,7 +27,7 @@ Spring MVC的核心是`DispatcherServlet`，该类作用非常多，分发请求
 Spring的视图解决方案非常灵活。一个`Controller`通常是负责将数据转换成model map，并选择一个view name，但是它也能直接向response 流中写入来完成request.View视图名字解决方案是可配置的，实现途径多种多样：通过文件扩展或者Accetp header content type，通过bean名字，一个properties属性文件,甚至是自定义的`ViewResolver`实现。model模型（MVC中的M）是一个`Map`接口，它是视图技术的基础。可以直接集成基于渲染技术的模板，像JSP,Velocity和Freemarker,或者直接生成XML,JSON,Atom和许多其他类型的内容。model Map将会进行简单的转换为合适的格式，像JSP中的reqeust attributes,Velocity模板的model。
 
 <h4 id='mvc-features'>Spring Web MVC的功能</h4>
-```text
+
 Spring Web Flow
 
 Spring Web Flow (SWF)意在管理web应用页面流程的。 
@@ -38,7 +38,7 @@ SWF允许你捕获逻辑页面流程作为字包含模块，该模块将会在�
 
 For more information about SWF, consult the Spring Web Flow website.
 有关SWF更多的信息，参阅[Spring Web Flow网站 ](http://projects.spring.io/spring-webflow/)
-```
+
 
 Spring的 web模块包含很多特有的web 支持功能：
 * 清晰的角色分离：controller, validator, command object, form object, model object, DispatcherServlet, handler mapping, view resolver等等，都存在相关的专用对象
@@ -47,11 +47,11 @@ Spring的 web模块包含很多特有的web 支持功能：
 * 重用业务代码，无需重复。使用已经存在的业务对象或者form 对象，无需复制或者继承指定的框架基类。
 * 自定义数据绑定和验证。类型不匹配作为应用级别验证错误并保持现其值，本地时间和数字绑定等等用来替代现有的转换机制，现有转换机制是指：仅有String的form对象和业务对象之间互相转换
 * 自定义handler mapping处理映射和视图解决方案。Handler mapping和视图解决方案策略，从简单的到复杂的，以及特定的解决策略，都行。Spring和其他mvc框架相比，更灵活。
-* Flexible model transfer. Model transfer with a name/value Map supports easy integration with any view technology.
-* Customizable locale, time zone and theme resolution, support for JSPs with or without Spring tag library, support for JSTL, support for * * * Velocity without the need for extra bridges, and so on.
-* A simple yet powerful JSP tag library known as the Spring tag library that provides support for features such as data binding and themes. The custom tags allow for maximum flexibility in terms of markup code. For information on the tag library descriptor, see the appendix entitled Chapter 39, spring.tld
-* A JSP form tag library, introduced in Spring 2.0, that makes writing forms in JSP pages much easier. For information on the tag library descriptor, see the appendix entitled Chapter 40, spring-form.tld
-* Beans whose lifecycle is scoped to the current HTTP request or HTTP Session. This is not a specific feature of Spring MVC itself, but rather of the WebApplicationContext container(s) that Spring MVC uses. These bean scopes are described in Section 5.5.4, “Request, session, and global session scopes”
+* 灵活的 Model层转换. Model 包含对 Map 类型的支持,这样更容易和任何 view 层的技术集成.
+* 可定制的本地化,时区和主题解决方案,支持 JSPs, JSTL, Velocity 等技术.
+* Spring 标签是一个简单但仍然很实用的 JSP 标签库,提供对例如数据绑定,主题的支持. 自定义的标签允许标记代码的最大灵活性. 例如,第39章,关于 spring.tld 的标记库说明.
+* 在Spring 2.0已经介绍过 JSP 标签库,标签库可以使 JSP 页面的编写更轻松.例如,第40章,关于 spring.tld 的标记库说明.
+* 除了少数使用的WebApplicationContext 容器 bean, bean的生存周期都是作用在当前 HTTP 请求或者当前 HTTP session中,这不是 Spring MVC 自身的特殊特性.关于 bean 的章节具体可以查看第5.5.4内容,“Request, session, and global session scopes”
 
 
 <h3 id='mvc-introduction-pluggability'>其他MVC实现的可拔插集成</h3>
