@@ -178,38 +178,77 @@ FlashMapManager(这个sound2gd真的不造咋翻译) | 储存并且获取输入�
 `DispatcherServlet `中使用的特殊bean的默认实现，其信息配置在`org.springframework.web.servlet`包中的`DispatcherServlet.properties`。
 特殊bean默认实现的存在都是有道理的。很快你就会指定这些bean的自定义实现。比如，有个非常常用的配置，修改`InternalResourceViewResolver `类的`prefix `来设置view 文件的目录。
 
-Regardless of the details, the important concept to understand here is that once you	configure a special bean such as an InternalResourceViewResolver in your WebApplicationContext, you effectively override the list of default implementations that would have been used otherwise for that special bean type. For example if you configure an InternalResourceViewResolver, the default list of ViewResolver implementations is ignored.
+sound2gd:顺便贴出DispatcherServlet的内容：
 
-In Section 20.16, “Configuring Spring MVC” you’ll learn about other options for configuring Spring MVC including MVC Java config and the MVC XML namespace both of which provide a simple starting point and assume little knowledge of how Spring MVC works. Regardless of how you choose to configure your application, the concepts explained in this section are fundamental should be of help to you.
+```  properties
+ # 下面是DispatcherServlet默认的策略实现了哪些接口
+# 当在DispatcherServlet上下文没有匹配的bean的时候会使用下面这些默认配置
+# 并不意味着所有的配置都可以被应用开发者修改
+
+#地区解析器 默认 AcceptHeaderLocaleResolver
+org.springframework.web.servlet.LocaleResolver=org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver
+#主题解析器  默认FixedThemeResolver
+org.springframework.web.servlet.ThemeResolver=org.springframework.web.servlet.theme.FixedThemeResolver
+# 处理器映射器 默认 BeanNameUrlHandlerMapping和DefaultAnnotationHandlerMapping
+org.springframework.web.servlet.HandlerMapping=org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping,\
+    org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping
+# 处理器适配器 默认SimpleControllerHandlerAdapter和AnnotationMethodHandlerAdapter
+org.springframework.web.servlet.HandlerAdapter=org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter,\
+    org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter,\
+    org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter
+# 处理器异常解析器 默认 AnnotationMethodHandlerExceptionResolver，ResponseStatusExceptionResolver
+org.springframework.web.servlet.HandlerExceptionResolver=org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver,\
+    org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver,\
+    org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver
+# 请求到视图名翻译器 默认 DefaultRequestToViewNameTranslator
+org.springframework.web.servlet.RequestToViewNameTranslator=org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator
+# 视图解析器 默认 InternalResourceViewResolver
+org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.view.InternalResourceViewResolver
+# FlashMapManager 默认 SessionFlashMapManager
+org.springframework.web.servlet.FlashMapManager=org.springframework.web.servlet.support.SessionFlashMapManager
+```
+
+忽略这些细节来看，重要的是在你的WebApplicationContext中配置一个特殊的bean的时候，例如配置内部视图解析器（InternalResourceViewResolver）的时候，
+你已经覆盖了默认的实现，这些实现会在你没有配置的时候默认使用。例如如果你配置了内部视图解析器，那么默认的时候将会被忽略
+
+在20.16节“配置SpringMVC”中。你将学习通过Java配置类和XML两种方式来配置SpringMVC，这两种方式都提供了简单的切入点，这些切入点能让你快速上手
+Springmvc而不用知道太多SpringMVC是如何工作的细节。不管你如何配置你的应用，这节提到的知识是最基础的，应该可以帮到你。
 
 <h4 id='mvc-servlet-sequence'>DispatcherServlet 处理顺序</h4>
-After you set up a DispatcherServlet, and a request comes in for that specific DispatcherServlet, the DispatcherServlet starts processing the request as follows:
+在你设置到DispatcherServlet之后，一个请求到达该DispatcherServlet,DispatcherServlet会这样处理该请求：
 
-* The WebApplicationContext is searched for and bound in the request as an attribute that the controller and other elements in the process can use. It is bound by default under the key DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE.
-* The locale resolver is bound to the request to enable elements in the process to resolve the locale to use when processing the request (rendering the view, preparing data, and so on). If you do not need locale resolving, you do not need it.
-* The theme resolver is bound to the request to let elements such as views determine which theme to use. If you do not use themes, you can ignore it.
-* If you specify a multipart file resolver, the request is inspected for multiparts; if multiparts are found, the request is wrapped in a MultipartHttpServletRequest for further processing by other elements in the process. See Section 20.10, “Spring’s multipart (file upload) support” for further information about multipart handling.
-* An appropriate handler is searched for. If a handler is found, the execution chain associated with the handler (preprocessors, postprocessors, and controllers) is executed in order to prepare a model or rendering.
-* If a model is returned, the view is rendered. If no model is returned, (may be due to a preprocessor or postprocessor intercepting the request, perhaps for security reasons), no view is rendered, because the request could already have been fulfilled.
-* Handler exception resolvers that are declared in the WebApplicationContext pick up exceptions that are thrown during processing of the request. Using these exception resolvers allows you to define custom behaviors to address exceptions.
+* 寻找WebApplicationContext,绑定为request的一个属性，以便Controller和其他处理单元可以使用它，默认以键名DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE绑定
+* 区域解析器（LocaleResolver）被绑定到request，然后启动处理过程中的各单元，以便在处理请求的时候（如渲染视图，准备数据等等）可以使用解析出来的区域参数。如果你不需要区域解析，那么你不需要配置这玩意儿。
+* request绑定主题解析器来决定该在视图中使用哪个主题，如果你不使用主题，那么可以忽略它。
+* 如果你指定了一个文件上传解析器(MultiPartResolver)，那么这个请求会先判断是不是文件上传请求。如果发现了是文件上传请求，
+该request会被封装成MultiPartHttpServletRequest
+以便处理过程的其他单位可以使用。详情请看章节20.10，“Spring文件上传支持”，以得到更多文件上传的消息。
+* 搜索匹配的处理器，如果找到了该处理器，那么处理器们（如处理器拦截器，控制器）会关联到这个处理流程(Execution Chain)，按顺序执行以便准备模型数据或者渲染响应。
+* 如果返回了一个模型数据(Model,MVC中的模型层，一般可以简单的理解为数据)，那么将渲染视图。
+如果没有模型返回，那么不会渲染任何视图（可能是因为安全考虑被拦截器拦截了），因为该请求已经被处理完了。
+* 在ApplicationContext中定义的处理器异常解析器(HandlerExceptionResolver)将捕获请求过程中抛出的异常，使用处理器异常解析器将允许你自定义异常行为处理。
 
-The Spring DispatcherServlet also supports the return of the last-modification-date, as specified by the Servlet API. The process of determining the last modification date for a specific request is straightforward: the DispatcherServlet looks up an appropriate handler mapping and tests whether the handler that is found implements the LastModified interface. If so, the value of the long getLastModified(request) method of the LastModified interface is returned to the client.
 
-You can customize individual DispatcherServlet instances by adding Servlet initialization parameters ( init-param elements) to the Servlet declaration in the web.xml file. See the following table for the list of supported parameters.
+DispatcherServlet也支持返回ServletAPI里规范的最后更改日期（last-modification-date）。一个具体请求的最后更改日期是由以下处理方式决定的：
+DispatcherServlet寻找匹配的处理器，然后检测这个处理器有没有实现LastModified接口。如果实现了，将会调用其long getLastModified(request) 方法，
+并返回给客户端。
 
-**Table 20.2. DispatcherServlet initialization parameters**
+你可以自定义DispatcherServlet，自定义的昂视是增加Servlet启动参数（也就是web.xml的init-param标签）。以下是其支持配置的参数：
 
-Parameter | Explanation
+**表20.2. DispatcherServlet启动参数**
+
+参数 | 解释
 --------- | -----------
-contextClass | Class that implements WebApplicationContext, which instantiates the context used by this Servlet. By default, the XmlWebApplicationContext is used.
-contextConfigLocation | String that is passed to the context instance (specified by contextClass) to indicate where context(s) can be found. The string consists potentially of multiple strings (using a comma as a delimiter) to support multiple contexts. In case of multiple context locations with beans that are defined twice, the latest location takes precedence.
-namespace | Namespace of the WebApplicationContext. Defaults to [servlet-name]-servlet.
+上下文类(contextClass) | 实现了WebApplicationContext接口的类，用于初始化DispatcherServlet要用的上下文。默认实现是XmlWebApplicationContext。
+上下文配置路径（contextConfigLocation） | 用于指定上下文的路径的字符串，该参数会传递给上下文实例（由上面的contextClass指定）。该字符串可能包含多个字符串（使用逗号分隔）来配置多个上下文。如果有多个上下文中的bean重复定义，只有最后一个bean将会生效。
+命名空间(namespace) | WebApplicationContext的命名空间，默认是[Servlet名字]-servlet。
 
 <h3 id='mvc-controller'>实现Controller</h3>
 Controllers提供了访问应用的入口。Controllers解析request并转换为model模型，模型向view视图提供数据。Spring高度抽象了controller，这样开发者可通过各种方式创建controller。
 Spring 2.5开始，可以使用注解创建controller，比如`@RequestMapping, @RequestParam, @ModelAttribute`等等。这些注解既可用于Spring MVC也可用于 Portlet MVC。这种方式无需继承指定基类或者实现指定接口。此外，无需依赖`Servlet `API或者`Portlet `API，但是可以非常方便的访问他们。
 
 ![](http://docs.spring.io/spring/docs/4.2.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/images/tip.png)
+
 > 大量的web都是使用注解的，比如* MvcShowcase, MvcAjax, MvcBasic, PetClinic, PetCare*等等，不信你看[https://github.com/spring-projects/](https://github.com/spring-projects/)
 
 ```java
@@ -328,7 +367,7 @@ public class ClinicController {
 上例中未指定GET vs. PUT, POST等方法，因为默认情况下，`@RequestMapping`将会处理相关路径下的所有的HTTP方法。使用这种`@RequestMapping(method=GET)`方式才能精准的映射。
 
 <h5 id='mvc-ann-requestmapping-proxying'>@Controller和AOP代理</h5>
-有些情况下，controller也许会有AOP代理装饰。比如，在controller上直接定义`@Transactional`注解。这种情况，推荐使用类注解。然而，如果controller需要实现一个非Spring 回调接口(也就是`InitializingBean, *Aware`等等),则需要明确的配置基于类的代理。比如，使用了`<tx:annotation-driven />`就得改为`<tx:annotation-driven proxy-target-class="true" />`。
+有些情况下，controller也许会有AOP代理装饰。比如，在controller上直接定义`@Transactional`注解。这种情况，推荐使用类注解。然而，**如果controller需要实现一个非Spring 回调接口(也就是`InitializingBean, *Aware`等等),则需要明确的配置基于类的代理。比如，使用了`<tx:annotation-driven />`就得改为`<tx:annotation-driven proxy-target-class="true" />`**。
 
 <h5 id='mvc-ann-requestmapping-31-vs-30'>Spring 3.1中为@RequestMapping方法新增的支持类</h5>
 Spring 3.1 introduced a new set of support classes for @RequestMapping methods called RequestMappingHandlerMapping and RequestMappingHandlerAdapter respectively. They are recommended for use and even required to take advantage of new features in Spring MVC 3.1 and going forward. The new support classes are enabled by default by the MVC namespace and the MVC Java config but must be configured explicitly if using neither. This section describes a few important differences between the old and the new support classes.
