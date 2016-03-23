@@ -370,6 +370,7 @@ public class ClinicController {
 有些情况下，controller也许会有AOP代理装饰。比如，在controller上直接定义`@Transactional`注解。这种情况，推荐使用类注解。然而，**如果controller需要实现一个非Spring 回调接口(也就是`InitializingBean, *Aware`等等),则需要明确的配置基于类的代理。比如，使用了`<tx:annotation-driven />`就得改为`<tx:annotation-driven proxy-target-class="true" />`**。
 
 <h5 id='mvc-ann-requestmapping-31-vs-30'>Spring 3.1中为@RequestMapping方法新增的支持类</h5>
+
 Spring 3.1 introduced a new set of support classes for @RequestMapping methods called RequestMappingHandlerMapping and RequestMappingHandlerAdapter respectively. They are recommended for use and even required to take advantage of new features in Spring MVC 3.1 and going forward. The new support classes are enabled by default by the MVC namespace and the MVC Java config but must be configured explicitly if using neither. This section describes a few important differences between the old and the new support classes.
 
 Prior to Spring 3.1, type and method-level request mappings were examined in two separate stages — a controller was selected first by the DefaultAnnotationHandlerMapping and the actual method to invoke was narrowed down second by the AnnotationMethodHandlerAdapter.
@@ -390,6 +391,7 @@ The above features are still supported with the existing support classes. Howeve
 URI 模板是类URI字串，包含一个或多个变量名，为变量设置值时，它就成了URI。在[proposed RFC](http://bitworking.org/projects/URI-Templates/)中定义了是如何参数化的。比如，URI模板`http://www.example.com/users/{userId}`包含一个变量userId,设置userId变量的值为*fred*，`http://www.example.com/users/fred`。
 
 在方法参数上使用 `@PathVariable`注解，将会绑定URI中变量的值到参数上:
+
 ```java
 @RequestMapping(value="/owners/{ownerId}", method=RequestMethod.GET)
 public String findOwner(@PathVariable String ownerId, Model model) {
@@ -490,7 +492,7 @@ URI规范，是在路径中可能含有键值对。在规范中并未包含特�
 矩阵变量可以出现在任意路径中，每一个矩阵变量有";"分号分隔。比如:
 `"/cars;color=red;year=2012"`，多个值的话使用","逗号分隔，`"color=red,green,blue"`，或者使用重复的变量名`"color=red;color=green;color=blue"`。 
 
-If a URL is expected to contain matrix variables, the request mapping pattern must represent them with a URI template. This ensures the request can be matched correctly regardless of whether matrix variables are present or not and in what order they are provided.
+如果一个URL被认为是包含矩阵变量的，请求映射样式(mapping pattern)将会以URI模板的形式代替。这确保了请求可以被正确的映射处理，不管这个请求的矩阵变量是不是存在或者以何种顺序提供。
 
 下例演示解析矩阵变量"q":
 ```java
@@ -631,6 +633,7 @@ public class RelativePathUriTemplateController {
 <h4 id='mvc-ann-methods'>定义@RequestMapping 处理方法</h4>
 `@RequestMapping`方法非常灵活，几乎不受任何限制。支持的方法参数和返回值类型，在下面详述。除`BindingResult `类型参数外，大多数参数次序随意。
 ![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
+
 > Spring 3.1引入了一组`@RequestMapping`方法的支持类，分别是`RequestMappingHandlerMapping`和`RequestMappingHandlerAdapter`。
 
 <h5 id='mvc-ann-arguments'>支持的方法参数类型</h5>
@@ -639,47 +642,44 @@ public class RelativePathUriTemplateController {
 * Session 对象：比如`HttpSession`。此类型的参数将会注入响应的session，因此，此参数永远不为null。
 
 ![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/tip.png)
-> Session访问也许不是线程安全的，尤其是在Servlet花逆境中。加入允许多个Request可并发的访问session,可考虑使用`RequestMappingHandlerAdapter`的"synchronizeOnSession"属性为"true"
+> Session访问也许不是线程安全的，尤其是在Servlet环境中。如果很多请求允许并发访问同一个Session的话，不妨考虑设置处理器适配器(RequestMappingHandlerAdapter)的synchronizeOnSession标识设置为true
 
-* `org.springframework.web.context.request.WebRequest`或者`org.springframework.web.context.request.NativeWebRequest`
-* org.springframework.web.context.request.WebRequest or org.springframework.web.context.request.NativeWebRequest. Allows for generic request parameter access as well as request/session attribute access, without ties to the native Servlet/Portlet API.
-* java.util.Locale for the current request locale, determined by the most specific locale resolver available, in effect, the configured LocaleResolver / LocaleContextResolver in an MVC environment.
-* java.util.TimeZone (Java 6+) / java.time.ZoneId (on Java 8) for the time zone associated with the current request, as determined by a LocaleContextResolver.
-* java.io.InputStream / java.io.Reader for access to the request’s content. This value is the raw InputStream/Reader as exposed by the Servlet API.
-* java.io.OutputStream / java.io.Writer for generating the response’s content. This value is the raw OutputStream/Writer as exposed by the Servlet API.
-* org.springframework.http.HttpMethod for the HTTP request method.
-* java.security.Principal containing the currently authenticated user.
-* @PathVariable annotated parameters for access to URI template variables. See the section called “URI Template Patterns”.
-* @MatrixVariable annotated parameters for access to name-value pairs located in URI path segments. See the section called “Matrix Variables”.
-* @RequestParam annotated parameters for access to specific Servlet request parameters. Parameter values are converted to the declared method argument type. See the section called “Binding request parameters to method parameters with @RequestParam”.
-* @RequestHeader annotated parameters for access to specific Servlet request HTTP headers. Parameter values are converted to the declared method argument type. See the section called “Mapping request header attributes with the @RequestHeader annotation”.
-* @RequestBody annotated parameters for access to the HTTP request body. Parameter values are converted to the declared method argument type using HttpMessageConverters. See the section called “Mapping the request body with the @RequestBody annotation”.
-* @RequestPart annotated parameters for access to the content of a "multipart/form-data" request part. See Section 17.10.5, “Handling a file upload request from programmatic clients” and Section 17.10, “Spring’s multipart (file upload) support”.
-* HttpEntity<?> parameters for access to the Servlet request HTTP headers and contents. The request stream will be converted to the entity body using HttpMessageConverters. See the section called “Using HttpEntity”.
-* java.util.Map / org.springframework.ui.Model / org.springframework.ui.ModelMap for enriching the implicit model that is exposed to the web view.
-* org.springframework.web.servlet.mvc.support.RedirectAttributes to specify the exact set of attributes to use in case of a redirect and also to add flash attributes (attributes stored temporarily on the server-side to make them available to the request after the redirect). RedirectAttributes is used instead of the implicit model if the method returns a "redirect:" prefixed view name or RedirectView.
-* Command or form objects to bind request parameters to bean properties (via setters) or directly to fields, with customizable type conversion, depending on @InitBinder methods and/or the HandlerAdapter configuration. See the webBindingInitializer property on RequestMappingHandlerAdapter. Such command objects along with their validation results will be exposed as model attributes by default, using the command class class name - e.g. model attribute "orderAddress" for a command object of type "some.package.OrderAddress". The ModelAttribute annotation can be used on a method argument to customize the model attribute name used.
-* org.springframework.validation.Errors / org.springframework.validation.BindingResult validation results for a preceding command or form object (the immediately preceding method argument).
-* org.springframework.web.bind.support.SessionStatus status handle for marking form processing as complete, which triggers the cleanup of session attributes that have been indicated by the @SessionAttributes annotation at the handler type level.
-* org.springframework.web.util.UriComponentsBuilder a builder for preparing a URL relative to the current request’s host, port, scheme, context path, and the literal part of the servlet mapping.
+* `org.springframework.web.context.request.WebRequest`或者`org.springframework.web.context.request.NativeWebRequest`。在不需要耦合Servlet/PortletApi的情况下，就可以访问通用的request参数和request/session参数以及属性。
+* `java.util.Locale `，用于标识当前的请求区域，它一般取决于可用的具体地区解析器(localeresolver),实际上，一般SpringMVC使用上下文中的LocaleResolver以及LocaleContextResolver来解析区域的。
+* `java.util.TimeZone`(Java6以上)/`java.time.ZoneId `(java8新增)，请求所在的时区，由地区上下文解析器(LocaleContextResolver)决定。
+* `java.io.InputStream`/`java.io.Reader`，当前请求报文内容的输入流，内容就是原始的Servlet API所规范的InputStream/Reader 。
+* `java.io.OutputStream`/`java.io.Writer`，用于生成响应报文的内容的输出流，内容就是原始的Servlet API所规范的OutputStream/Writer  。
+* `org.springframework.http.HttpMethod`，用于支持HTTP请求方法
+* `java.security.Principal`，包含了当前认证用户的身份令牌信息
+* `@PathVariable`注解，用于访问URI模板变量的注解，详情见下文"URI Template Patterns”
+* `@MatrixVariable`注解，用于访问URI路径的键值对，详情见下文“Matrix Variables”.
+* `@RequestParam`注解，用于访问具体的Servlet请求的请求参数。参数值会被转化成方法内声明的参数类型（就是你方法里写的啥类型就转成啥）。详情见下文“Binding request parameters to method parameters with @RequestParam”.
+* `@RequestHeader `注解，用于访问具体Servlet请求的请求头。参数值会被转化成方法内声明的参数类型。详情见下文 “Mapping request header attributes with the @RequestHeader annotation”.
+* `@RequestBody`注解，用于访问HTTP请求报文的请求体。参数值会使用Http消息转化器(HttpMessageConverters)来转化成方法声明的类型。详情参见下文“Mapping the request body with the @RequestBody annotation”.
+* `@RequestPart `注解，用于访问文件上传请求的文件内容（请求mime类型为multipart/formdata）。详情见下文“Handling a file upload request from programmatic clients” and Section 17.10, “Spring’s multipart (file upload) support”.
+* HttpEntity<?>，该参数用来访问Servlet请求的请求头和请求体。请求流会被转换成实体数据，一般使用的是HttpMessageConverter来转化。详情见下文“Using HttpEntity”.
+* `java.util.Map`/`org.springframework.ui.Model`/`org.springframework.ui.ModelMap`，用来提供视图所需的模型数据（sound2gd注:其实这仨是同一个对象，如果出现在同一个Controller的方法里）
+* `org.springframework.web.servlet.mvc.support.RedirectAttributes `，用来在重定向的时候指明所使用的具体属性，并添加到flash属性里（flash属性是临时在服务器存储的属性，目的是在重定向之后也能使用它们）。当controller返回的视图名带有`redirect:`前缀或者返回`RedirectView`的时候，`RedirectAttributes`将会被使用。
+* 命令(Command Object)或者表单对象(Form Object)，用于绑定请求参数到javabean属性（通过它们的setter方法）或者直接绑定到形参，在这个过程中会使用自定义的类型转换器，该转换器依赖于`@InitBinder`注解的方法或者处理器适配器(HandlerAdapter)配置。详情请看`RequestMappingHandlerAdapter`的`webBindingInitializer`属性。这样的命令对象以及对它们的验证将会默认置入模型数据(model)中，使用该命令类的类名作为模型的键名，例如：some.package.OrderAddress会有键名orderAddress。注解`@ModelAttribute`可以使用在方法内来自定义模型数据中命令对象的键名。（sound2gd:我的理解这个Command Object其实就是你在Controller方法里写的javabean的引用）
+* `org.springframework.validation.Errors`/`org.springframework.validation.BindingResult`，这是预处理比如验证命令和表单对象的结果。
+* `org.springframework.web.bind.support.SessionStatus`，用来表示处理流程已经完成的一种状态，这个状态会触发对session内属性的清除，该属性是使用`@SessionAttributes`注解在处理器(handler)类级别上注入的。
+* `org.springframework.web.util.UriComponentsBuilder`，这是一个URI组件建造者，用来构建一个当前请求的主机，端口，上下文路径以及servlet映射（servlet-mapping）所对应的URL
 
+错误(Errors)以及绑定结果(BindingResult)参数必须紧随model参数之后，因为方法签名可能会产生多个model对象，Spring会为每一个model对象都生成一个适配的BindingResult。所以以下的示例是错误的：
 
-The Errors or BindingResult parameters have to follow the model object that is being bound immediately as the method signature might have more that one model object and Spring will create a separate BindingResult instance for each of them so the following sample won’t work:
-
-**Invalid ordering of BindingResult and @ModelAttribute. **
+**BindingResult和@ModelAttribute的顺序错误示例 **
 ```java
 @RequestMapping(method = RequestMethod.POST)
 public String processSubmit(@ModelAttribute("pet") Pet pet, Model model, BindingResult result) { ... }
 ```
-
-Note, that there is a Model parameter in between Pet and BindingResult. To get this working you have to reorder the parameters as follows:
+必须指出，在Pet和BindingResult之间有一个Model模型参数，所以BindingResult不能工作（sound2gd:这里只能检测出Model的绑定结果，而不是Pet），要让它工作需要重新排序如下：
 ```java
 @RequestMapping(method = RequestMethod.POST)
 public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result, Model model) { ... }
 ```
 
 ![](http://docs.spring.io/autorepo/docs/spring/current/spring-framework-reference/html/images/note.png)
->JDK 1.8’s java.util.Optional is supported as a method parameter type with annotations that have a required attribute (e.g. @RequestParam, @RequestHeader, etc. The use of java.util.Optional in those cases is equivalent to having required=false.
+> JDK1.8之后的 `java.util.Optional`支持带注解的方法参数类型，这个注解都拥有一个require属性（例如@RequestParam, @RequestHeader等）使用`java.util.Optional`和使用这些属性的require=false的结果是等同的。 
 
 <h5 id='mvc-ann-return-types'>支持的返回值类型</h5>
 支持下列返回值:
@@ -1171,6 +1171,7 @@ public class JsonpAdvice extends AbstractJsonpResponseBodyAdvice {
 
 <h4 id='mvc-ann-async'>异步请求处理</h4>
 Spring MVC 3.2增加了基于Servlet 3的异步请求处理。可启动单独线程，并返回`java.util.concurrent.Callable`类型值，此时，Servlet容器主线程可以处理其他request。Spring MVC在单独的线程内使用`TaskExecutor`调用`Callable`，当`Callable`返回时，Servlet容器将该值返回给相应的request并恢复该request进行处理。看样例:
+
 ```java
 @RequestMapping(method=RequestMethod.POST)
 public Callable<String> processUpload(final MultipartFile file) {
@@ -1188,6 +1189,7 @@ public Callable<String> processUpload(final MultipartFile file) {
 
 还有一个选择，使方法返回`DeferredResult`实例。在这种情况下，return的值将会产生一个单独的线程。当然了，线程并不能被Spring MVC感知。比如，返回值将会产生一个
 外部事件，像JMS message，scheduled task等等。看样例代码:
+
 ```java
 @RequestMapping("/quotes")
 @ResponseBody
