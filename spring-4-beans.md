@@ -557,7 +557,7 @@ setter注入主要用于可选依赖,类内部可以指定默认依赖。否则�
 容器解析bean依赖如下：
 * `ApplicationContext`创建后用配置元数据中描述的所有bean进行初始化。配置元数据格式可以是XML、Java Code，或者注解。
 * 每个bean的依赖，都会以下列形式表达:属性、构造参数，静态工厂方法的参数。当bean真正的创建时，这些依赖会被提供给bean。
-* 每个属性或者构造函数或者以value值形式在bean处直接设置，或者引用容器中其他bean。
+* 每个属性或者构造函数参数的值可以是一个实际的值或者是IoC容器中另一个Bean的引用。
 * 每一个属性或者构造参数都是一个值，该值将会从指定的格式转换为属性、构造参数的真正类型。Spring默认会将一个`String`类value转换成内建类型，比如`int`,`long`,`String`,`boolean`等等 
 
 Spring容器在创建bean之前会验证bean的配置。在bean创建之前，bean的属性不会赋值。当容器创建之后，会创建被设置为预先初始化的`sington-scope`单例作用域bean，非单例作用域bean，只有在请求时才会创建。作用域，在5.5章有定义，["Bean 作用域"](#beans-factory-scopes)。一个bean的创建，可能会引起许多bean的创建。因为bean的依赖以及依赖的依赖得先创建好用于引用。不涉及首先创建的bean及其依赖类bean，会稍后创建。
@@ -796,12 +796,12 @@ Spring 容器通过JavaBean的`PropertyEditor`机制将`<value/>`元素内的值
 > 在4.0 beans xsd ，`ref `上的`local`属性不在支持。因次它不再支持正规bean的引用 。当你升级到到4.0时，记得清除已经存在于`ref`元素上的`local`属性。
 
 <h5 id='beans-inner-beans'>内部bean</h5>
-在`<property/>`元素或者`constructor-arg/>`元素内定义`<bean/>`元素，就是所谓的内部类。
+在`<property/>`元素或者`constructor-arg/>`元素内定义`<bean/>`元素，就是所谓的内部bean。
 ```xml
 <bean id="outer" class="...">
     <!-- 不是引用而是定义一个bean -->
     <property name="target">
-        <bean class="com.example.Person"> <!-- 这就是内部类 -->
+        <bean class="com.example.Person"> <!-- 这就是内部bean -->
             <property name="name" value="Fiona Apple"/>
             <property name="age" value="25"/>
         </bean>
